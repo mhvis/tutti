@@ -19,6 +19,10 @@ Make sure that Pipenv is installed. Run the following commands:
 * `python manage.py migrate`
 * `python manage.py createsuperuser`
 
+For deployments, it's easiest to add a `.env` file to specify a custom Django
+settings module. Pipenv will automatically set the environment variables in
+that file.
+
 ## Development commands
 
 Assumes that the environment is set correctly using `pipenv shell`.

@@ -47,7 +47,7 @@ class LdapEntry(models.Model):
     object_class_mapping = models.ForeignKey(ObjectClassMapping,
                                              on_delete=models.CASCADE,
                                              db_column='oc_map_id')
-    parent = models.ForeignKey('self', on_delete=models.PROTECT)
+    parent = models.ForeignKey('self', on_delete=models.PROTECT, null=True)
     key_value = models.IntegerField(db_column='keyval')
     """References the primary key of the entry in the corresponding table."""
 

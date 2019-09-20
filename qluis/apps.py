@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class QluisAppConfig(AppConfig):
+class QluisConfig(AppConfig):
     name = 'qluis'
