@@ -26,8 +26,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'phonenumber_field',
+
     'qluis.apps.QluisConfig',
-    'ldapproxy.apps.LdapProxyConfig'
+    # 'ldapproxy.apps.LdapProxyConfig'
+    # 'ldapserver.apps.LdapServerConfig'
+    'ldapsync.apps.LdapSyncConfig'
 ]
 
 MIDDLEWARE = [
@@ -96,7 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Amsterdam'
 
 USE_I18N = True
 
@@ -112,3 +116,14 @@ STATIC_URL = '/static/'
 
 
 AUTH_USER_MODEL = 'qluis.User'
+
+
+LDAP = {
+    'HOST': 'ldap://ds.esmgquadrivium.nl',  # Can be in URI form
+    'USER': '',
+    'PASSWORD': '',
+    'START_TLS': True,
+}
+
+
+PHONENUMBER_DEFAULT_REGION = 'NL'
