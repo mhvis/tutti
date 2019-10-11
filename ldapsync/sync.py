@@ -59,7 +59,12 @@ def get_add_delete(ldap_entries, model: SyncModel) -> List[SyncOperation]:
 
 
 def get_modify(ldap_entries, model: SyncModel) -> List[SyncOperation]:
-    """Get modify and mod_dn operations that need to be applied for sync."""
+    """Get modify and mod_dn operations for a list of LDAP entries.
+
+    Args:
+        ldap_entries: An iterable of entries retrieved from an LDAP search.
+        model: The Django model specification.
+    """
     operations = []
     for entry in ldap_entries:
         # Retrieve Django instance
