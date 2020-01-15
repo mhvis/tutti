@@ -3,7 +3,7 @@ from datetime import date
 from typing import Union, Dict, List, Optional
 
 from ldapsync.ldaputil import raise_for_multi_value
-from qluis.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount
+from qluis.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
 
 
 class LdapSyncMixin:
@@ -242,7 +242,11 @@ class SyncedPerson(LdapSyncMixin, Person):
                 raise Exception('Invalid group DN: {}'.format(group_dn))
             cn = match.group(1)
             group = Group.objects.get(name__iexact=cn)
-            instance.groups.add(group)
+            cur_memberships = Membership.objects.filter(person__username__iexact=instance.username,
+                                                        group__name__iexact=cn,
+                                                        end__isnull=True)
+            if cur_memberships.count() == 0:
+                Membership.objects.create(group=group, person=instance)
 
         # GSuite accounts
         for gsuite_mail in attributes['qGSuite'].values:

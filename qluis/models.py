@@ -94,25 +94,28 @@ class Person(models.Model):
     preferred_language = models.CharField(max_length=30,
                                           blank=True,
                                           choices=PREFERRED_LANGUAGES)
-    tue_card_number = models.IntegerField(null=True)
-    date_of_birth = models.DateField(null=True)
+    tue_card_number = models.IntegerField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=30,
+                              null=True,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
-    is_student = models.BooleanField(null=True)
-    membership_start = models.DateField(null=True)
-    membership_end = models.DateField(null=True)
-    permission_exquus = models.BooleanField(null=True)
-    sepa_direct_debit = models.BooleanField(null=True)
+    is_student = models.BooleanField(null=True, blank=True)
+    membership_start = models.DateField(null=True, blank=True)
+    membership_end = models.DateField(null=True, blank=True)
+    permission_exquus = models.BooleanField(null=True, blank=True)
+    sepa_direct_debit = models.BooleanField(null=True, blank=True)
 
     instruments = models.ManyToManyField(Instrument, blank=True)
 
-    bhv_certificate = models.DateField(null=True)
+    bhv_certificate = models.DateField(null=True, blank=True)
 
     external_card = models.ForeignKey(ExternalCard,
                                       on_delete=models.SET_NULL,
-                                      null=True)
-    external_card_deposit_made = models.BooleanField(null=True)
+                                      null=True,
+                                      blank=True
+                                      )
+    external_card_deposit_made = models.BooleanField(null=True, blank=True)
 
     field_of_study = models.CharField(max_length=150,
                                       blank=True)
@@ -151,3 +154,9 @@ class Person(models.Model):
 
     def __str__(self):
         return self.get_full_name()
+
+class Membership(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    start = models.DateField(_("Start date"), auto_now_add=True)
+    end = models.DateField(_("End date"), blank=True, null=True)
