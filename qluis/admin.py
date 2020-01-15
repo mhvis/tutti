@@ -3,7 +3,6 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group as DjangoGroup
 
 from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
-from django.db.models.query_utils import DeferredAttribute
 
 admin.site.register(User, UserAdmin)
 admin.site.unregister(DjangoGroup)
@@ -53,7 +52,6 @@ class PersonAdmin(admin.ModelAdmin):
 
               )
     list_display = ('username', 'email', 'first_name', 'last_name')
-    #list_filter = ('groups',)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
