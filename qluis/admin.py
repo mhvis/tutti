@@ -8,6 +8,20 @@ admin.site.register(User, UserAdmin)
 admin.site.unregister(DjangoGroup)
 
 
+class GroupFilter(admin.SimpleListFilter):
+    title = 'Groups'
+    parameter_name = 'group'
+
+    def lookups(self, request, model_admin):
+        return [(group.id, group.name) for group in Group.objects.all()]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == None:
+            return queryset.all()
+        return queryset.filter(membership__group__id=value)
+
+
 class MembershipAdminInline(admin.TabularInline):
     model = Membership
     can_delete = False
@@ -52,6 +66,7 @@ class PersonAdmin(admin.ModelAdmin):
 
               )
     list_display = ('username', 'email', 'first_name', 'last_name')
+    list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
