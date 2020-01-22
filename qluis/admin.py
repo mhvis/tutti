@@ -69,10 +69,13 @@ class PersonAdmin(admin.ModelAdmin):
         return custom_url + urls
 
     def person_actions(self, obj):
-        return format_html(
-            '<a class="button" href="{}">Unsubscribe</a>',
-            reverse('admin:person-unsubscribe', args=[obj.pk]),
-        )
+        if obj.membership_end == None:
+            return format_html(
+                '<a class="button" href="{}">Unsubscribe</a>',
+                reverse('admin:person-unsubscribe', args=[obj.pk]),
+            )
+        else:
+            return ''
     person_actions.short_description = 'Actions'
     person_actions.allow_tags = True
 
