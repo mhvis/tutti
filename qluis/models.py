@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from datetime import datetime
 
 
 class User(AbstractUser):
@@ -148,6 +149,12 @@ class Person(models.Model):
         """Return the first_name plus the last_name, with a space in between."""
         full_name = '{} {}'.format(self.first_name, self.last_name)
         return full_name.strip()
+
+    def unsubscribe(self):
+        self.membership_end = datetime.now()
+        # Go over all groups
+
+        self.save()
 
     def __str__(self):
         return self.get_full_name()

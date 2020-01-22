@@ -1,0 +1,29 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_static admin_modify %}
+{% block content %}
+    <div id="content-main">
+        <form action="" method="POST">
+            {% csrf_token %}
+            <p style="color: darkred">Are you sure you want to unsubscribe <b>{{ title }}</b>?</p>
+            <fieldset class="module aligned">
+                <div class="form-row">
+                    <label class="required">ExQuus Permission:</label>
+                    <label>{{ exquus }}</label>
+                </div>
+                <div class="form-row">
+                    <label class="required">Email:</label>
+                    <label>{{ email }}</label>
+                </div>
+                {% for group in groups %}
+                    <div class="form-row">
+                        <label class="required">Group Membership:</label>
+                        <label>{{ group }}</label>
+                    </div>
+                {% endfor %}
+            </fieldset>
+            <div class="submit-row">
+                <input type="submit" class="default" value="Unsubscribe">
+            </div>
+        </form>
+    </div>
+{% endblock %}
