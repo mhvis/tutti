@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group as DjangoGroup
 
-from tutti.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
+from tutti.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
 admin.site.register(User, UserAdmin)
 admin.site.unregister(DjangoGroup)
@@ -13,7 +13,7 @@ class GroupFilter(admin.SimpleListFilter):
     parameter_name = 'group'
 
     def lookups(self, request, model_admin):
-        return [(group.id, group.name) for group in Group.objects.all()]
+        return [(group.id, group.name) for group in QGroup.objects.all()]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -31,7 +31,7 @@ class MembershipAdminInline(admin.TabularInline):
         return qs.filter(end=None)
 
 
-@admin.register(Group)
+@admin.register(QGroup)
 class GroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)

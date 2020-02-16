@@ -3,7 +3,7 @@ from datetime import date
 from typing import Union, Dict, List, Optional
 
 from ldapsync.ldaputil import raise_for_multi_value
-from tutti.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
+from tutti.models import QGroup, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
 
 
 class LdapSyncMixin:
@@ -55,7 +55,7 @@ class LdapSyncMixin:
         raise NotImplementedError()
 
 
-class SyncedGroup(LdapSyncMixin, Group):
+class SyncedGroup(LdapSyncMixin, QGroup):
     class Meta:
         proxy = True
 
@@ -241,7 +241,7 @@ class SyncedPerson(LdapSyncMixin, Person):
             if not match:
                 raise Exception('Invalid group DN: {}'.format(group_dn))
             cn = match.group(1)
-            group = Group.objects.get(name__iexact=cn)
+            group = QGroup.objects.get(name__iexact=cn)
             cur_memberships = Membership.objects.filter(person__username__iexact=instance.username,
                                                         group__name__iexact=cn,
                                                         end__isnull=True)

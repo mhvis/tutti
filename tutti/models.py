@@ -12,13 +12,14 @@ class User(AbstractUser):
 
 
 class Instrument(models.Model):
+    """A musical instrument."""
     name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.name
 
 
-class Group(models.Model):
+class QGroup(models.Model):
     """A Quadrivium group, like the board and commissions.
 
     This differs from the built-in Django group model which is not used for
@@ -134,7 +135,7 @@ class Person(models.Model):
     # qPermissionMedia is not used!
 
     groups = models.ManyToManyField(
-        Group,
+        QGroup,
         verbose_name=_('groups'),
         blank=True,
         help_text=_(
@@ -155,8 +156,9 @@ class Person(models.Model):
     def __str__(self):
         return self.get_full_name()
 
+
 class Membership(models.Model):
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    start = models.DateField(_("Start date"), auto_now_add=True)
+    group = models.ForeignKey(QGroup, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    start = models.DateField(_("Start date"), default=timezone.now)
     end = models.DateField(_("End date"), blank=True, null=True)
