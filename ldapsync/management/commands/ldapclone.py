@@ -5,7 +5,7 @@ from ldap3 import LEVEL, MODIFY_REPLACE
 
 from ldapsync.ldaputil import get_connection
 from ldapsync.models import SYNC_MODELS
-from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key
+from tutti.models import Instrument, GSuiteAccount, ExternalCard, Key
 
 
 class Command(BaseCommand):

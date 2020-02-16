@@ -11,7 +11,7 @@ from twisted.python import components
 from twisted.python import log
 
 from ldapserver import schema
-from qluis.models import Person
+from tutti.models import Person
 
 
 class Command(BaseCommand):

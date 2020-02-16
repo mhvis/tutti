@@ -8,7 +8,7 @@ def ldap_config(apps, schema_editor):
     AttributeMapping = apps.get_model('ldapproxy', 'AttributeMapping')
     LdapEntry = apps.get_model('ldapproxy', 'LdapEntry')
     LdapEntryObjectClasses = apps.get_model('ldapproxy', 'LdapEntryObjectClasses')
-    Member = apps.get_model('qluis', 'Member')
+    Member = apps.get_model('tutti', 'Member')
 
     # Member table
     member_table = Member._meta.db_table
@@ -36,7 +36,7 @@ def ldap_config_reverse(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ('ldapproxy', '0002_auto_20190920_2215'),
-        ('qluis', '0002_group_member')
+        ('tutti', '0002_group_member')
     ]
 
     operations = [

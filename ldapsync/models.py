@@ -3,7 +3,7 @@ from datetime import date
 from typing import Union, Dict, List, Optional
 
 from ldapsync.ldaputil import raise_for_multi_value
-from qluis.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
+from tutti.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
 
 
 class LdapSyncMixin:

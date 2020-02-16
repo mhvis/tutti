@@ -28,7 +28,7 @@ INSTALLED_APPS = [
 
     'phonenumber_field',
 
-    'qluis.apps.QluisConfig',
+    'tutti.apps.TuttiConfig',
     # 'ldapproxy.apps.LdapProxyConfig'
     # 'ldapserver.apps.LdapServerConfig'
     'ldapsync.apps.LdapSyncConfig'
@@ -115,7 +115,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
-AUTH_USER_MODEL = 'qluis.User'
+AUTH_USER_MODEL = 'tutti.User'
 
 
 LDAP = {
