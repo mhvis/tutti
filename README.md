@@ -1,8 +1,6 @@
-# QLUIS
+# Tutti
 
-Het systeem van een heel aantal jaar terug heette volgens mij QLUIS, vandaar
-deze naam, maar ik
-heb geen idee waar het precies voor stond. TODO: naam verzinnen.
+Leden management systeem van Q.
 
 ## Installation
 
