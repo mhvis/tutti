@@ -156,12 +156,12 @@ class Person(models.Model):
 
     def unsubscribe(self):
         # Go over all groups
-        print("Unsubscribing: "+self.first_name)
         for membership in Membership.objects.filter(person=self):
             if membership.group.end_on_unsubscribe:
                 membership.end = datetime.today()
                 membership.save()
 
+        # End membership to Q
         self.membership_end = datetime.now()
         self.save()
 
