@@ -11,6 +11,8 @@ from django.template.response import TemplateResponse
 
 from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
+from functools import reduce
+
 admin.site.register(User, UserAdmin)
 admin.site.unregister(DjangoGroup)
 
@@ -72,7 +74,7 @@ class PersonAdmin(admin.ModelAdmin):
               'keywatcher_pin'
 
               )
-    list_display = ('username', 'email', 'first_name', 'last_name')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'person_actions')
     list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
@@ -95,7 +97,7 @@ class PersonAdmin(admin.ModelAdmin):
         return custom_url + urls
 
     def person_actions(self, obj):
-        if obj.membership_end == None:
+        if obj.membership_end is None:
             return format_html(
                 '<a class="button" href="{}">Unsubscribe</a>',
                 reverse('admin:person-unsubscribe', args=[obj.pk]),
@@ -115,7 +117,20 @@ class PersonAdmin(admin.ModelAdmin):
         context = self.admin_site.each_context(request)
         context['opts'] = self.model._meta
         context['title'] = title
-        context['groups'] = ['Huidige leden', 'Bestuur']
+        # Format voor scala sleutels uitschrijven
+        context['sleutels'] = [
+            person.initials+' '+person.last_name,
+            'Quadrivium',
+            person.external_card,
+            person.keywatcher_id,
+            '"Delete"',
+            '',
+            reduce(lambda x, y: str(x)+','+str(y), [key.number for key in Key.objects.filter(person=person)]),
+            'Uitgeschreven'
+        ]
+        context['groups'] = [membership.group.name
+                             for membership in Membership.objects.filter(person=person)
+                             if membership.end is None]
         context['exquus'] = person.permission_exquus
         context['email'] = person.email
         return TemplateResponse(

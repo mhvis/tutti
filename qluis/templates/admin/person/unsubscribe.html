@@ -7,6 +7,18 @@
             <p style="color: darkred">Are you sure you want to unsubscribe <b>{{ title }}</b>?</p>
             <fieldset class="module aligned">
                 <div class="form-row">
+                    <label class="required">Scala sleutels/passen:</label>
+                    <table>
+                        <tr>
+                    {% for item in sleutels %}
+                        {% autoescape off %}
+                        <th>{{ item }}</th>
+                        {% endautoescape %}
+                    {% endfor %}
+                    </tr>
+                    </table>
+                </div>
+                <div class="form-row">
                     <label class="required">ExQuus Permission:</label>
                     <label>{{ exquus }}</label>
                 </div>

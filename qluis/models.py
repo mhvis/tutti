@@ -28,6 +28,7 @@ class Group(models.Model):
     name = models.CharField(_('name'), max_length=150, unique=True)
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
+    end_on_unsubscribe = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = _('group')
@@ -154,9 +155,14 @@ class Person(models.Model):
         return full_name.strip()
 
     def unsubscribe(self):
-        self.membership_end = datetime.now()
         # Go over all groups
+        print("Unsubscribing: "+self.first_name)
+        for membership in Membership.objects.filter(person=self):
+            if membership.group.end_on_unsubscribe:
+                membership.end = datetime.today()
+                membership.save()
 
+        self.membership_end = datetime.now()
         self.save()
 
     def __str__(self):
