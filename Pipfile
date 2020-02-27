@@ -9,10 +9,12 @@ flake8-docstrings = "*"
 pep8-naming = "*"
 
 [packages]
-django = "*"
+django = "==2.2.5"
 ldap3 = "*"
 django-phonenumber-field = "*"
 phonenumbers = "*"
+xlrd = "*"
+xlwt = "*"
 
 [requires]
 python_version = "3.6"
