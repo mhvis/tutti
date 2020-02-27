@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
 
     'qluis.apps.QluisConfig',
+    'pennotools.apps.PennotoolsConfig',
     # 'ldapproxy.apps.LdapProxyConfig'
     # 'ldapserver.apps.LdapServerConfig'
     'ldapsync.apps.LdapSyncConfig'
