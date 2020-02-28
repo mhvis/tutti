@@ -42,9 +42,13 @@ def combinePersons(davilexPeople):
     - Link a Person to a DavilexPerson
     """
     for name,value in davilexPeople.items():
-        person = Person.objects.get(person_id__exact=value.id)
-        if person:
-            value.addPerson(person)
+        try:
+            person = Person.objects.get(person_id__exact=value.id)
+            if person:
+                value.addPerson(person)
+        except Person.DoesNotExist:
+            pass
+
 
 def get_value(p, header):
     if header == 'StuurStatus': return ''
@@ -73,7 +77,7 @@ def get_value(p, header):
 """
 - Write people to the excelsheet
 """
-def initializeWorkbook(davPeople):
+def initializeWorkbook(davPeople, path):
     workbook = xlwt.Workbook()
     creditors =  workbook.add_sheet('Crediteuren')
     cred_row = 1
@@ -94,7 +98,7 @@ def initializeWorkbook(davPeople):
                 for i in range(len(headers)):
                     creditors.write(cred_row,i,get_value(p,headers[i]))
                 cred_row += 1
-            elif (p.get_total() >= 0 and p.qPerson.qIBAN == None):
+            elif (p.get_total() >= 0 and len(p.get_iban()) < 1):
                 for i in range(len(headers)):
                     debtorsSelf.write(debtSelf_row,i,get_value(p,headers[i]))
                 debtSelf_row += 1
@@ -106,11 +110,12 @@ def initializeWorkbook(davPeople):
             for i in range(len(headers)):
                 external.write(external_row,i,get_value(p,headers[i]))
             external_row += 1
+    name = 'Qrekening.xls'
+    workbook.save(path + name)
+    return path + name
 
-    workbook.save('Qrekening.xls')
 
-
-def writeSepa(davPeople):
+def writeSepa(davPeople, path):
     workbook = xlwt.Workbook()
     debtors = workbook.add_sheet('Debiteuren')
     debt_row = 1
@@ -121,7 +126,7 @@ def writeSepa(davPeople):
         if (p.qPerson != None):
             if (p.get_total() < 0):
                 pass;
-            elif (p.get_total() >= 0 and p.qPerson.qIBAN == None):
+            elif (p.get_total() >= 0 and len(p.get_iban()) < 1):
                 pass;
             else:
                 total = p.get_total()
@@ -139,4 +144,6 @@ def writeSepa(davPeople):
                         else:
                             debtors.write(debt_row,i,get_value(p,sepa_headers[i]))
                 debt_row += 1
-    workbook.save('QrekeningSEPA.xls')
+    name = 'QrekeningSEPA.xls'
+    workbook.save(path + name)
+    return path + name

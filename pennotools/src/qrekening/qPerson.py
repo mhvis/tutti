@@ -45,7 +45,7 @@ class DavilexPerson:
     """
     def addPerson(self, p):
         if (self.qPerson == None):
-            if (p.get_id() == self.id):
+            if (p.person_id == self.id):
                 self.qPerson = p
         else: 
             raise Exception('Duplicate qID in the database')
@@ -53,12 +53,12 @@ class DavilexPerson:
     def get_email(self):
         if (self.qPerson == None):
             return 'None'
-        return self.qPerson.mail
+        return self.qPerson.email
 
     def get_iban(self):
         if (self.qPerson == None):
-            return 'None'
-        return self.qPerson.get_iban()
+            return ''
+        return self.qPerson.iban
 
     def get_total(self):
         total = 0

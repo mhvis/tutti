@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import datetime, timedelta
+from django.conf import settings
 
 # Create your models here.
 class Qrekening(models.Model):
@@ -15,4 +16,4 @@ class DavilexData(models.Model):
         max_length=20,
         choices=(('debtor', 'Debtors'), ('creditor', 'Creditors'))
     )
-    file = models.FileField(upload_to='qrekening')
+    file = models.FileField(upload_to=settings.MEDIA_URL + 'qrekening/%Y_%m_%d')
