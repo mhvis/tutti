@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group as DjangoGroup
 
 from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
@@ -11,7 +10,6 @@ class QAdmin(admin.AdminSite):
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
-admin.site.unregister(DjangoGroup)
 
 
 class GroupFilter(admin.SimpleListFilter):
