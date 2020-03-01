@@ -155,6 +155,7 @@ class Person(models.Model):
     def __str__(self):
         return self.get_full_name()
 
+
 class Membership(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)

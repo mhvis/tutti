@@ -22,7 +22,7 @@ class GroupFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value == None:
+        if value is None:
             return queryset.all()
         return queryset.filter(membership__group__id=value)
 
@@ -76,7 +76,6 @@ class PersonAdmin(admin.ModelAdmin):
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
     inlines = (MembershipAdminInline,)
-
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
