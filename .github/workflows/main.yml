@@ -18,7 +18,7 @@ jobs:
         pipenv install --dev
     - name: Lint with flake8
       run: |
-        flake8
-    - name: Test with pytest
+        pipenv run flake8
+    - name: Run unit tests
       run: |
-        python manage.py test
+        pipenv run python manage.py test
