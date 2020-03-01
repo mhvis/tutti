@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group as DjangoGroup
 
 from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
+
 class QAdmin(admin.AdminSite):
     site_header = "ESMG Quadrivium"
 
