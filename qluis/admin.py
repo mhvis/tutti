@@ -1,11 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group as DjangoGroup
 
 from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
-admin.site.register(User, UserAdmin)
-admin.site.unregister(DjangoGroup)
+
+class QAdmin(admin.AdminSite):
+    site_header = "ESMG Quadrivium"
+
+
+admin_site = QAdmin()
+admin_site.register(User, UserAdmin)
 
 
 class GroupFilter(admin.SimpleListFilter):
@@ -77,7 +81,9 @@ class PersonAdmin(admin.ModelAdmin):
         return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
 
-admin.site.register(Instrument)
-admin.site.register(Key)
-admin.site.register(GSuiteAccount)
-admin.site.register(ExternalCard)
+admin_site.register(Group)
+admin_site.register(Person)
+admin_site.register(Instrument)
+admin_site.register(Key)
+admin_site.register(GSuiteAccount)
+admin_site.register(ExternalCard)
