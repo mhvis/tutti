@@ -43,6 +43,8 @@ class ExternalCard(models.Model):
                                    help_text='Additional indication that is written on the card.',
                                    blank=True)
 
+    # loans =
+
     def __str__(self):
         return '{} {} {}'.format(self.card_number,
                                  self.reference_number,
@@ -103,7 +105,6 @@ class Person(models.Model):
     is_student = models.BooleanField(null=True, blank=True)
     membership_start = models.DateField(null=True, blank=True)
     membership_end = models.DateField(null=True, blank=True)
-    permission_exquus = models.BooleanField(null=True, blank=True)
     sepa_direct_debit = models.BooleanField(null=True, blank=True)
 
     instruments = models.ManyToManyField(Instrument, blank=True)
@@ -120,7 +121,6 @@ class Person(models.Model):
     field_of_study = models.CharField(max_length=150,
                                       blank=True)
 
-    found_via = models.CharField(max_length=30, blank=True)
     gsuite_accounts = models.ManyToManyField(GSuiteAccount, blank=True)
 
     iban = models.CharField(max_length=150, blank=True)
@@ -143,9 +143,12 @@ class Person(models.Model):
     )
 
     created_at = models.DateTimeField(default=timezone.now)
+
     # created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
     #                                on_delete=models.SET_NULL,
     #                                null=True)
+
+    # notes = models.TextField(blank=True)
 
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
@@ -157,7 +160,17 @@ class Person(models.Model):
 
 
 class Membership(models.Model):
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    start = models.DateField(_("Start date"), auto_now_add=True)
-    end = models.DateField(_("End date"), blank=True, null=True)
+    """Group membership."""
+
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    start = models.DateField(_("start date"), default=timezone.now)
+    end = models.DateField(_("end date"), null=True, blank=True)
+
+# class ExternalCardLoan(models.Model):
+#     DEPOSIT_CHOICES = (
+#         (1, 'Probably not'),
+#         (2, 'Probably yes'),
+#         (3, 'Most definitely')
+#     )
+#     deposit_made = models.IntegerField(choices=DEPOSIT_CHOICES)
