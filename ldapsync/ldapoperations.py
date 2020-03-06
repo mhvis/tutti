@@ -28,6 +28,11 @@ class AddOperation(LDAPOperation):
     def __str__(self) -> str:
         return 'Add {}'.format(self.dn)
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, AddOperation):
+            return self.dn == o.dn and self.attributes == o.attributes
+        return False
+
 
 class DeleteOperation(LDAPOperation):
     """Delete an LDAP entry."""
@@ -42,6 +47,11 @@ class DeleteOperation(LDAPOperation):
 
     def __str__(self) -> str:
         return 'Delete {}'.format(self.dn)
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, DeleteOperation):
+            return self.dn == o.dn
+        return False
 
 
 class ModifyOperation(LDAPOperation):
@@ -67,6 +77,11 @@ class ModifyOperation(LDAPOperation):
     def __str__(self) -> str:
         return 'Modify {}: set {} to {}'.format(self.dn, self.attribute, self.values)
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, ModifyOperation):
+            return self.dn == o.dn and self.attribute == o.attribute and self.values == o.values
+        return False
+
 
 class ModifyDNOperation(LDAPOperation):
     """Modify the DN of an LDAP entry."""
@@ -77,3 +92,8 @@ class ModifyDNOperation(LDAPOperation):
 
     def __str__(self) -> str:
         return 'Modify DN of {} to {}'.format(self.dn, self.new_dn)
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, ModifyDNOperation):
+            return self.dn == o.dn and self.new_dn == o.new_dn
+        return False

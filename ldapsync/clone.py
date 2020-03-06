@@ -1,6 +1,8 @@
 """All about cloning LDAP to Django."""
 from typing import Dict, List
 
+from django.db import transaction
+
 from ldapsync.ldap import LDAPSearch
 from ldapsync.ldapoperations import LDAPOperation
 
@@ -68,6 +70,11 @@ CLONE_SEARCH = (
 )
 
 
+class CloneError(ValueError):
+    """Exception raised for problems in the input data."""
+    pass
+
+
 def clone(ldap_entries: Dict[str, Dict[str, List[str]]],
           link_attribute='qDBLinkID') -> List[LDAPOperation]:
     """Create Django model instances from LDAP entries.
@@ -78,7 +85,12 @@ def clone(ldap_entries: Dict[str, Dict[str, List[str]]],
 
     Returns:
         LDAP operations that will update the link attribute in LDAP.
+
+    Raises:
+        CloneError: When there are problems with the LDAP data.
     """
+    with transaction.atomic():
+        pass
     pass
 
 
