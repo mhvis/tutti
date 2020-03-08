@@ -5,7 +5,7 @@ from django.test import TestCase
 from ldapsync.clone import CloneError, clone
 from ldapsync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
 from ldapsync.sync import sync
-from qluis.models import Person, Group
+from qluis.models import Person, QGroup
 
 
 class CloneTestCase(TestCase):
@@ -20,9 +20,9 @@ class CloneTestCase(TestCase):
         }
         clone(entries)
         self.assertEqual(1, Person.objects.all().count())
-        self.assertEqual(1, Group.objects.all().count())
+        self.assertEqual(1, QGroup.objects.all().count())
         self.assertEqual('aperson', Person.objects.first().username)
-        self.assertEqual('agroup', Group.objects.first().name)
+        self.assertEqual('agroup', QGroup.objects.first().name)
 
     def test_multiple_values(self):
         """Cloning should fail if any of these attributes has multiple values."""
@@ -106,7 +106,7 @@ class CloneTestCase(TestCase):
         }
         actual = clone(entries, link_attribute='linkID')
         person_id = Person.objects.first().id
-        group_id = Group.objects.first().id
+        group_id = QGroup.objects.first().id
         expect = [ModifyOperation('uid=aperson,ou=people,dc=esmgquadrivium,dc=nl', 'linkID', [str(person_id)]),
                   ModifyOperation('cn=agroup,ou=groups,dc=esmgquadrivium,dc=nl', 'linkID', [str(group_id)])]
         self.assertCountEqual(expect, actual)

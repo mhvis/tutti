@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 from ldapsync.ldap import LDAPSearch
-from qluis.models import Group, Person
+from qluis.models import QGroup, Person
 
 
 class LDAPMixin:
@@ -28,7 +28,7 @@ class LDAPMixin:
         raise NotImplementedError()
 
 
-class LDAPGroup(LDAPMixin, Group):
+class LDAPGroup(LDAPMixin, QGroup):
     class Meta:
         proxy = True
 

@@ -6,7 +6,7 @@ from ldap3.utils.log import set_library_log_detail_level, BASIC
 
 from ldapsync.clone import CLONE_SEARCH, clone
 from ldapsync.ldap import get_ldap_entries, get_connection
-from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key, Group, Person, Membership
+from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, Membership
 
 
 class Command(BaseCommand):
@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
         Membership.objects.all().delete()
         Instrument.objects.all().delete()
-        Group.objects.all().delete()
+        QGroup.objects.all().delete()
         Person.objects.all().delete()
         GSuiteAccount.objects.all().delete()
         ExternalCard.objects.all().delete()

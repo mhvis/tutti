@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from qluis.models import User, Group, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
+from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
 
 class QAdmin(admin.AdminSite):
@@ -12,12 +12,13 @@ admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
 
 
+# The code below needs comments or needs to be rewritten to be more clear
 class GroupFilter(admin.SimpleListFilter):
     title = 'Groups'
     parameter_name = 'group'
 
     def lookups(self, request, model_admin):
-        return [(group.id, group.name) for group in Group.objects.all()]
+        return [(group.id, group.name) for group in QGroup.objects.all()]
 
     def queryset(self, request, queryset):
         value = self.value()
@@ -35,7 +36,7 @@ class MembershipAdminInline(admin.TabularInline):
         return qs.filter(end=None)
 
 
-@admin.register(Group)
+@admin.register(QGroup)
 class GroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
@@ -81,7 +82,7 @@ class PersonAdmin(admin.ModelAdmin):
         return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
 
-admin_site.register(Group)
+admin_site.register(QGroup)
 admin_site.register(Person)
 admin_site.register(Instrument)
 admin_site.register(Key)

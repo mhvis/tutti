@@ -18,11 +18,11 @@ class Instrument(models.Model):
         return self.name
 
 
-class Group(models.Model):
+class QGroup(models.Model):
     """A Quadrivium group, like the board and commissions.
 
-    This differs from the built-in Django group model which is not used for
-    this app!
+    It is named this way to prevent confusion with the Django built-in Group
+    model.
     """
     name = models.CharField(_('name'), max_length=150, unique=True)
     description = models.TextField(blank=True)
@@ -99,7 +99,6 @@ class Person(models.Model):
     tue_card_number = models.IntegerField(null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=30,
-                              null=True,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
     is_student = models.BooleanField(null=True, blank=True)
@@ -134,12 +133,13 @@ class Person(models.Model):
     # qPermissionMedia is not used!
 
     groups = models.ManyToManyField(
-        Group,
+        QGroup,
         verbose_name=_('groups'),
         blank=True,
         help_text=_(
             'The groups this user belongs to.'
         ),
+        through='Membership'
     )
 
     created_at = models.DateTimeField(default=timezone.now)
@@ -148,7 +148,7 @@ class Person(models.Model):
     #                                on_delete=models.SET_NULL,
     #                                null=True)
 
-    # notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
 
     def get_full_name(self):
         """Return the first_name plus the last_name, with a space in between."""
@@ -160,9 +160,13 @@ class Person(models.Model):
 
 
 class Membership(models.Model):
-    """Group membership."""
+    """Group membership.
 
-    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    If end date is given, that means that the person is not a group member
+    anymore.
+    """
+
+    group = models.ForeignKey(QGroup, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     start = models.DateField(_("start date"), default=timezone.now)
     end = models.DateField(_("end date"), null=True, blank=True)
