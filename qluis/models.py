@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -102,8 +103,7 @@ class Person(models.Model):
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
     is_student = models.BooleanField(null=True, blank=True)
-    membership_start = models.DateField(null=True, blank=True)
-    membership_end = models.DateField(null=True, blank=True)
+
     sepa_direct_debit = models.BooleanField(null=True, blank=True)
 
     instruments = models.ManyToManyField(Instrument, blank=True)
@@ -122,12 +122,16 @@ class Person(models.Model):
 
     gsuite_accounts = models.ManyToManyField(GSuiteAccount, blank=True)
 
-    iban = models.CharField(max_length=150, blank=True)
+    iban = models.CharField(max_length=150, blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True)
 
     key_access = models.ManyToManyField(Key, blank=True)
-    keywatcher_id = models.CharField(max_length=4, blank=True)
-    keywatcher_pin = models.CharField(max_length=4, blank=True)
+    keywatcher_id = models.CharField(max_length=4,
+                                     blank=True,
+                                     verbose_name='KeyWatcher ID')
+    keywatcher_pin = models.CharField(max_length=4,
+                                      blank=True,
+                                      verbose_name='KeyWatcher PIN')
 
     # qMailbox is not used
     # qPermissionMedia is not used!
@@ -166,10 +170,18 @@ class Membership(models.Model):
     anymore.
     """
 
+    class Meta:
+        constraints = [
+            # Have only one membership per group/person combi
+            models.UniqueConstraint(fields=['group', 'person'],
+                                    name='unique_memberships',
+                                    condition=Q(end=None))
+        ]
+
     group = models.ForeignKey(QGroup, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
-    start = models.DateField(_("start date"), default=timezone.now)
-    end = models.DateField(_("end date"), null=True, blank=True)
+    start = models.DateTimeField(_("start date"), default=timezone.now)
+    end = models.DateTimeField(_("end date"), null=True, blank=True)
 
 # class ExternalCardLoan(models.Model):
 #     DEPOSIT_CHOICES = (

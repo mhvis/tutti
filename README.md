@@ -18,13 +18,14 @@ file.
 
 ## Quickstart
 
-* `ldapclone` command clones the LDAP directory into a fresh Django database.
-* `ldappush` command does a one-way sync from Django to LDAP.
+To load sample data: `python manage.py loaddata sampledata`
+
+Available commands: `ldapclone`, `ldapsync`. Use `python manage.py <command name> -h` for details.
 
 ## Development commands
 
 Assumes that the environment is set correctly using `pipenv shell`.
-Alternatively use `pipenv run`.
+Alternatively use `pipenv run <command>`.
 
 * Run test server: `python manage.py runserver`
 * Run unit tests: `python manage.py test`

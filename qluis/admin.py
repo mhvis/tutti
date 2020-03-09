@@ -27,41 +27,53 @@ class GroupFilter(admin.SimpleListFilter):
         return queryset.filter(membership__group__id=value)
 
 
-class MembershipAdminInline(admin.TabularInline):
+class MembershipInline(admin.TabularInline):
+    """Inline for group membership, used on Person and Group model pages."""
+
     model = Membership
-    can_delete = False
+    fields = ('group', 'person', 'start')
+    readonly_fields = ('start',)
+    extra = 0
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def get_queryset(self, request):
-        qs = super(MembershipAdminInline, self).get_queryset(request)
+        # Only current memberships are picked, not historic
+        qs = super().get_queryset(request)
         return qs.filter(end=None)
 
 
-@admin.register(QGroup)
-class GroupAdmin(admin.ModelAdmin):
+class QGroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
-    inlines = (MembershipAdminInline,)
+    inlines = (MembershipInline,)
 
 
-@admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    fields = ('username', 'first_name', 'last_name', 'email',
-              'initials', 'street', 'postal_code', 'city', 'phone_number',
+    fields = ('username',
+              'first_name',
+              'last_name',
+              'email',
+              'initials',
+              'street',
+              'postal_code',
+              'city',
+              'phone_number',
               'preferred_language',
               'tue_card_number',
               'date_of_birth',
               'gender',
               'is_student',
-              'membership_start',
-              'membership_end',
-              'permission_exquus',
               'sepa_direct_debit',
               'instruments',
               'bhv_certificate',
               'external_card',
               'external_card_deposit_made',
               'field_of_study',
-              'found_via',
               'gsuite_accounts',
               'iban',
               'person_id',
@@ -75,16 +87,17 @@ class PersonAdmin(admin.ModelAdmin):
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
-    inlines = (MembershipAdminInline,)
+    inlines = (MembershipInline,)
 
-    def lookup_allowed(self, lookup, value):
-        # Don't allow lookups involving passwords.
-        return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
+    # def lookup_allowed(self, lookup, value):
+    #     # Don't allow lookups involving passwords.
+    #     return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
 
-admin_site.register(QGroup)
-admin_site.register(Person)
+admin_site.register(QGroup, QGroupAdmin)
+admin_site.register(Person, PersonAdmin)
 admin_site.register(Instrument)
 admin_site.register(Key)
 admin_site.register(GSuiteAccount)
 admin_site.register(ExternalCard)
+admin_site.register(Membership)
