@@ -100,24 +100,29 @@ class Person(models.Model):
     preferred_language = models.CharField(max_length=30,
                                           blank=True,
                                           choices=PREFERRED_LANGUAGES)
-    tue_card_number = models.IntegerField(null=True, blank=True)
+    tue_card_number = models.IntegerField(null=True,
+                                          blank=True,
+                                          verbose_name='TU/e card number')
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=30,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
     is_student = models.BooleanField(null=True, blank=True)
 
-    sepa_direct_debit = models.BooleanField(null=True, blank=True)
+    sepa_direct_debit = models.BooleanField(null=True,
+                                            blank=True,
+                                            verbose_name='SEPA direct debit')
 
     instruments = models.ManyToManyField(Instrument, blank=True)
 
-    bhv_certificate = models.DateField(null=True, blank=True)
+    bhv_certificate = models.DateField(null=True,
+                                       blank=True,
+                                       verbose_name='BHV certificate date')
 
     external_card = models.ForeignKey(ExternalCard,
                                       on_delete=models.SET_NULL,
                                       null=True,
-                                      blank=True
-                                      )
+                                      blank=True)
     external_card_deposit_made = models.BooleanField(null=True, blank=True)
 
     field_of_study = models.CharField(max_length=150,
@@ -126,7 +131,7 @@ class Person(models.Model):
     gsuite_accounts = models.ManyToManyField(GSuiteAccount, blank=True)
 
     iban = models.CharField(max_length=150, blank=True, verbose_name='IBAN')
-    person_id = models.CharField(max_length=30, blank=True)
+    person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID')
 
     key_access = models.ManyToManyField(Key, blank=True)
     keywatcher_id = models.CharField(max_length=4,
@@ -186,10 +191,8 @@ class Membership(models.Model):
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
 
-    def end_now(self):
-        """End a group membership."""
-        self.end = timezone.now()
-        self.save()
+    def __str__(self):
+        return 'Membership #{}'.format(self.pk)
 
 # class ExternalCardLoan(models.Model):
 #     DEPOSIT_CHOICES = (

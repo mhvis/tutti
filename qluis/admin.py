@@ -1,8 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.forms import BaseInlineFormSet
-from django.utils.safestring import mark_safe
+from django.utils import timezone
 
 from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
@@ -16,11 +15,9 @@ admin_site.register(User, UserAdmin)
 
 
 class GroupFilter(admin.SimpleListFilter):
-    """Filter for group membership.
+    """Filter for group membership."""
 
-    # TODO: I don't that this filters for memberships without end date.
-    """
-    title = 'Groups'
+    title = 'groups'
     parameter_name = 'group'
 
     def lookups(self, request, model_admin):
@@ -28,44 +25,36 @@ class GroupFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        if value is None:
-            return queryset.all()
-        return queryset.filter(membership__group__id=value)
+        if value and QGroup.objects.filter(id=value).exists():
+            return queryset.filter(membership__end=None, membership__group=value)
 
 
-# TODO: tryout class, to be removed
-class MembershipInlineFormSet(BaseInlineFormSet):
-
-    def save_existing(self, form, instance, commit=True):
-        print('save existing: {} {} {}'.format(form, instance, commit))
-        return super().save_existing(form, instance, commit)
-
-    def save(self, commit=True):
-        print('MembershipInlineFormSet.save called on: {}'.format(self))
-        return super().save(commit)
-
-
-# TODO: tryout class, to be removed
 class MembershipForm(forms.ModelForm):
+    """This form extension adds a boolean field for ending a membership."""
 
-    def save(self, commit=True):
-        print('MembershipForm.save called on: {}'.format(self))
-        return super().save(commit)
+    end_now = forms.BooleanField(label='end?', required=False)
+
+    def clean(self):
+        """Set end value to current time if boolean checkbox is checked."""
+        cleaned_data = super().clean()
+        if cleaned_data.get('end_now') is True:
+            self.instance.end = timezone.now()
+        return cleaned_data
 
 
-class MembershipInline(admin.TabularInline):
-    """Inline for group membership, used on Person and Group model pages."""
+# Genius workaround, thanks to https://stackoverflow.com/a/28149575/2373688
+
+class MembershipChangeInline(admin.TabularInline):
+    """Inline for changing (ending) group membership."""
 
     model = Membership
     fields = ('group', 'person', 'start', 'end_now')
-    readonly_fields = ('start', 'end_now')
-    # TODO: tryout, to be removed
-    form = MembershipForm
-    # TODO: tryout, to be removed
-    formset = MembershipInlineFormSet
-    extra = 0
+    readonly_fields = ('group', 'person', 'start',)
 
-    def has_change_permission(self, request, obj=None):
+    # MembershipForm allows for ending group membership using end_now field
+    form = MembershipForm
+
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -76,67 +65,91 @@ class MembershipInline(admin.TabularInline):
         qs = super().get_queryset(request)
         return qs.filter(end=None)
 
-    def end_now(self, obj):
-        if obj.pk:
-            return mark_safe(
-                '<form action="" method="post"><button type="submit" class="button">End now</button></form>')
-        else:
-            return ''
+
+class MembershipAddInline(admin.TabularInline):
+    """Inline for adding a new group membership."""
+
+    model = Membership
+    fields = ('group', 'person', 'start')
+    readonly_fields = ('start',)
+    extra = 0
+    verbose_name_plural = 'add new memberships'
+    autocomplete_fields = ('person',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(QGroup, site=admin_site)
 class QGroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
-    inlines = (MembershipInline,)
+    inlines = (MembershipChangeInline, MembershipAddInline)
 
 
 @admin.register(Person, site=admin_site)
 class PersonAdmin(admin.ModelAdmin):
-    fields = ('username',
-              'first_name',
-              'last_name',
-              'email',
-              'initials',
-              'street',
-              'postal_code',
-              'city',
-              'phone_number',
-              'preferred_language',
-              'tue_card_number',
-              'date_of_birth',
-              'gender',
-              'is_student',
-              'sepa_direct_debit',
-              'instruments',
-              'bhv_certificate',
-              'external_card',
-              'external_card_deposit_made',
-              'field_of_study',
-              'gsuite_accounts',
-              'iban',
-              'person_id',
-              'key_access',
-              'keywatcher_id',
-              'keywatcher_pin'
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'first_name', 'last_name', 'initials')
+        }),
+        ('Contact details', {
+            'fields': ('email', 'phone_number', 'street', 'postal_code', 'city')
+        }),
+        ('Misc', {
+            'fields': ('gender', 'date_of_birth', 'preferred_language', 'field_of_study')
+        }),
+        ('Quadrivium specific', {
+            'fields': ('tue_card_number', 'is_student', 'sepa_direct_debit', 'instruments', 'bhv_certificate',
+                       'external_card', 'external_card_deposit_made', 'gsuite_accounts', 'iban', 'person_id',
+                       'key_access', 'keywatcher_id', 'keywatcher_pin')
+        })
+    )
 
-              )
     list_display = ('email', 'first_name', 'last_name')
     list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
-    inlines = (MembershipInline,)
+    inlines = (MembershipChangeInline, MembershipAddInline)
+    save_on_top = True
 
     # def lookup_allowed(self, lookup, value):
     #     # Don't allow lookups involving passwords.
     #     return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
 
+class CurrentMembershipListFilter(admin.SimpleListFilter):
+    """Filter for current group memberships."""
+
+    title = 'current'
+    parameter_name = 'current'
+
+    def lookups(self, request, model_admin):
+        return (('y', 'Only current'),
+                ('n', 'Only past'))
+
+    def queryset(self, request, queryset):
+        if self.value() == 'y':
+            return queryset.filter(end=None)
+        if self.value() == 'n':
+            return queryset.filter(end__isnull=False)
+
+
 @admin.register(Membership, site=admin_site)
 class MembershipAdmin(admin.ModelAdmin):
     """Memberships can only be viewed here, not modified."""
-    list_display = ('person', 'group', 'start', 'end')
+    list_display = ('person', 'group', 'current', 'start', 'end')
+    list_display_links = None
+    list_filter = (CurrentMembershipListFilter, 'group')
+
+    short_description = 'haai'
 
     def has_add_permission(self, request):
         return False
@@ -146,6 +159,11 @@ class MembershipAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def current(self, obj):
+        return obj.end is None
+
+    current.boolean = True
 
 
 admin_site.register(Instrument)
