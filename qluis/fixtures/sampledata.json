@@ -14,6 +14,23 @@
     }
   },
   {
+    "model": "qluis.externalcard",
+    "pk": 1,
+    "fields": {
+      "card_number": 1554525,
+      "reference_number": 5,
+      "description": "Cluster 3"
+    }
+  },
+  {
+    "model": "qluis.externalcard",
+    "pk": 2,
+    "fields": {
+      "card_number": 1553335,
+      "reference_number": 2
+    }
+  },
+  {
     "model": "qluis.qgroup",
     "pk": 1,
     "fields": {
@@ -50,9 +67,25 @@
       "sepa_direct_debit": true,
       "instruments": [
         2
-      ],
-      "groups": [
-        2
+      ]
+    }
+  },
+  {
+    "model": "qluis.person",
+    "pk": 1,
+    "fields": {
+      "username": "fire69",
+      "first_name": "Niccolo",
+      "last_name": "Paganini",
+      "email": "playthattune@msn.com",
+      "initials": "N.N.N.",
+      "preferred_language": "en-us",
+      "date_of_birth": "1782-10-27",
+      "gender": "Male",
+      "is_student": true,
+      "sepa_direct_debit": true,
+      "instruments": [
+        1
       ]
     }
   },

@@ -38,8 +38,11 @@ class QGroup(models.Model):
 
 
 class ExternalCard(models.Model):
-    card_number = models.IntegerField(null=True)
-    reference_number = models.IntegerField(null=True)
+    card_number = models.IntegerField(null=True,
+                                      help_text="7-digit (usually) card identifier number.")
+    reference_number = models.IntegerField(null=True,
+                                           blank=True,
+                                           help_text='Short reference number written on the card.')
     description = models.CharField(max_length=150,
                                    help_text='Additional indication that is written on the card.',
                                    blank=True)
@@ -172,7 +175,7 @@ class Membership(models.Model):
 
     class Meta:
         constraints = [
-            # Have only one membership per group/person combi
+            # Allow only one membership instance per group/person combi
             models.UniqueConstraint(fields=['group', 'person'],
                                     name='unique_memberships',
                                     condition=Q(end=None))
@@ -182,6 +185,11 @@ class Membership(models.Model):
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
+
+    def end_now(self):
+        """End a group membership."""
+        self.end = timezone.now()
+        self.save()
 
 # class ExternalCardLoan(models.Model):
 #     DEPOSIT_CHOICES = (

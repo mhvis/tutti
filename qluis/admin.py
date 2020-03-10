@@ -1,5 +1,8 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.forms import BaseInlineFormSet
+from django.utils.safestring import mark_safe
 
 from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
 
@@ -12,8 +15,11 @@ admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
 
 
-# The code below needs comments or needs to be rewritten to be more clear
 class GroupFilter(admin.SimpleListFilter):
+    """Filter for group membership.
+
+    # TODO: I don't that this filters for memberships without end date.
+    """
     title = 'Groups'
     parameter_name = 'group'
 
@@ -27,12 +33,36 @@ class GroupFilter(admin.SimpleListFilter):
         return queryset.filter(membership__group__id=value)
 
 
+# TODO: tryout class, to be removed
+class MembershipInlineFormSet(BaseInlineFormSet):
+
+    def save_existing(self, form, instance, commit=True):
+        print('save existing: {} {} {}'.format(form, instance, commit))
+        return super().save_existing(form, instance, commit)
+
+    def save(self, commit=True):
+        print('MembershipInlineFormSet.save called on: {}'.format(self))
+        return super().save(commit)
+
+
+# TODO: tryout class, to be removed
+class MembershipForm(forms.ModelForm):
+
+    def save(self, commit=True):
+        print('MembershipForm.save called on: {}'.format(self))
+        return super().save(commit)
+
+
 class MembershipInline(admin.TabularInline):
     """Inline for group membership, used on Person and Group model pages."""
 
     model = Membership
-    fields = ('group', 'person', 'start')
-    readonly_fields = ('start',)
+    fields = ('group', 'person', 'start', 'end_now')
+    readonly_fields = ('start', 'end_now')
+    # TODO: tryout, to be removed
+    form = MembershipForm
+    # TODO: tryout, to be removed
+    formset = MembershipInlineFormSet
     extra = 0
 
     def has_change_permission(self, request, obj=None):
@@ -42,17 +72,26 @@ class MembershipInline(admin.TabularInline):
         return False
 
     def get_queryset(self, request):
-        # Only current memberships are picked, not historic
+        # Filter for current memberships
         qs = super().get_queryset(request)
         return qs.filter(end=None)
 
+    def end_now(self, obj):
+        if obj.pk:
+            return mark_safe(
+                '<form action="" method="post"><button type="submit" class="button">End now</button></form>')
+        else:
+            return ''
 
+
+@admin.register(QGroup, site=admin_site)
 class QGroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
     inlines = (MembershipInline,)
 
 
+@admin.register(Person, site=admin_site)
 class PersonAdmin(admin.ModelAdmin):
     fields = ('username',
               'first_name',
@@ -82,7 +121,7 @@ class PersonAdmin(admin.ModelAdmin):
               'keywatcher_pin'
 
               )
-    list_display = ('username', 'email', 'first_name', 'last_name')
+    list_display = ('email', 'first_name', 'last_name')
     list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
@@ -94,10 +133,22 @@ class PersonAdmin(admin.ModelAdmin):
     #     return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
 
-admin_site.register(QGroup, QGroupAdmin)
-admin_site.register(Person, PersonAdmin)
+@admin.register(Membership, site=admin_site)
+class MembershipAdmin(admin.ModelAdmin):
+    """Memberships can only be viewed here, not modified."""
+    list_display = ('person', 'group', 'start', 'end')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 admin_site.register(Instrument)
 admin_site.register(Key)
 admin_site.register(GSuiteAccount)
 admin_site.register(ExternalCard)
-admin_site.register(Membership)
