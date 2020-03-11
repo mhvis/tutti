@@ -72,7 +72,7 @@
   },
   {
     "model": "qluis.person",
-    "pk": 1,
+    "pk": 2,
     "fields": {
       "username": "fire69",
       "first_name": "Niccolo",

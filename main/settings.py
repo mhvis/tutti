@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'phonenumber_field',
+    'localflavor',
 
     'qluis.apps.QluisConfig',
     # 'ldapproxy.apps.LdapProxyConfig'

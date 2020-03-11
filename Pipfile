@@ -13,6 +13,7 @@ django = "*"
 ldap3 = "*"
 django-phonenumber-field = "*"
 phonenumbers = "*"
+django-localflavor = "*"
 
 [requires]
 python_version = "3.6"

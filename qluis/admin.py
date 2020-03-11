@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils import timezone
 
-from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership
+from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership, \
+    ExternalCardLoan
 
 
 class QAdmin(admin.AdminSite):
@@ -12,6 +13,37 @@ class QAdmin(admin.AdminSite):
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
+
+
+# External card thingies
+
+class ExternalCardLoanInline(admin.TabularInline):
+    """External card loan inline, for person and external card admin pages."""
+    model = ExternalCardLoan
+    extra = 0
+    fields = ('external_card', 'person', 'start', 'end')
+    readonly_fields = ('start',)
+    autocomplete_fields = ('person',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ExternalCardLoan, site=admin_site)
+class ExternalCardLoanAdmin(admin.ModelAdmin):
+    """Separate admin page for external card loans."""
+    list_display = ('external_card', 'person', 'start', 'end')
+    autocomplete_fields = ('person',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ExternalCard, site=admin_site)
+class ExternalCardAdmin(admin.ModelAdmin):
+    """Admin page for external cards."""
+    fields = ('card_number', 'reference_number', 'description')
+    inlines = (ExternalCardLoanInline,)
 
 
 class GroupFilter(admin.SimpleListFilter):
@@ -28,6 +60,8 @@ class GroupFilter(admin.SimpleListFilter):
         if value and QGroup.objects.filter(id=value).exists():
             return queryset.filter(membership__end=None, membership__group=value)
 
+
+# Group membership inline thingies
 
 class MembershipForm(forms.ModelForm):
     """This form extension adds a boolean field for ending a membership."""
@@ -90,6 +124,7 @@ class MembershipAddInline(admin.TabularInline):
 class QGroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     ordering = ('name',)
+    autocomplete_fields = ('owner',)
     inlines = (MembershipChangeInline, MembershipAddInline)
 
 
@@ -106,10 +141,12 @@ class PersonAdmin(admin.ModelAdmin):
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'field_of_study')
         }),
         ('Quadrivium specific', {
-            'fields': ('tue_card_number', 'is_student', 'sepa_direct_debit', 'instruments', 'bhv_certificate',
-                       'external_card', 'external_card_deposit_made', 'gsuite_accounts', 'iban', 'person_id',
-                       'key_access', 'keywatcher_id', 'keywatcher_pin')
-        })
+            'fields': ('is_student', 'sepa_direct_debit', 'instruments', 'bhv_certificate',
+                       'gsuite_accounts', 'iban', 'person_id', 'notes')
+        }),
+        ('TU/e', {
+            'fields': ('tue_card_number', 'key_access', 'keywatcher_id', 'keywatcher_pin')
+        }),
     )
 
     list_display = ('email', 'first_name', 'last_name')
@@ -117,7 +154,7 @@ class PersonAdmin(admin.ModelAdmin):
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
-    inlines = (MembershipChangeInline, MembershipAddInline)
+    inlines = (MembershipChangeInline, MembershipAddInline, ExternalCardLoanInline)
     save_on_top = True
 
     # def lookup_allowed(self, lookup, value):
@@ -149,8 +186,6 @@ class MembershipAdmin(admin.ModelAdmin):
     list_display_links = None
     list_filter = (CurrentMembershipListFilter, 'group')
 
-    short_description = 'haai'
-
     def has_add_permission(self, request):
         return False
 
@@ -169,4 +204,3 @@ class MembershipAdmin(admin.ModelAdmin):
 admin_site.register(Instrument)
 admin_site.register(Key)
 admin_site.register(GSuiteAccount)
-admin_site.register(ExternalCard)

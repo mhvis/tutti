@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from localflavor.generic.models import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -28,6 +29,11 @@ class QGroup(models.Model):
     name = models.CharField(_('name'), max_length=150, unique=True)
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
+    owner = models.ForeignKey('Person',
+                              on_delete=models.PROTECT,
+                              null=True,
+                              blank=True,
+                              help_text='E.g. the commissioner')
 
     class Meta:
         verbose_name = _('group')
@@ -47,7 +53,7 @@ class ExternalCard(models.Model):
                                    help_text='Additional indication that is written on the card.',
                                    blank=True)
 
-    # loans =
+    # decommissioned = models.BooleanField for when a card is no longer used by Q?
 
     def __str__(self):
         return '{} {} {}'.format(self.card_number,
@@ -119,18 +125,14 @@ class Person(models.Model):
                                        blank=True,
                                        verbose_name='BHV certificate date')
 
-    external_card = models.ForeignKey(ExternalCard,
-                                      on_delete=models.SET_NULL,
-                                      null=True,
-                                      blank=True)
-    external_card_deposit_made = models.BooleanField(null=True, blank=True)
-
     field_of_study = models.CharField(max_length=150,
                                       blank=True)
 
-    gsuite_accounts = models.ManyToManyField(GSuiteAccount, blank=True)
+    gsuite_accounts = models.ManyToManyField(GSuiteAccount,
+                                             blank=True,
+                                             verbose_name='G Suite accounts')
 
-    iban = models.CharField(max_length=150, blank=True, verbose_name='IBAN')
+    iban = IBANField(blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID')
 
     key_access = models.ManyToManyField(Key, blank=True)
@@ -140,19 +142,6 @@ class Person(models.Model):
     keywatcher_pin = models.CharField(max_length=4,
                                       blank=True,
                                       verbose_name='KeyWatcher PIN')
-
-    # qMailbox is not used
-    # qPermissionMedia is not used!
-
-    groups = models.ManyToManyField(
-        QGroup,
-        verbose_name=_('groups'),
-        blank=True,
-        help_text=_(
-            'The groups this user belongs to.'
-        ),
-        through='Membership'
-    )
 
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -174,8 +163,7 @@ class Person(models.Model):
 class Membership(models.Model):
     """Group membership.
 
-    If end date is given, that means that the person is not a group member
-    anymore.
+    If end date is given, that means that this membership has ended.
     """
 
     class Meta:
@@ -194,10 +182,21 @@ class Membership(models.Model):
     def __str__(self):
         return 'Membership #{}'.format(self.pk)
 
-# class ExternalCardLoan(models.Model):
-#     DEPOSIT_CHOICES = (
-#         (1, 'Probably not'),
-#         (2, 'Probably yes'),
-#         (3, 'Most definitely')
-#     )
-#     deposit_made = models.IntegerField(choices=DEPOSIT_CHOICES)
+
+class ExternalCardLoan(models.Model):
+    """For when someone borrows an external card from Q."""
+
+    external_card = models.ForeignKey(ExternalCard, on_delete=models.PROTECT)
+    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    start = models.DateTimeField(default=timezone.now)
+    end = models.DateTimeField(null=True,
+                               blank=True,
+                               help_text='If empty, the person is currently borrowing the card.')
+
+    DEPOSIT_CHOICES = (
+        ('nn', 'No'),
+        ('n', 'Probably not'),
+        ('y', 'Probably yes'),
+        ('yy', 'Most definitely')
+    )
+    deposit_made = models.CharField(max_length=4, choices=DEPOSIT_CHOICES, blank=True)
