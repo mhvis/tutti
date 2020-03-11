@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
 from localflavor.generic.models import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -45,6 +46,7 @@ class QGroup(models.Model):
 
 class ExternalCard(models.Model):
     card_number = models.IntegerField(null=True,
+                                      blank=True,
                                       help_text="7-digit (usually) card identifier number.")
     reference_number = models.IntegerField(null=True,
                                            blank=True,
@@ -56,9 +58,7 @@ class ExternalCard(models.Model):
     # decommissioned = models.BooleanField for when a card is no longer used by Q?
 
     def __str__(self):
-        return '{} {} {}'.format(self.card_number,
-                                 self.reference_number,
-                                 self.description).strip()
+        return '–'.join([str(x) for x in (self.card_number, self.reference_number, self.description) if x])
 
 
 class GSuiteAccount(models.Model):
@@ -69,7 +69,7 @@ class GSuiteAccount(models.Model):
 
 
 class Key(models.Model):
-    number = models.IntegerField(unique=True)
+    number = models.IntegerField(primary_key=True)
     room_name = models.CharField(max_length=150, blank=True)
 
     def __str__(self):
@@ -93,9 +93,12 @@ class Person(models.Model):
 
     # password = models.CharField(_('password'), max_length=128)
     initials = models.CharField(max_length=30, blank=True)
+
+    # Address
     street = models.CharField(max_length=150, blank=True)
     postal_code = models.CharField(max_length=30, blank=True)
     city = models.CharField(max_length=150, blank=True)
+    country = CountryField(blank=True, default='NL')
 
     phone_number = PhoneNumberField(blank=True)
 
@@ -136,12 +139,8 @@ class Person(models.Model):
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID')
 
     key_access = models.ManyToManyField(Key, blank=True)
-    keywatcher_id = models.CharField(max_length=4,
-                                     blank=True,
-                                     verbose_name='KeyWatcher ID')
-    keywatcher_pin = models.CharField(max_length=4,
-                                      blank=True,
-                                      verbose_name='KeyWatcher PIN')
+    keywatcher_id = models.IntegerField(null=True, blank=True, verbose_name='KeyWatcher ID')
+    keywatcher_pin = models.IntegerField(null=True, blank=True, verbose_name='KeyWatcher PIN')
 
     created_at = models.DateTimeField(default=timezone.now)
 

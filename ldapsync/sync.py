@@ -1,12 +1,12 @@
 """Module for one-way sync between two datasets."""
-
 from typing import List, Dict
 
+from ldapsync.ldap import LDAP_ATTRIBUTE_TYPES
 from ldapsync.ldapoperations import LDAPOperation
 
 
-def sync(source: Dict[str, Dict[str, List[str]]],
-         target: Dict[str, Dict[str, List[str]]],
+def sync(source: Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]],
+         target: Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]],
          on="qDBLinkID") -> List[LDAPOperation]:
     """Get operations to perform to change the target dataset to be the same as the source dataset.
 

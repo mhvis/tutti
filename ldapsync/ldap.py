@@ -1,9 +1,13 @@
 """Module for communication with the LDAP database."""
 from collections import namedtuple
-from typing import List, Dict
+from datetime import datetime
+from typing import List, Dict, Union
 
 from django.conf import settings
 from ldap3 import Server, Connection
+
+LDAP_ATTRIBUTE_TYPES = Union[str, int, datetime, bool]
+"""Possible types for LDAP attribute values."""
 
 
 def get_connection():
@@ -23,7 +27,7 @@ LDAPSearch = namedtuple('LDAPSearch', ['base_dn', 'object_class', 'attributes'])
 
 
 def get_ldap_entries(conn: Connection,
-                     *search: LDAPSearch) -> Dict[str, Dict[str, List[str]]]:
+                     *search: LDAPSearch) -> Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]]:
     """Get data from the LDAP database.
 
     Args:

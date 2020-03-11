@@ -28,6 +28,7 @@ INSTALLED_APPS = [
 
     'phonenumber_field',
     'localflavor',
+    'django_countries',
 
     'qluis.apps.QluisConfig',
     # 'ldapproxy.apps.LdapProxyConfig'

@@ -132,23 +132,23 @@ class QGroupAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
-            'fields': ('username', 'first_name', 'last_name', 'initials')
+            'fields': ('username', 'first_name', 'last_name', 'initials', 'created_at')
         }),
         ('Contact details', {
-            'fields': ('email', 'phone_number', 'street', 'postal_code', 'city')
+            'fields': ('email', 'phone_number', 'street', 'postal_code', 'city', 'country')
         }),
-        ('Misc', {
-            'fields': ('gender', 'date_of_birth', 'preferred_language', 'field_of_study')
+        ('Personal details', {
+            'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
-        ('Quadrivium specific', {
-            'fields': ('is_student', 'sepa_direct_debit', 'instruments', 'bhv_certificate',
-                       'gsuite_accounts', 'iban', 'person_id', 'notes')
+        ('Quadrivium', {
+            'fields': ('person_id', 'is_student', 'iban', 'sepa_direct_debit',
+                       'bhv_certificate', 'gsuite_accounts', 'notes')
         }),
         ('TU/e', {
             'fields': ('tue_card_number', 'key_access', 'keywatcher_id', 'keywatcher_pin')
         }),
     )
-
+    readonly_fields = ('created_at',)
     list_display = ('email', 'first_name', 'last_name')
     list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')

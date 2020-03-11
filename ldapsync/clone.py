@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from django.db import transaction
 
-from ldapsync.ldap import LDAPSearch
+from ldapsync.ldap import LDAPSearch, LDAP_ATTRIBUTE_TYPES
 from ldapsync.ldapoperations import LDAPOperation
 
 
@@ -75,9 +75,12 @@ class CloneError(ValueError):
     pass
 
 
-def clone(ldap_entries: Dict[str, Dict[str, List[str]]],
+def clone(ldap_entries: Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]],
           link_attribute='qDBLinkID') -> List[LDAPOperation]:
     """Create Django model instances from LDAP entries.
+
+    Next to the entries, this will always create a current members group
+    (huidige leden) even if that group would have no members.
 
     Args:
         ldap_entries: All people and groups from the LDAP database as entries.
@@ -89,7 +92,17 @@ def clone(ldap_entries: Dict[str, Dict[str, List[str]]],
     Raises:
         CloneError: When there are problems with the LDAP data.
     """
+    # Convert all DNs (dictionary keys) to lowercase
+
+    # Check multi-value problems
+
+    # Check Q membership inconsistency: in current members group but has 'qMemberEnd' set
+
+    # Check group membership consistency: invalid DNs
+
     with transaction.atomic():
+        # Create current members group
+        # members_group = QGroup.objects.create(name='Huidige leden', email='leden@esmgquadrivium.nl')
         pass
     pass
 
