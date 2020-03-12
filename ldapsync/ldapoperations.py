@@ -79,7 +79,9 @@ class ModifyOperation(LDAPOperation):
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, ModifyOperation):
-            return self.dn == o.dn and self.attribute == o.attribute and self.values == o.values
+            # Order of values doesn't matter
+            values_equal = sorted(self.values) == sorted(o.values)
+            return self.dn == o.dn and self.attribute == o.attribute and values_equal
         return False
 
 

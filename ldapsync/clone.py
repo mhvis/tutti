@@ -3,17 +3,8 @@ from typing import Dict, List
 
 from django.db import transaction
 
-from ldapsync.ldap import LDAPSearch, LDAP_ATTRIBUTE_TYPES
+from ldapsync.ldap import LDAPSearch, LDAPAttributeType
 from ldapsync.ldapoperations import LDAPOperation
-
-
-def _raise_for_multi_value(*attributes):
-    """Raise exception when a given attribute has more than one values."""
-    pass
-    # for a in attributes:
-    #     if len(a.values) > 1:
-    #         raise Exception('Attribute {} for entry {} has more than one values.'.format(a, a.entry))
-
 
 # Specification of LDAP search for cloning
 CLONE_SEARCH = (
@@ -80,7 +71,93 @@ def _get_first(l: List, default=None):
     return l[0] if l else default
 
 
-def clone(ldap_entries: Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]],
+def _normalize_split(ldap_entries):
+    """Change DNs to lowercase and split people+groups.
+
+    Returns:
+        A 3-tuple with the normalized entries, first all entries, then people
+        entries, then group entries.
+    """
+    # Convert all DNs (dictionary keys) to lowercase
+    ldap_entries = {k.lower(): v for k, v in ldap_entries.items()}
+
+    # Split group and person entries
+    group_entries = {k: v for k, v in ldap_entries.items() if k.endswith('ou=groups,dc=esmgquadrivium,dc=nl')}
+    person_entries = {k: v for k, v in ldap_entries.items() if k.endswith('ou=people,dc=esmgquadrivium,dc=nl')}
+    return ldap_entries, person_entries, group_entries
+
+
+def check_for_issues(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]]) -> List[str]:
+    """Check for a variety of issues/inconsistencies with given LDAP data.
+
+    Args:
+        ldap_entries: The people/group entries.
+
+    Returns:
+        A list of issues, if there are no issues the list will be empty.
+    """
+    issues = []
+    ldap_entries, person_entries, group_entries = _normalize_split(ldap_entries)
+
+    # Check multi-value problems
+    single_valued = {  # Set of attributes that should be single valued
+        # Person attributes
+        'cn', 'sn', 'givenName', 'qAzureUPN', 'qBHVCertificate', 'qCardExternalDepositMade', 'qCardExternalDescription',
+        'qCardExternalNumber', 'qCardNumber', 'qDateOfBirth', 'qFieldOfStudy', 'qGender', 'qIBAN', 'qID', 'qIsStudent',
+        'qKeyWatcherID', 'qKeyWatcherPIN', 'qMemberEnd', 'qMemberStart', 'qSEPADirectDebit', 'initials', 'l', 'mail',
+        'postalCode', 'preferredLanguage', 'street', 'telephoneNumber', 'uid',
+        # Group attributes
+        'cn', 'description', 'mail', 'owner',
+    }
+    # Go over all attributes
+    for dn, attribute in ldap_entries.items():
+        for key, values in attribute.items():
+            if key in single_valued and len(values) > 1:
+                # Multi-valued attribute found
+                issues += 'Attribute {} on {} has multiple values ({})'.format(key, dn, values)
+
+    # Check group membership consistency: invalid DNs
+    for dn, attributes in group_entries.items():
+        members = attributes.get('member', [])
+        for member_dn in members:
+            if member_dn.lower() not in person_entries:
+                issues += 'Unknown member DN found in group {}, member DN is {}'.format(dn, member_dn)
+
+    # Check Q membership inconsistency: in current members group but has 'qMemberEnd' set
+    current_members_entry = ldap_entries.get('cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl', {})
+    current_member_dns = current_members_entry.get('member', [])
+    current_member_set = {m.lower() for m in current_member_dns}
+    # Go over all people and check their qMemberStart/qMemberEnd
+    for dn, attributes in person_entries.items():
+        has_start = len(attributes.get('qMemberStart', [])) == 1
+        has_end = len(attributes.get('qMemberEnd', [])) == 1
+        in_group = dn in current_member_set  # Whether the person is in the current members group
+        if has_start and not has_end:
+            if not in_group:
+                issues += 'Person {} has qMemberStart but is not in current members group'.format(dn)
+        elif not has_start and has_end:
+            issues += 'Person {} has only qMemberEnd set'.format(dn)
+        else:
+            if in_group:
+                issues += 'Person {} has incorrect qMemberStart/end but is in current members group'.format(dn)
+
+    # Check name+AzureUPN inconsistency
+    for dn, attributes in person_entries.items():
+        cn = _get_first(attributes.get('cn', []), '')
+        given_name = _get_first(attributes.get('givenName', []), '')
+        sn = _get_first(attributes.get('sn', []), '')
+        if '{} {}'.format(given_name, sn).strip() != cn:
+            issues += 'givenName+sn != cn for person {}'.format(dn)
+
+        uid = _get_first(attributes.get('uid', []), '')
+        azure_upn = _get_first(attributes.get('qAzureUPN', []))
+        if azure_upn and azure_upn != '{}@esmgquadrivium.nl'.format(uid):
+            issues += 'Invalid qAzureUPN for person {}'.format(dn)
+
+    return issues
+
+
+def clone(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]],
           link_attribute='qDBLinkID') -> List[LDAPOperation]:
     """Create Django model instances from LDAP entries.
 
@@ -97,67 +174,9 @@ def clone(ldap_entries: Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]],
     Raises:
         CloneError: When there are problems with the LDAP data.
     """
-    # Check multi-value problems
-    single_valued = {  # Set of attributes that should be single valued
-        # Person attributes
-        'cn', 'sn', 'givenName', 'qAzureUPN', 'qBHVCertificate', 'qCardExternalDepositMade', 'qCardExternalDescription',
-        'qCardExternalNumber', 'qCardNumber', 'qDateOfBirth', 'qFieldOfStudy', 'qGender', 'qIBAN', 'qID', 'qIsStudent',
-        'qKeyWatcherID', 'qKeyWatcherPIN', 'qMemberEnd', 'qMemberStart', 'qSEPADirectDebit', 'initials', 'l', 'mail',
-        'postalCode', 'preferredLanguage', 'street', 'telephoneNumber', 'uid',
-        # Group attributes
-        'cn', 'description', 'mail', 'owner',
-    }
-    # Go over all attributes
-    for dn, attribute_dict in ldap_entries.items():
-        for key, values in attribute_dict.items():
-            if key in single_valued and len(values) > 1:
-                # Multi-valued attribute found
-                raise CloneError('Attribute {} on {} has multiple values ({})'.format(key, dn, values))
-
-    # Convert all DNs (dictionary keys) to lowercase
-    ldap_entries = {k.lower(): v for k, v in ldap_entries.items()}
-
-    # Split group and person entries
-    group_entries = {k: v for k, v in ldap_entries.items() if k.endswith('ou=groups,dc=esmgquadrivium,dc=nl')}
-    person_entries = {k: v for k, v in ldap_entries.items() if k.endswith('ou=people,dc=esmgquadrivium,dc=nl')}
-
-    # Check group membership consistency: invalid DNs
-    for dn, attributes in group_entries.items():
-        members = attributes.get('member', [])
-        for member_dn in members:
-            if member_dn.lower() not in person_entries:
-                raise CloneError('Unknown member DN found in group {}, member DN is {}'.format(dn, member_dn))
-
-    # Check Q membership inconsistency: in current members group but has 'qMemberEnd' set
-    current_members_entry = ldap_entries.get('cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl', {})
-    current_member_dns = current_members_entry.get('member', [])
-    current_member_set = {m.lower() for m in current_member_dns}
-    # Go over all people and check their qMemberStart/qMemberEnd
-    for dn, attributes in person_entries.items():
-        has_start = len(attributes.get('qMemberStart', [])) == 1
-        has_end = len(attributes.get('qMemberEnd', [])) == 1
-        in_group = dn in current_member_set  # Whether the person is in the current members group
-        if has_start and not has_end:
-            if not in_group:
-                raise CloneError('Person {} has qMemberStart but is not in current members group'.format(dn))
-        elif not has_start and has_end:
-            raise CloneError('Person {} has only qMemberEnd set'.format(dn))
-        else:
-            if in_group:
-                raise CloneError('Person {} has incorrect qMemberStart/end but is in current members group'.format(dn))
-
-    # Check name+AzureUPN inconsistency
-    for dn, attributes in person_entries.items():
-        cn = _get_first(attributes.get('cn', []), '')
-        given_name = _get_first(attributes.get('givenName', []), '')
-        sn = _get_first(attributes.get('sn', []), '')
-        if '{} {}'.format(given_name, sn).strip() != cn:
-            raise CloneError('givenName+sn != cn for person {}'.format(dn))
-
-        uid = _get_first(attributes.get('uid', []), '')
-        azure_upn = _get_first(attributes.get('qAzureUPN', []))
-        if azure_upn and azure_upn != '{}@esmgquadrivium.nl'.format(uid):
-            raise CloneError('Invalid qAzureUPN for person {}'.format(dn))
+    issues = check_for_issues(ldap_entries)
+    if len(issues) > 0:
+        raise CloneError(issues)
 
     # All (or most) checks done, do the actual import
     with transaction.atomic():

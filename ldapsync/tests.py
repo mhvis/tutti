@@ -376,13 +376,33 @@ class SyncTestCase(TestCase):
         self.assertEqual([DeleteOperation('uid=test')], operations)
 
     def test_modify(self):
-        source = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': ['4']}}
-        target = {'uid=test': {'uid': ['test'], 'name': ['Henk'], 'id': ['4']}}
-        operations = sync(source, target, on='id')
+        change_to = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': ['4']}}
+        to_change = {'uid=test': {'uid': ['test'], 'name': ['Henk'], 'id': ['4']}}
+        operations = sync(change_to, to_change, on='id')
         self.assertEqual([ModifyOperation('uid=test', 'name', ['Piet'])], operations)
 
-    def test_modify_dn(self):
-        source = {'uid=test': {'uid': ['hmm'], 'id': ['4']}}
-        target = {'uid=test2': {'uid': ['hmm'], 'id': ['4']}}
+    def test_modify_list(self):
+        change_to = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': ['4']}}
+        to_change = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': ['4']}}
+        operations = sync(change_to, to_change, on='id')
+        self.assertEqual([ModifyOperation('uid=test', 'name', ['Piet', 'Henk'])], operations)
+
+    def test_modify_list2(self):
+        source = {'uid=test': {'uid': ['test'], 'name': ['Henk', 'Piet'], 'id': ['4']}}
+        target = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': ['4']}}
         operations = sync(source, target, on='id')
-        self.assertEqual([ModifyDNOperation('uid=test', 'uid=test2')], operations)
+        self.assertEqual([], operations)
+
+    def test_modify_dn(self):
+        change_to = {'uid=test': {'id': ['4']}}
+        to_change = {'uid=test2': {'id': ['4']}}
+        operations = sync(change_to, to_change, on='id')
+        self.assertEqual([ModifyDNOperation('uid=test2', 'uid=test')], operations)
+
+    def test_modify_dn_attribute(self):
+        change_to = {'uid=test': {'uid': ['test'], 'id': ['4']}}
+        to_change = {'uid=test2': {'uid': ['test2'], 'id': ['4']}}
+        operations = sync(change_to, to_change, on='id')
+        # ModifyDNOperation should be before ModifyOperation
+        self.assertEqual([ModifyDNOperation('uid=test2', 'uid=test'),
+                          ModifyOperation('uid=test', 'uid', ['test'])], operations)

@@ -6,7 +6,7 @@ from typing import List, Dict, Union
 from django.conf import settings
 from ldap3 import Server, Connection
 
-LDAP_ATTRIBUTE_TYPES = Union[str, int, datetime, bool]
+LDAPAttributeType = Union[str, int, datetime, bool]
 """Possible types for LDAP attribute values."""
 
 
@@ -27,7 +27,7 @@ LDAPSearch = namedtuple('LDAPSearch', ['base_dn', 'object_class', 'attributes'])
 
 
 def get_ldap_entries(conn: Connection,
-                     *search: LDAPSearch) -> Dict[str, Dict[str, List[LDAP_ATTRIBUTE_TYPES]]]:
+                     *search: LDAPSearch) -> Dict[str, Dict[str, List[LDAPAttributeType]]]:
     """Get data from the LDAP database.
 
     Args:
