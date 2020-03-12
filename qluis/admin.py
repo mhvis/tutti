@@ -144,7 +144,7 @@ class QGroupAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
-            'fields': ('username', 'first_name', 'last_name', 'initials', 'created_at')
+            'fields': ('username', ('first_name', 'last_name'), 'initials', 'created_at')
         }),
         ('Contact details', {
             'fields': ('email', 'phone_number', 'street', 'postal_code', 'city', 'country')
@@ -153,11 +153,11 @@ class PersonAdmin(admin.ModelAdmin):
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
         ('Quadrivium', {
-            'fields': ('person_id', 'is_student', 'iban', 'sepa_direct_debit',
+            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit'),
                        'bhv_certificate', 'gsuite_accounts', 'notes')
         }),
         ('TU/e', {
-            'fields': ('tue_card_number', 'key_access', 'keywatcher_id', 'keywatcher_pin')
+            'fields': ('tue_card_number', 'key_access', ('keywatcher_id', 'keywatcher_pin'))
         }),
     )
     readonly_fields = ('created_at',)

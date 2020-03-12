@@ -101,7 +101,7 @@ class CloneTestCase(TestCase):
 
     def test_inconsistent_membership(self):
         """Clone should fail if member start/end is inconsistent with 'current members' group."""
-        # Has qMemberEnd, so should not be in current members group
+        # Has qMemberStart+qMemberEnd, so should not be in current members group
         entries = {
             'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['test'],
@@ -116,7 +116,7 @@ class CloneTestCase(TestCase):
         with self.assertRaises(CloneError):
             clone(entries)
 
-        # Has no qMemberStart, so should not be in current members group either
+        # Has no qMemberStart+qMemberEnd, so should not be in current members group
         entries = {
             'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['test'],
@@ -125,6 +125,30 @@ class CloneTestCase(TestCase):
                 'cn': ['Huidige leden'],
                 'member': ['uid=test,ou=people,dc=esmgquadrivium,dc=nl'],
             }
+        }
+        with self.assertRaises(CloneError):
+            clone(entries)
+
+        # Has only qMemberStart, so should be in current members group
+        entries = {
+            'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
+                'uid': ['test'],
+                'qMemberStart': [datetime(2010, 2, 2)],
+            },
+            'cn=Huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
+                'cn': ['Huidige leden'],
+                'member': [],
+            }
+        }
+        with self.assertRaises(CloneError):
+            clone(entries)
+
+        # Has only qMemberEnd, should raise error
+        entries = {
+            'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
+                'uid': ['test'],
+                'qMemberEnd': [datetime(2010, 2, 2)],
+            },
         }
         with self.assertRaises(CloneError):
             clone(entries)
