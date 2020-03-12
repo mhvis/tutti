@@ -21,9 +21,13 @@ class ExternalCardLoanInline(admin.TabularInline):
     """External card loan inline, for person and external card admin pages."""
     model = ExternalCardLoan
     extra = 0
-    fields = ('external_card', 'person', 'start', 'end')
-    readonly_fields = ('start',)
+    fields = ('external_card', 'person', 'start', 'end', 'deposit_made')
+    readonly_fields = ()
     autocomplete_fields = ('person',)
+    show_change_link = True
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -33,7 +37,15 @@ class ExternalCardLoanInline(admin.TabularInline):
 class ExternalCardLoanAdmin(admin.ModelAdmin):
     """Separate admin page for external card loans."""
     list_display = ('external_card', 'person', 'start', 'end')
+    fields = ('external_card', 'person', 'start', 'end', 'deposit_made')
     autocomplete_fields = ('person',)
+
+    def get_readonly_fields(self, request, obj=None):
+        """External card, person and start date are only editable during creation."""
+        if obj:
+            return 'external_card', 'person', 'start'
+        else:
+            return ()
 
     def has_delete_permission(self, request, obj=None):
         return False

@@ -187,10 +187,10 @@ class ExternalCardLoan(models.Model):
 
     external_card = models.ForeignKey(ExternalCard, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
-    start = models.DateTimeField(default=timezone.now)
-    end = models.DateTimeField(null=True,
-                               blank=True,
-                               help_text='If empty, the person is currently borrowing the card.')
+    start = models.DateField(default=timezone.now)
+    end = models.DateField(null=True,
+                           blank=True,
+                           help_text='If empty, the person is currently borrowing the card.')
 
     DEPOSIT_CHOICES = (
         ('nn', 'No'),
@@ -198,4 +198,7 @@ class ExternalCardLoan(models.Model):
         ('y', 'Probably yes'),
         ('yy', 'Most definitely')
     )
-    deposit_made = models.CharField(max_length=4, choices=DEPOSIT_CHOICES, blank=True)
+    deposit_made = models.CharField(max_length=4,
+                                    choices=DEPOSIT_CHOICES,
+                                    blank=True,
+                                    help_text='Money deposit for the card.')
