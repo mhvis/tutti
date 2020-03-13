@@ -22,27 +22,11 @@ class Command(BaseCommand):
             logging.basicConfig(level=logging.DEBUG)
             set_library_log_detail_level(BASIC)
 
-        # Clean local database
-        y = input('All current Django entries will be removed. Are you sure? [y/N] ')
-        if y != 'y':
-            self.stdout.write('Cancelled')
-            return
-
-        self.stdout.write('Deleting Django entries...')
-        Membership.objects.all().delete()
-        ExternalCardLoan.objects.all().delete()
-        Instrument.objects.all().delete()
-        QGroup.objects.all().delete()
-        Person.objects.all().delete()
-        GSuiteAccount.objects.all().delete()
-        ExternalCard.objects.all().delete()
-        Key.objects.all().delete()
-
         with get_connection() as conn:
+            # First fetch LDAP data and check for issues
             self.stdout.write('Fetching entries from LDAP...')
             stuff = get_ldap_entries(conn, CLONE_SEARCH)
             self.stdout.write('Fetched {} entries'.format(len(stuff)))
-            self.stdout.write(str(next(iter(stuff.items()))))
 
             issues = check_for_issues(stuff)
             if issues:
@@ -51,10 +35,22 @@ class Command(BaseCommand):
                     self.stdout.write('* {}'.format(issue))
                 return
 
-            y = input('Found no data issues, proceed with storing the data? [y/N] ')
+            # Store data
+            self.stdout.write('Found no data issues')
+            y = input('Proceed with storing the data? All current Django entries will be removed! [y/N] ')
             if y != 'y':
                 self.stdout.write('Cancelled')
                 return
+
+            self.stdout.write('Deleting Django entries...')
+            Membership.objects.all().delete()
+            ExternalCardLoan.objects.all().delete()
+            Instrument.objects.all().delete()
+            QGroup.objects.all().delete()
+            Person.objects.all().delete()
+            GSuiteAccount.objects.all().delete()
+            ExternalCard.objects.all().delete()
+            Key.objects.all().delete()
 
             self.stdout.write('Saving entries to database...')
             link_updates = clone(stuff)
