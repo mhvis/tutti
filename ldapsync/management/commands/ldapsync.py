@@ -16,12 +16,12 @@ class Command(BaseCommand):
         parser.add_argument('-y',
                             action='store_true',
                             help='Directly apply sync without asking for confirmation.')
-        parser.add_argument('-v',
+        parser.add_argument('--debug',
                             action='store_true',
-                            help='Enable debug output.')
+                            help='Enable ldap3 debug output.')
 
     def handle(self, *args, **options):
-        if options['v']:
+        if options['debug']:
             logging.basicConfig(level=logging.DEBUG)
             set_library_log_detail_level(BASIC)
 

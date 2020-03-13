@@ -114,14 +114,14 @@ def check_for_issues(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]]
         for key, values in attribute.items():
             if key in single_valued and len(values) > 1:
                 # Multi-valued attribute found
-                issues += 'Attribute {} on {} has multiple values ({})'.format(key, dn, values)
+                issues.append('Attribute {} on {} has multiple values ({})'.format(key, dn, values))
 
     # Check group membership consistency: invalid DNs
     for dn, attributes in group_entries.items():
         members = attributes.get('member', [])
         for member_dn in members:
             if member_dn.lower() not in person_entries:
-                issues += 'Unknown member DN found in group {}, member DN is {}'.format(dn, member_dn)
+                issues.append('Unknown member DN found in group {}, member DN is {}'.format(dn, member_dn))
 
     # Check Q membership inconsistency: in current members group but has 'qMemberEnd' set
     current_members_entry = ldap_entries.get('cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl', {})
@@ -134,12 +134,12 @@ def check_for_issues(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]]
         in_group = dn in current_member_set  # Whether the person is in the current members group
         if has_start and not has_end:
             if not in_group:
-                issues += 'Person {} has qMemberStart but is not in current members group'.format(dn)
+                issues.append('Person {} has qMemberStart but is not in current members group'.format(dn))
         elif not has_start and has_end:
-            issues += 'Person {} has only qMemberEnd set'.format(dn)
+            issues.append('Person {} has only qMemberEnd set'.format(dn))
         else:
             if in_group:
-                issues += 'Person {} has incorrect qMemberStart/end but is in current members group'.format(dn)
+                issues.append('Person {} has incorrect qMemberStart/end but is in current members group'.format(dn))
 
     # Check name+AzureUPN inconsistency
     for dn, attributes in person_entries.items():
@@ -147,12 +147,12 @@ def check_for_issues(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]]
         given_name = _get_first(attributes.get('givenName', []), '')
         sn = _get_first(attributes.get('sn', []), '')
         if '{} {}'.format(given_name, sn).strip() != cn:
-            issues += 'givenName+sn != cn for person {}'.format(dn)
+            issues.append('givenName+sn != cn for person {}'.format(dn))
 
-        uid = _get_first(attributes.get('uid', []), '')
-        azure_upn = _get_first(attributes.get('qAzureUPN', []))
+        uid = _get_first(attributes.get('uid', []), '').lower()
+        azure_upn = _get_first(attributes.get('qAzureUPN', []), '').lower()
         if azure_upn and azure_upn != '{}@esmgquadrivium.nl'.format(uid):
-            issues += 'Invalid qAzureUPN for person {}'.format(dn)
+            issues.append('Invalid qAzureUPN for person {}'.format(dn))
 
     return issues
 
@@ -175,7 +175,7 @@ def clone(ldap_entries: Dict[str, Dict[str, List[LDAPAttributeType]]],
         CloneError: When there are problems with the LDAP data.
     """
     issues = check_for_issues(ldap_entries)
-    if len(issues) > 0:
+    if issues:
         raise CloneError(issues)
 
     # All (or most) checks done, do the actual import
