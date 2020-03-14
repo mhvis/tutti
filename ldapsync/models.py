@@ -78,3 +78,6 @@ def get_local_entries() -> Dict[str, Dict[str, List[str]]]:
     entries = {p.get_dn(): p.get_attributes() for p in LDAPPerson.objects.all()}
     entries.update({g.get_dn(): g.get_attributes() for g in LDAPGroup.objects.all()})
     return entries
+
+# class SyncLogEntry(models.Model):
+#     """Log entry of a sync run."""

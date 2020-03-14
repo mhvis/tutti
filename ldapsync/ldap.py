@@ -31,6 +31,11 @@ def _normalize_attrs(attrs: Dict) -> Dict:
     return {k: v if isinstance(v, list) else [v] for k, v in attrs.items()}
 
 
+def _normalize_dn(dn: str) -> str:
+    """Make DN lowercase."""
+    return dn.lower()
+
+
 def get_ldap_entries(conn: Connection,
                      search: Iterable[LDAPSearch]) -> Dict[str, Dict[str, List[LDAPAttributeType]]]:
     """Get data from the LDAP database.
@@ -41,7 +46,8 @@ def get_ldap_entries(conn: Connection,
 
     Returns:
         A dictionary with all retrieved entries from LDAP. The format of the
-        dictionary is {DN -> {attribute -> [values]}}.
+        dictionary is {DN -> {attribute -> [values]}}. The entries are
+        normalized, i.e. DNs are all lowercase.
     """
     entries = {}
     for s in search:
@@ -51,6 +57,8 @@ def get_ldap_entries(conn: Connection,
                     search_scope=LEVEL,
                     attributes=s.attributes)
         for response_entry in conn.response:
-            entries[response_entry['dn']] = _normalize_attrs(response_entry['attributes'])
+            dn = _normalize_dn(response_entry['dn'])
+            attrs = _normalize_attrs(response_entry['attributes'])
+            entries[dn] = attrs
 
     return entries
