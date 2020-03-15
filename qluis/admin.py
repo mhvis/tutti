@@ -218,6 +218,7 @@ class PersonAdmin(admin.ModelAdmin):
             'object': person,
             'memberships_removed': memberships_removed,
             'memberships_kept': memberships_kept,
+            'keys': [k.number for k in person.key_access.all()]  # Would be nicer to have this in template only
         }
         return TemplateResponse(request, 'admin/qluis/person/unsubscribe.html', context)
 
