@@ -236,7 +236,7 @@ class CloneTestCase(TestCase):
                 'qGender': ['Male'],
                 'qIBAN': ['NL45ABNA9574218201'],
                 'qID': ['GUSMAL'],
-                'qInstrumentVoice': ['Piano', 'Conducting'],
+                'qInstrumentVoice': ['Piano', 'conducting'],
                 'qIsStudent': [True],
                 'qKeyAccess': [15, 27],
                 'qKeyWatcherID': ['1234'],
@@ -276,7 +276,7 @@ class CloneTestCase(TestCase):
         self.assertEqual('male', gustav.gender)
         self.assertEqual('NL45ABNA9574218201', gustav.iban)
         self.assertEqual('GUSMAL', gustav.person_id)
-        self.assertCountEqual(['Piano', 'Conducting'],
+        self.assertCountEqual(['piano', 'conducting'],
                               [i.name for i in gustav.instruments.all()])
         self.assertTrue(gustav.is_student)
         self.assertCountEqual([15, 27],

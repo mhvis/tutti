@@ -259,7 +259,7 @@ def create_person_and_related(attrs, q_member_group: QGroup) -> Person:
         person.gsuite_accounts.add(account)
     # Instruments
     for i in attrs.get('qInstrumentVoice', []):
-        instrument, _ = Instrument.objects.get_or_create(name=i.capitalize())
+        instrument, _ = Instrument.objects.get_or_create(name=i.lower())
         person.instruments.add(instrument)
     # Key access
     for k in attrs.get('qKeyAccess', []):
