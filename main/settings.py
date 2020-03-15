@@ -104,7 +104,6 @@ LANGUAGE_CODE = 'nl-nl'
 TIME_ZONE = 'Europe/Amsterdam'
 USE_I18N = False
 USE_L10N = True
-USE_THOUSAND_SEPARATOR = True
 USE_TZ = True
 
 

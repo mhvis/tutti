@@ -1,13 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from localflavor.generic.models import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
-from datetime import datetime
 
 
 class User(AbstractUser):
@@ -157,19 +156,16 @@ class Person(models.Model):
         full_name = '{} {}'.format(self.first_name, self.last_name)
         return full_name.strip()
 
-    def unsubscribe(self):
-        # Go over all groups
-        for membership in Membership.objects.filter(person=self):
-            if membership.group.end_on_unsubscribe:
-                membership.end = datetime.today()
-                membership.save()
-
-        # End membership to Q
-        self.membership_end = datetime.now()
-        self.save()
-
     def __str__(self):
         return self.get_full_name()
+
+    def current_memberships(self) -> QuerySet:
+        """Get current group memberships."""
+        return self.membership_set.filter(end=None)
+
+    def current_external_card_loans(self):
+        """Get current external card loans."""
+        return self.externalcardloan_set.filter(end=None)
 
 
 class Membership(models.Model):
