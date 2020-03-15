@@ -161,7 +161,7 @@ class PersonAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ('created_at',)
-    list_display = ('email', 'first_name', 'last_name')
+    list_display = ('username', 'email', 'first_name', 'last_name')
     list_filter = (GroupFilter,)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
