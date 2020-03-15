@@ -26,7 +26,7 @@ class AddOperation(LDAPOperation):
         self.attributes = attributes
 
     def __str__(self) -> str:
-        return 'Add {}'.format(self.dn)
+        return 'Add {} with {}'.format(self.dn, self.attributes)
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, AddOperation):

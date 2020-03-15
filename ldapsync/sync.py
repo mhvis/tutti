@@ -45,13 +45,28 @@ def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
     Args:
         change_to: The dataset which has the new data.
         to_change: The dataset that is old and needs to be modified.
-        on: Attribute that will be used to match entries from both datasets.
+        on: Attribute that will be used to match entries from both datasets. It
+            needs to be present for every entry in the change_to dataset,
+            however it does not need to be present for entries in the to_change
+            dataset! Entries which do not have a value for this attribute will
+            be removed!
 
     Returns:
-        A list of add, delete, modify operations. Order matters.
+        A list of add, delete, modify operations. Order matters for applying.
     """
     ops = []
 
+    # Delete entries in to_change which do not have the matching attribute.
+    # Since we'll later use this attribute as a (hashed) key it will wreak havoc if present
+    delete = []
+    for dn, attributes in to_change.items():
+        if not attributes.get(on):
+            delete.append(dn)
+    for dn in delete:
+        ops.append(DeleteOperation(dn))
+        del to_change[dn]
+
+    # Remap so that the dictionaries are hashed based on the matching attribute
     change_to = remap(change_to, on)
     to_change = remap(to_change, on)
 

@@ -2,7 +2,7 @@
 
 from typing import Dict, List
 
-from ldapsync.ldap import LDAPSearch
+from ldapsync.ldap import LDAPSearch, LDAPAttributeType
 from qluis.models import QGroup, Person
 
 
@@ -10,10 +10,10 @@ class LDAPMixin:
     """Mixin for model classes to add methods for syncing with LDAP."""
 
     def get_dn(self) -> str:
-        """Get the Distinguished Name for the instance."""
+        """Get the (normalized, i.e. lowercase) Distinguished Name for the instance."""
         raise NotImplementedError()
 
-    def get_attributes(self) -> Dict[str, List]:
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
         """Get the LDAP attribute values.
 
         Returns:
@@ -27,23 +27,43 @@ class LDAPMixin:
         """Get search parameters for retrieval of LDAP data."""
         raise NotImplementedError()
 
+    @classmethod
+    def get_entries(cls) -> Dict[str, Dict[str, List[str]]]:
+        """Get all the local database entries of this model in LDAP format."""
+        return {i.get_dn(): i.get_attributes() for i in cls.objects.all()}
+
 
 class LDAPGroup(LDAPMixin, QGroup):
     class Meta:
         proxy = True
 
     def get_dn(self):
-        pass
+        return 'cn={},ou=groups,dc=esmgquadrivium,dc=nl'.format(self.name.lower())
 
-    def get_attributes(self) -> Dict[str, List]:
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
         return {
             'objectClass': ['esmgqGroup'],
             'cn': [self.name],
+            'description': [self.description],
+            'mail': [self.email],
+            'member': [m.get_dn() for m in LDAPPerson.objects.filter(membership__group=self, membership__end=None)],
+            'qDBLinkID': [self.id],
         }
 
     @classmethod
     def get_search(cls) -> LDAPSearch:
-        pass
+        return LDAPSearch(
+            base_dn='ou=groups,dc=esmgquadrivium,dc=nl',
+            object_class='esmgqGroup',
+            attributes=[
+                'objectClass',
+                'cn',
+                'description',
+                'mail',
+                'member',
+                'qDBLinkID',
+            ]
+        )
 
 
 class LDAPPerson(LDAPMixin, Person):
@@ -51,33 +71,40 @@ class LDAPPerson(LDAPMixin, Person):
         proxy = True
 
     def get_dn(self) -> str:
-        pass
+        return 'uid={},ou=people,dc=esmgquadrivium,dc=nl'.format(self.username.lower())
 
-    def get_attributes(self) -> Dict[str, List]:
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
         return {
+            'objectClass': ['esmgqPerson'],
             'uid': [self.username],
             'givenName': [self.first_name],
             'sn': [self.last_name],
             'cn': [self.get_full_name()],
             'mail': [self.email],
-            'initials': [self.initials],
-            'l': [self.city],
-            'postalCode': [self.postal_code],
             'preferredLanguage': [self.preferred_language],
             'qAzureUPN': ['{}@esmgquadrivium.nl'.format(self.username.lower())],
-
+            'qGSuite': [a.email for a in self.gsuite_accounts.all()],
+            'qDBLinkID': [self.id],
         }
 
     @classmethod
     def get_search(cls) -> LDAPSearch:
-        pass
-
-
-def get_local_entries() -> Dict[str, Dict[str, List[str]]]:
-    """Get the local database entries in LDAP format."""
-    entries = {p.get_dn(): p.get_attributes() for p in LDAPPerson.objects.all()}
-    entries.update({g.get_dn(): g.get_attributes() for g in LDAPGroup.objects.all()})
-    return entries
+        return LDAPSearch(
+            base_dn='ou=people,dc=esmgquadrivium,dc=nl',
+            object_class='esmgqPerson',
+            attributes=[
+                'objectClass',
+                'uid',
+                'givenName',
+                'sn',
+                'cn',
+                'mail',
+                'preferredLanguage',
+                'qAzureUPN',
+                'qGSuite',
+                'qDBLinkID',
+            ]
+        )
 
 # class SyncLogEntry(models.Model):
 #     """Log entry of a sync run."""

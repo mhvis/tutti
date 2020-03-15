@@ -5,7 +5,7 @@ from django.core.management import BaseCommand
 from ldap3.utils.log import set_library_log_detail_level, BASIC
 
 from ldapsync.ldap import get_connection, get_ldap_entries
-from ldapsync.models import LDAPPerson, LDAPGroup, get_local_entries
+from ldapsync.models import LDAPPerson, LDAPGroup
 from ldapsync.sync import sync
 
 
@@ -26,15 +26,20 @@ class Command(BaseCommand):
             set_library_log_detail_level(BASIC)
 
         self.stdout.write('Retrieving entries from local database...')
-        local_entries = get_local_entries()
+        local_people = LDAPPerson.get_entries()
+        local_groups = LDAPGroup.get_entries()
 
         with get_connection() as conn:
             self.stdout.write('Retrieving entries from LDAP...')
-            search = [LDAPPerson.get_search(), LDAPGroup.get_search()]
-            remote_entries = get_ldap_entries(conn, search)
+            remote_people = get_ldap_entries(conn, [LDAPPerson.get_search()])
+            remote_groups = get_ldap_entries(conn, [LDAPGroup.get_search()])
 
             self.stdout.write('Comparing local and remote database...')
-            operations = sync(remote_entries, local_entries)
+            # The people and groups need to be synced separately because they
+            #  are matched on their primary key, which is only unique within
+            #  people and groups, but not unique if you take those together.
+            operations = sync(local_people, remote_people)
+            operations += sync(local_groups, remote_groups)
 
             if not operations:
                 self.stdout.write('No differences found, exiting...')

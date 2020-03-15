@@ -62,7 +62,7 @@ class ExternalCard(models.Model):
 
 
 class GSuiteAccount(models.Model):
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
 
     def __str__(self):
         return self.email
@@ -139,8 +139,8 @@ class Person(models.Model):
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID')
 
     key_access = models.ManyToManyField(Key, blank=True)
-    keywatcher_id = models.IntegerField(null=True, blank=True, verbose_name='KeyWatcher ID')
-    keywatcher_pin = models.IntegerField(null=True, blank=True, verbose_name='KeyWatcher PIN')
+    keywatcher_id = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher ID')
+    keywatcher_pin = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher PIN')
 
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -193,10 +193,10 @@ class ExternalCardLoan(models.Model):
                            help_text='If empty, the person is currently borrowing the card.')
 
     DEPOSIT_CHOICES = (
-        ('nn', 'No'),
-        ('n', 'Probably not'),
-        ('y', 'Probably yes'),
-        ('yy', 'Most definitely')
+        ('n', 'No'),
+        ('n?', 'Probably not'),
+        ('y?', 'Probably yes'),
+        ('y', 'Most definitely')
     )
     deposit_made = models.CharField(max_length=4,
                                     choices=DEPOSIT_CHOICES,

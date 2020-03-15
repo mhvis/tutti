@@ -1,9 +1,12 @@
 from datetime import date, datetime
 
+from django.db.models import Q
 from django.test import TestCase
+from django.utils import timezone
 
 from ldapsync.clone import CloneError, clone
 from ldapsync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
+from ldapsync.models import LDAPGroup
 from ldapsync.sync import sync
 from qluis.models import Person, QGroup, ExternalCard, ExternalCardLoan, Membership, Instrument, GSuiteAccount, Key
 
@@ -22,7 +25,7 @@ class CloneTestCase(TestCase):
         self.assertEqual(2, QGroup.objects.all().count())  # Includes 'current members' group
         self.assertEqual(0, Membership.objects.count())
         self.assertEqual('aperson', Person.objects.first().username)
-        self.assertEqual('agroup', QGroup.objects.first().name)
+        self.assertEqual('agroup', QGroup.objects.get(name='agroup').name)
 
     def test_multiple_values(self):
         """Cloning should fail if any of these attributes has multiple values."""
@@ -86,7 +89,7 @@ class CloneTestCase(TestCase):
         self.assertEqual(5, card.reference_number)
         self.assertEqual('Cluster 3', card.description)
         self.assertIsNone(loan.end)
-        self.assertEqual('y', loan.deposit_made)
+        self.assertEqual('y?', loan.deposit_made)
         # Make sure that TU/e card number is NOT set!
         self.assertIsNone(Person.objects.first().tue_card_number)
 
@@ -108,9 +111,9 @@ class CloneTestCase(TestCase):
                 'qMemberStart': [datetime(2010, 2, 2)],
                 'qMemberEnd': [datetime(2010, 5, 2)],
             },
-            'cn=Huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
+            'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
                 'cn': ['Huidige leden'],
-                'member': ['uid=test,ou=people,dc=esmgquadrivium,dc=nl'],
+                'member': ['uid=TEst,ou=people,dc=esmgquadrivium,dc=nl'],
             }
         }
         with self.assertRaises(CloneError):
@@ -121,7 +124,7 @@ class CloneTestCase(TestCase):
             'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['test'],
             },
-            'cn=Huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
+            'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
                 'cn': ['Huidige leden'],
                 'member': ['uid=test,ou=people,dc=esmgquadrivium,dc=nl'],
             }
@@ -135,7 +138,7 @@ class CloneTestCase(TestCase):
                 'uid': ['test'],
                 'qMemberStart': [datetime(2010, 2, 2)],
             },
-            'cn=Huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
+            'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
                 'cn': ['Huidige leden'],
                 'member': [],
             }
@@ -158,8 +161,8 @@ class CloneTestCase(TestCase):
         entries = {
             'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['test'],
-                'qMemberStart': [datetime(2010, 2, 2)],
-                'qMemberEnd': [datetime(2010, 5, 2)],
+                'qMemberStart': [datetime(2010, 2, 2, tzinfo=timezone.utc)],
+                'qMemberEnd': [datetime(2010, 5, 2, tzinfo=timezone.utc)],
             },
             'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
                 'cn': ['Huidige leden'],
@@ -171,15 +174,15 @@ class CloneTestCase(TestCase):
         self.assertEqual(1, QGroup.objects.count())
         self.assertEqual(1, Membership.objects.count())
         membership = Membership.objects.first()
-        self.assertEqual(datetime(2010, 2, 2), membership.start)
-        self.assertEqual(datetime(2010, 5, 2), membership.end)
+        self.assertEqual(datetime(2010, 2, 2, tzinfo=timezone.utc), membership.start)
+        self.assertEqual(datetime(2010, 5, 2, tzinfo=timezone.utc), membership.end)
 
     def test_member_start(self):
         """Test conversion of a current member with only qMemberStart to group membership."""
         entries = {
             'uid=test,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['test'],
-                'qMemberStart': [datetime(2010, 2, 2)],
+                'qMemberStart': [datetime(2010, 2, 2, tzinfo=timezone.utc)],
             },
             'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
                 'cn': ['Huidige leden'],
@@ -191,7 +194,7 @@ class CloneTestCase(TestCase):
         self.assertEqual(1, Person.objects.count())
         self.assertEqual(1, Membership.objects.count())
         membership = Membership.objects.first()
-        self.assertEqual(datetime(2010, 2, 2), membership.start)
+        self.assertEqual(datetime(2010, 2, 2, tzinfo=timezone.utc), membership.start)
         self.assertIsNone(membership.end)
 
     def test_group_membership(self):
@@ -206,7 +209,7 @@ class CloneTestCase(TestCase):
             }
         }
         clone(entries)
-        self.assertEqual(1, QGroup.objects.count())
+        self.assertEqual(2, QGroup.objects.count())  # 2 groups because there's also a current members group
         self.assertEqual(1, Person.objects.count())
         self.assertEqual(1, Membership.objects.count())
         membership = Membership.objects.first()
@@ -215,6 +218,10 @@ class CloneTestCase(TestCase):
     def test_full_person(self):
         """Test a person with (almost) all attributes."""
         entries = {
+            'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {
+                'cn': ['Huidige leden'],
+                'member': ['uid=gustav,ou=people,dc=esmgquadrivium,dc=nl']
+            },
             'uid=gustav,ou=people,dc=esmgquadrivium,dc=nl': {
                 'uid': ['gustav'],
                 'cn': ['Gustav Mahler'],
@@ -232,11 +239,11 @@ class CloneTestCase(TestCase):
                 'qInstrumentVoice': ['Piano', 'Conducting'],
                 'qIsStudent': [True],
                 'qKeyAccess': [15, 27],
-                'qKeyWatcherID': [1234],
-                'qKeyWatcherPIN': [5678],
-                'qMemberStart': [datetime(2010, 1, 1)],
+                'qKeyWatcherID': ['1234'],
+                'qKeyWatcherPIN': ['5678'],
+                'qMemberStart': [datetime(2010, 1, 1, tzinfo=timezone.utc)],
                 'qSEPADirectDebit': [True],
-                'initials': 'G.',
+                'initials': ['G.'],
                 'l': ['Prague'],
                 'mail': ['gustav@hofoper.at'],
                 'postalCode': ['1111XX'],
@@ -260,13 +267,13 @@ class CloneTestCase(TestCase):
         self.assertEqual('gustav', gustav.username)
         self.assertEqual('Gustav', gustav.first_name)
         self.assertEqual('Mahler', gustav.last_name)
-        self.assertEqual(datetime(2020, 1, 1), gustav.bhv_certificate)
+        self.assertEqual(date(2020, 1, 1), gustav.bhv_certificate)
         self.assertEqual(1234567, gustav.tue_card_number)
         self.assertEqual(date(1860, 7, 7), gustav.date_of_birth)
         self.assertEqual('Alma', gustav.field_of_study)
         self.assertCountEqual(['gustav@esmgquadrivium.nl', 'mahler@esmgquadrivium.nl'],
                               [a.email for a in gustav.gsuite_accounts.all()])
-        self.assertEqual('Male', gustav.gender)
+        self.assertEqual('male', gustav.gender)
         self.assertEqual('NL45ABNA9574218201', gustav.iban)
         self.assertEqual('GUSMAL', gustav.person_id)
         self.assertCountEqual(['Piano', 'Conducting'],
@@ -274,8 +281,8 @@ class CloneTestCase(TestCase):
         self.assertTrue(gustav.is_student)
         self.assertCountEqual([15, 27],
                               [k.number for k in gustav.key_access.all()])
-        self.assertEqual(1234, gustav.keywatcher_id)
-        self.assertEqual(5678, gustav.keywatcher_pin)
+        self.assertEqual('1234', gustav.keywatcher_id)
+        self.assertEqual('5678', gustav.keywatcher_pin)
         self.assertTrue(gustav.sepa_direct_debit)
         self.assertEqual('G.', gustav.initials)
         self.assertEqual('Prague', gustav.city)
@@ -288,7 +295,7 @@ class CloneTestCase(TestCase):
 
         # Check group membership
         membership = Membership.objects.first()  # type: Membership
-        self.assertEqual(datetime(2010, 1, 1), membership.start)
+        self.assertEqual(datetime(2010, 1, 1, tzinfo=timezone.utc), membership.start)
         self.assertIsNone(membership.end)
 
     def test_complete_group(self):
@@ -341,14 +348,18 @@ class CloneTestCase(TestCase):
     def test_link_attribute_update(self):
         """Test the return value of the clone function."""
         entries = {
-            'uid=aperson,ou=people,dc=esmgquadrivium,dc=nl': {'uid': ['aperson']},
+            'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl': {'cn': ['Huidige leden']},
             'cn=agroup,ou=groups,dc=esmgquadrivium,dc=nl': {'cn': ['agroup']},
+            'uid=aperson,ou=people,dc=esmgquadrivium,dc=nl': {'uid': ['aperson']},
         }
         actual = clone(entries, link_attribute='linkID')
         person_id = Person.objects.first().id
-        group_id = QGroup.objects.first().id
-        expect = [ModifyOperation('uid=aperson,ou=people,dc=esmgquadrivium,dc=nl', 'linkID', [str(person_id)]),
-                  ModifyOperation('cn=agroup,ou=groups,dc=esmgquadrivium,dc=nl', 'linkID', [str(group_id)])]
+        group1_id = QGroup.objects.get(name='Huidige leden').id
+        group2_id = QGroup.objects.get(~Q(name='Huidige leden')).id
+
+        expect = [ModifyOperation('uid=aperson,ou=people,dc=esmgquadrivium,dc=nl', 'linkID', [person_id]),
+                  ModifyOperation('cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl', 'linkID', [group1_id]),
+                  ModifyOperation('cn=agroup,ou=groups,dc=esmgquadrivium,dc=nl', 'linkID', [group2_id])]
         self.assertCountEqual(expect, actual)
 
 
@@ -357,8 +368,8 @@ class SyncTestCase(TestCase):
 
     def test_none(self):
         """No operations need to be performed."""
-        source = {'uid=peep': {'uid': ['peep'], 'name': ['Henk'], 'id': ['4']}}
-        target = {'uid=peep': {'uid': ['peep'], 'name': ['Henk'], 'id': ['4']}}
+        source = {'uid=peep': {'uid': ['peep'], 'name': ['Henk'], 'id': [4]}}
+        target = {'uid=peep': {'uid': ['peep'], 'name': ['Henk'], 'id': [4]}}
         operations = sync(source, target, on='id')
         self.assertEqual([], operations)
 
@@ -382,14 +393,14 @@ class SyncTestCase(TestCase):
         self.assertEqual([ModifyOperation('uid=test', 'name', ['Piet'])], operations)
 
     def test_modify_list(self):
-        change_to = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': ['4']}}
-        to_change = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': ['4']}}
+        change_to = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': [4]}}
+        to_change = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': [4]}}
         operations = sync(change_to, to_change, on='id')
         self.assertEqual([ModifyOperation('uid=test', 'name', ['Piet', 'Henk'])], operations)
 
     def test_modify_list2(self):
-        source = {'uid=test': {'uid': ['test'], 'name': ['Henk', 'Piet'], 'id': ['4']}}
-        target = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': ['4']}}
+        source = {'uid=test': {'uid': ['test'], 'name': ['Henk', 'Piet'], 'id': [4]}}
+        target = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': [4]}}
         operations = sync(source, target, on='id')
         self.assertEqual([], operations)
 
@@ -406,3 +417,51 @@ class SyncTestCase(TestCase):
         # ModifyDNOperation should be before ModifyOperation
         self.assertEqual([ModifyDNOperation('uid=test2', 'uid=test'),
                           ModifyOperation('uid=test', 'uid', ['test'])], operations)
+
+    def test_entry_without_matching_attribute(self):
+        change_to = {'uid=test': {'uid': ['test'], 'id': [1]}}
+        to_change1 = {'uid=test': {'uid': ['test']}}
+        to_change2 = {'uid=test': {'uid': ['test'], 'id': []}}
+        operations1 = sync(change_to, to_change1, on='id')
+        operations2 = sync(change_to, to_change2, on='id')
+        expect = [DeleteOperation('uid=test'), AddOperation('uid=test', {'uid': ['test'], 'id': [1]})]
+        self.assertEqual(expect, operations1)
+        self.assertEqual(expect, operations2)
+
+
+class ModelsTestCase(TestCase):
+    def test_group_membership_current(self):
+        """Test current group membership is included in member list."""
+        p = Person.objects.create(username='test')
+        g = QGroup.objects.create(name='group')
+        Membership.objects.create(group=g, person=p, start=datetime(2010, 1, 1, tzinfo=timezone.utc))
+        ldap_attrs = LDAPGroup.objects.first().get_attributes()
+        self.assertEqual(['uid=test,ou=people,dc=esmgquadrivium,dc=nl'], ldap_attrs['member'])
+
+    def test_group_membership_past(self):
+        """Test past group membership is NOT included in member list."""
+        p = Person.objects.create(username='test')
+        g = QGroup.objects.create(name='group')
+        Membership.objects.create(group=g,
+                                  person=p,
+                                  start=datetime(2010, 1, 1, tzinfo=timezone.utc),
+                                  end=datetime(2011, 1, 1, tzinfo=timezone.utc))
+        ldap_attrs = LDAPGroup.objects.first().get_attributes()
+        self.assertEqual([], ldap_attrs['member'])
+
+    def test_group_membership_complex(self):
+        """Test current group membership is included in member list with a past membership."""
+        p = Person.objects.create(username='test')
+        g1 = QGroup.objects.create(name='group')
+        g2 = QGroup.objects.create(name='group2')
+        Membership.objects.create(group=g1,
+                                  person=p,
+                                  start=datetime(2010, 1, 1, tzinfo=timezone.utc),
+                                  end=datetime(2011, 1, 1, tzinfo=timezone.utc))
+        Membership.objects.create(group=g2,
+                                  person=p,
+                                  start=datetime(2014, 1, 1, tzinfo=timezone.utc))
+        ldap_attrs1 = LDAPGroup.objects.get(pk=g1.pk).get_attributes()
+        ldap_attrs2 = LDAPGroup.objects.get(pk=g2.pk).get_attributes()
+        self.assertEqual([], ldap_attrs1['member'])
+        self.assertEqual(['uid=test,ou=people,dc=esmgquadrivium,dc=nl'], ldap_attrs2['member'])
