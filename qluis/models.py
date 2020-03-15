@@ -62,6 +62,9 @@ class ExternalCard(models.Model):
 
 
 class GSuiteAccount(models.Model):
+    class Meta:
+        verbose_name = 'G Suite account'
+
     email = models.EmailField(unique=True)
 
     def __str__(self):
@@ -166,6 +169,7 @@ class Membership(models.Model):
     """
 
     class Meta:
+        verbose_name = 'group membership'
         constraints = [
             # Allow only one membership instance per group/person combi
             models.UniqueConstraint(fields=['group', 'person'],
