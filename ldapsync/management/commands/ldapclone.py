@@ -1,65 +1,71 @@
+import logging
 from argparse import ArgumentParser
 
 from django.core.management import BaseCommand
-from ldap3 import LEVEL, MODIFY_REPLACE
+from ldap3.utils.log import set_library_log_detail_level, BASIC
 
-from ldapsync.ldaputil import get_connection
-from ldapsync.models import SYNC_MODELS
-from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key
+from ldapsync.clone import CLONE_SEARCH, clone, check_for_issues
+from ldapsync.ldap import get_ldap_entries, get_connection
+from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, Membership, ExternalCardLoan
 
 
 class Command(BaseCommand):
-    help = (
-        'Clones complete LDAP database into Django. '
-        'Discards all current Django entries! '
-        'Updates the ID attribute on LDAP.'
-    )
+    help = 'Clones the full LDAP database and updates the ID attribute on LDAP.'
 
     def add_arguments(self, parser: ArgumentParser):
-        parser.add_argument('--no-ldap-update',
+        parser.add_argument('--debug',
                             action='store_true',
-                            help='Does not make any changes to the LDAP database.')
-        parser.add_argument('--force-ldap-id',
-                            action='store_true',
-                            help='Overwrite LDAP ID attribute if it already exists.')
+                            help='Enable ldap3 debug output.')
 
     def handle(self, *args, **options):
-        # logging.basicConfig(level=logging.DEBUG)
-        # set_library_log_detail_level(BASIC)
-
-        self.stdout.write('When you continue, all entries in Django will be removed and new entries will be')
-        self.stdout.write('created from LDAP. The LDAP database is not modified apart from the ID link')
-        self.stdout.write('attribute.')
-        y = input('Are you sure? [y/N] ')
-        if y != 'y':
-            self.stdout.write('Cancelled')
-            return
+        if options['debug']:
+            logging.basicConfig(level=logging.DEBUG)
+            set_library_log_detail_level(BASIC)
 
         with get_connection() as conn:
-            # Delete current rows
-            for model in SYNC_MODELS:
-                model.objects.all().delete()
+            # First fetch LDAP data and check for issues
+            self.stdout.write('Fetching entries from LDAP...')
+            stuff = get_ldap_entries(conn, CLONE_SEARCH)
+            self.stdout.write('Fetched {} entries'.format(len(stuff)))
 
-            # Also clear the auxiliary models
+            issues = check_for_issues(stuff)
+            if issues:
+                self.stdout.write('Found issues with the LDAP data:')
+                for issue in issues:
+                    self.stdout.write('* {}'.format(issue))
+                return
+
+            # Store data
+            self.stdout.write('Found no data issues')
+            y = input('Proceed with storing the data? All current Django entries will be removed! [y/N] ')
+            if y != 'y':
+                self.stdout.write('Cancelled')
+                return
+
+            self.stdout.write('Deleting Django entries...')
+            Membership.objects.all().delete()
+            ExternalCardLoan.objects.all().delete()
             Instrument.objects.all().delete()
+            QGroup.objects.all().delete()
+            Person.objects.all().delete()
             GSuiteAccount.objects.all().delete()
             ExternalCard.objects.all().delete()
             Key.objects.all().delete()
 
-            # Retrieve from LDAP
-            for model in SYNC_MODELS:
-                conn.search(search_base=model.base_dn,
-                            search_filter='(objectClass={})'.format(model.object_class),
-                            search_scope=LEVEL,
-                            attributes=list(model.attribute_keys) + [model.link_attribute])
-                for entry in conn.entries:
-                    self.stdout.write('Creating entry for {}...'.format(entry.entry_dn))
-                    # Create Django instance
-                    instance = model.create_from_attribute_values(entry)
-                    if not options['no_ldap_update']:
-                        # Check if LDAP ID exists already on LDAP server
-                        if entry[model.link_attribute].value and not options['force_ldap_id']:
-                            raise Exception('LDAP link ID attribute found on server, use --force-ldap-id to overwrite.')
-                        # Update LDAP ID
-                        changes = {model.link_attribute: (MODIFY_REPLACE, instance.pk)}
-                        conn.modify(entry.entry_dn, changes)
+            self.stdout.write('Saving entries to database...')
+            link_updates = clone(stuff)
+
+            self.stdout.write('Entries created, need to do the following link attribute updates:')
+            for update in link_updates:
+                self.stdout.write('* {}'.format(update))
+
+            y = input('Apply LDAP operations? [y/N] ')
+            if y != 'y':
+                self.stdout.write('Cancelled')
+                return
+
+            self.stdout.write('Updating link attribute on the LDAP database...')
+            for update in link_updates:
+                update.apply(conn)
+
+            self.stdout.write('Cloning finished')

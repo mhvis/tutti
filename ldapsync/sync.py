@@ -1,96 +1,102 @@
-"""Module for one-way sync from Django to LDAP ('push')."""
+"""Module for one-way sync between two datasets."""
+from typing import List, Dict, Tuple
 
-from typing import List
-
-from ldap3 import Connection, LEVEL
-
-from ldapsync.models import SyncModel, SYNC_MODELS
-from ldapsync.syncoperations import SyncOperation, AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
+from ldapsync.ldap import LDAPAttributeType
+from ldapsync.ldapoperations import LDAPOperation, AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
 
 
-def get_sync_operations(conn: Connection) -> List[SyncOperation]:
-    """Get all sync operations that need to be applied.
-
-    Overview of the types of operations:
-
-    * Entries that exist in Django but are not found in LDAP need to be added
-        in LDAP.
-    * Entry IDs that are found in LDAP for which there is no Django entry with
-        that ID need to be removed from LDAP.
-    * Entries in LDAP for which an attribute value differs need to be updated.
-    * Entries in LDAP for which the DN attribute value differs, need to be
-        updated using a Modify DN operation.
-    """
-    operations = []
-    for model in SYNC_MODELS:
-        # Get entries on the LDAP server that have a link with a Django model
-        search_filter = '(&(objectClass={})({}=*))'.format(model.object_class,
-                                                           model.link_attribute)
-        conn.search(search_base=model.base_dn,
-                    search_filter=search_filter,
-                    search_scope=LEVEL,
-                    attributes=list(model.attribute_keys) + [model.link_attribute])
-
-        operations += get_add_delete(conn.entries, model)
-        operations += get_modify(conn.entries, model)
-    return operations
-
-
-def get_add_delete(ldap_entries, model: SyncModel) -> List[SyncOperation]:
-    """Get add/delete operations that need to be performed on given LDAP entries.
+def remap(entries: Dict[str, Dict[str, List[LDAPAttributeType]]],
+          on: str) -> Dict[LDAPAttributeType, Tuple[str, Dict]]:
+    """Remap LDAP dataset into one which maps on the given attribute.
 
     Args:
-        ldap_entries: The entries returned by the LDAP search.
-        model: The model type to check for differences.
+        entries: LDAP dataset.
+        on: Attribute that will be used as key for the new mapping.
+
+    Raises:
+        KeyError: If the mapping attribute is not present in an entry.
+        ValueError: If another issue arose with the mapping attribute value.
+
+    Returns:
+        A dictionary which maps from the value of the given attribute onto a
+        2-tuple with Distinguished Name and attributes dictionary.
     """
-    # Get set of the primary keys that exist in LDAP
-    ldap_ids = set([e[model.link_attribute].value for e in ldap_entries])
-    # Get set of primary keys in Django
-    django_ids = set([e.pk for e in model.objects.all()])
-
-    to_add = django_ids - ldap_ids  # IDs that exist in Django but not in LDAP
-    to_delete = ldap_ids - django_ids  # IDs that exist in LDAP but not in Django
-
-    # Convert to operation instances and return
-    add_instances = [model.objects.get(pk=i) for i in to_add]
-    add_operations = [AddOperation(i) for i in add_instances]
-    delete_operations = [DeleteOperation(model, e) for e in to_delete]
-    return add_operations + delete_operations
+    d = {}
+    for dn, attributes in entries.items():
+        key_values = attributes[on]
+        if len(key_values) != 1:
+            raise ValueError('Mapping attribute does not have exactly 1 value.')
+        key = key_values[0]
+        if key in d:
+            raise ValueError('Mapping attribute value is not unique.')
+        d[key] = dn, attributes
+    return d
 
 
-def get_modify(ldap_entries, model: SyncModel) -> List[SyncOperation]:
-    """Get modify and mod_dn operations for a list of LDAP entries.
+def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
+         to_change: Dict[str, Dict[str, List[LDAPAttributeType]]],
+         on: str = "qDBLinkID") -> List[LDAPOperation]:
+    """Get operations to perform to change the second dataset into the first.
+
+    The datasets are dictionaries of LDAP entries. The dictionary key is the
+    Distinguished Name of an entry, the value is a dictionary of entry
+    attributes to list of values.
 
     Args:
-        ldap_entries: An iterable of entries retrieved from an LDAP search.
-        model: The Django model specification.
+        change_to: The dataset which has the new data.
+        to_change: The dataset that is old and needs to be modified.
+        on: Attribute that will be used to match entries from both datasets. It
+            needs to be present for every entry in the change_to dataset,
+            however it does not need to be present for entries in the to_change
+            dataset! Entries which do not have a value for this attribute will
+            be removed!
+
+    Returns:
+        A list of add, delete, modify operations. Order matters for applying.
     """
-    operations = []
-    for entry in ldap_entries:
-        # Retrieve Django instance
-        pk = entry[model.link_attribute].value
-        try:
-            instance = model.objects.get(pk=pk)
-        except model.DoesNotExist:
-            continue
+    ops = []
 
-        # Check if DN has changed
-        if instance.get_dn().lower() != entry.entry_dn.lower():
-            operations.append(ModifyDNOperation(instance))
+    # Delete entries in to_change which do not have the matching attribute.
+    # Since we'll later use this attribute as a (hashed) key it will wreak havoc if present
+    delete = []
+    for dn, attributes in to_change.items():
+        if not attributes.get(on):
+            delete.append(dn)
+    for dn in delete:
+        ops.append(DeleteOperation(dn))
+        del to_change[dn]
 
-        # Check for differences in attribute values
-        for key, values in instance.get_attribute_values().items():
-            if key == model.dn_attribute:
-                # DN attribute is ignored as it is modified using MOD_DN
-                continue
-            ldap_values = set(entry[key].values)
-            django_values = set(values)
-            if ldap_values != django_values:
-                operations.append(ModifyOperation(instance, key))
-    return operations
+    # Remap so that the dictionaries are hashed based on the matching attribute
+    change_to = remap(change_to, on)
+    to_change = remap(to_change, on)
 
+    # Get add/delete operations
+    to_add = change_to.keys() - to_change.keys()
+    ops.extend([AddOperation(*change_to[k]) for k in to_add])
 
-def apply_sync(conn: Connection, operations: List[SyncOperation]):
-    """Apply add/modify/delete operations on LDAP."""
-    for o in operations:
-        o.apply(conn)
+    to_delete = to_change.keys() - change_to.keys()
+    ops.extend([DeleteOperation(to_change[k][0]) for k in to_delete])
+
+    # Check for value/DN changes
+    in_both = change_to.keys() - to_add
+    for k in in_both:
+        new_dn, new_attrs = change_to[k]
+        cur_dn, cur_attrs = to_change[k]
+
+        # DN
+        # Modify DN needs to be performed before attribute modify!
+        # Otherwise the LDAP server will probably throw an error.
+        if new_dn.lower() != cur_dn.lower():
+            ops.append(ModifyDNOperation(cur_dn, new_dn))
+
+        # Attribute deletions
+        attr_delete = cur_attrs.keys() - new_attrs.keys()
+        for attr in attr_delete:
+            ops.append(ModifyOperation(new_dn, attr, []))
+
+        # Attribute changes and additions
+        for key, new_values in new_attrs.items():
+            cur_values = cur_attrs.get(key, [])
+            if sorted(new_values) != sorted(cur_values):
+                ops.append(ModifyOperation(new_dn, key, new_values))
+    return ops
