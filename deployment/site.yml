@@ -1,0 +1,28 @@
+---
+# Deploy everything
+- hosts: all
+  vars:
+    application_name: tutti
+    server_name: tutti.esmgquadrivium.nl
+    base_path: "/app/{{ application_name }}"
+    project_path: "{{ base_path }}/src"
+    virtualenv_path: "{{ base_path }}/venv"
+    static_path: "{{ base_path }}/static"
+    media_path: "{{ base_path }}/media"
+
+    postgres_pw_path: "{{ base_path }}/secrets/postgres_pw.txt"
+    secret_key_path: "{{ base_path }}/secrets/secret_key.txt"
+
+    wsgi_module: main.wsgi
+    django_settings_module: main.settingsprod
+    git_repo: git@github.com:mhvis/tutti.git
+    git_branch: f-deploy
+    db_name: tutti
+    db_user: tutti
+    certbot_email: sysop@esmgquadrivium.nl
+
+  roles:
+    - common
+    - postgres
+    - nginx
+    - web

@@ -1,0 +1,25 @@
+
+- name: Install requirements
+  command:
+    cmd: {{ virtualenv_path }}/bin/pipenv lock
+
+- name: Create secret key if missing
+  copy:
+    force: no  # Do not overwrite existing key file!
+    dest: "{{ secret_key_path }}"
+    content: "{{ lookup('password', '/dev/null') }}"
+
+- name: Run Django migrations
+  django_manage:
+    command: migrate
+    app_path: {{ project_path }}
+    virtualenv: {{ virtualenv_path }}
+    settings: {{ django_settings_file }}
+  notify: reload application
+
+- name: Run Django collectstatic
+  django_manage:
+    command: collectstatic
+    app_path: {{ project_path }}
+    virtualenv: {{ virtualenv_path }}
+    settings: {{ django_settings_file }}

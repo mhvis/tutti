@@ -1,0 +1,8 @@
+---
+- name: Ensure pipenv, gunicorn are installed in the virtualenv
+  pip:
+    name:
+    - pipenv
+    - gunicorn
+    virtualenv: {{ virtualenv_path }}
+    virtualenv_python: python3

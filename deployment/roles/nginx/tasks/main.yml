@@ -1,0 +1,45 @@
+---
+- name: Add Certbot repository
+  apt_repository:
+    repo: ppa:certbot/certbot
+
+- name: Upgrade all packages to the latest version
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Install nginx and certbot
+  apt:
+    name:
+      - nginx
+      - certbot
+      - python-certbot-nginx
+
+- name: Get certificate
+  command:
+    cmd: certbot certonly -n --nginx --keep -d {{ server_name }} --agree-tos -m {{ certbot_email }}
+
+- name: Create the Nginx configuration file
+  template:
+    src: siteconf.j2
+    dest: /etc/nginx/sites-available/{{ application_name }}
+  notify: reload nginx
+
+- name: Ensure that the default site is disabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Ensure that the application site is enabled
+  file:
+    src: /etc/nginx/sites-available/{{ application_name }}
+    dest: /etc/nginx/sites-enabled/{{ application_name }}
+    state: link
+  notify: reload nginx
+
+- name: Ensure Nginx service is started
+  service:
+    name: nginx
+    state: started
+    enabled: yes
