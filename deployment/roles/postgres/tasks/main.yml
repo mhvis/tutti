@@ -4,7 +4,7 @@
     name:
       - postgresql
       - postgresql-contrib
-      - python-psycopg2
+      - python3-psycopg2
       - libpq-dev
 
 - name: Ensure the PostgreSQL service is running
@@ -19,15 +19,20 @@
   postgresql_db:
     name: "{{ db_name }}"
 
+- name: Ensure secrets directory exists
+  file:
+    path: "{{ secrets_path }}"
+    state: directory
+
 - name: Create random password if missing
   copy:
     force: no  # Do not overwrite existing password file!
-    dest: "{{ postgres_pw_path }}"
+    dest: "{{ secrets_path }}/{{ postgres_pw_file }}"
     content: "{{ lookup('password', '/dev/null') }}"
 
 - name: Retrieve password
   slurp:
-    src: "{{ postgres_pw_path }}"
+    src: "{{ secrets_path }}/{{ postgres_pw_file }}"
   register: pw
 
 - name: Create database user

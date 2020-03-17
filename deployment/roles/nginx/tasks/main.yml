@@ -8,7 +8,7 @@
     upgrade: dist
     update_cache: yes
 
-- name: Install nginx and certbot
+- name: Install Nginx and Certbot
   apt:
     name:
       - nginx
@@ -18,6 +18,7 @@
 - name: Get certificate
   command:
     cmd: certbot certonly -n --nginx --keep -d {{ server_name }} --agree-tos -m {{ certbot_email }}
+    creates: /etc/letsencrypt/renewal/tutti.esmgquadrivium.nl.conf
 
 - name: Create the Nginx configuration file
   template:

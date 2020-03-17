@@ -11,12 +11,13 @@ upstream app_server {
 
 server {
     listen 443 ssl;
-    client_max_body_size 4G;
 
     server_name {{ server_name }};
 
     ssl_certificate /etc/letsencrypt/live/{{server_name}}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/{{server_name}}/privkey.pem;
+
+    client_max_body_size 4G;
 
     location /static/ {
         alias {{ static_path }};

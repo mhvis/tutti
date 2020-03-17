@@ -7,13 +7,12 @@
 # run the playbooks.
 #
 # https://stackoverflow.com/questions/24124140/ssh-agent-forwarding-with-ansible
-#
-#- name: Add ssh agent line to sudoers
-#  lineinfile:
-#    dest: /etc/sudoers
-#    state: present
-#    regexp: SSH_AUTH_SOCK
-#    line: Defaults env_keep += "SSH_AUTH_SOCK"
+
+- name: Add ssh agent line to sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: SSH_AUTH_SOCK
+    line: Defaults env_keep += "SSH_AUTH_SOCK"
 
 # The git module calls python's tempfile.mkstemp() which uses the TMPDIR
 # environment variable. However this is set to /tmp which is mounted as
@@ -28,9 +27,9 @@
 #  environment:
 #    TMPDIR: "/var/tmp"
   git:
-    repo: {{ git_repo }}
-    version: {{ git_branch }}
-    dest: {{ project_path }}
+    repo: "{{ git_repo }}"
+    version: "{{ git_branch }}"
+    dest: "{{ project_path }}"
     accept_hostkey: yes
   notify: reload application
 

@@ -14,6 +14,7 @@ with open('/app/tutti/secrets/postgres_pw.txt') as f:
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'tutti',
         'USER': 'tutti',
+        'HOST': 'localhost',
         'PASSWORD': f.read().strip(),
         'CONN_MAX_AGE': 3600,
     }

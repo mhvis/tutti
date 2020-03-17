@@ -1,8 +1,16 @@
 ---
-- name: Ensure pipenv, gunicorn are installed in the virtualenv
+- name: Ensure venv is installed
+  apt:
+    name:
+      - python3-venv
+
+- name: Ensure pipenv, gunicorn, psycopg2 are installed in the virtualenv
   pip:
     name:
-    - pipenv
-    - gunicorn
-    virtualenv: {{ virtualenv_path }}
-    virtualenv_python: python3
+      - wheel
+      - pipenv
+      - gunicorn
+      - psycopg2
+    virtualenv: "{{ virtualenv_path }}"
+    virtualenv_command: "/usr/bin/python3 -m venv"
+    state: latest

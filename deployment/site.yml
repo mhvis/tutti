@@ -10,16 +10,20 @@
     static_path: "{{ base_path }}/static"
     media_path: "{{ base_path }}/media"
 
-    postgres_pw_path: "{{ base_path }}/secrets/postgres_pw.txt"
-    secret_key_path: "{{ base_path }}/secrets/secret_key.txt"
+    secrets_path: "{{ base_path }}/secrets"
+    postgres_pw_file: "postgres_pw.txt"
+    secret_key_file: "secret_key.txt"
 
     wsgi_module: main.wsgi
     django_settings_module: main.settingsprod
-    git_repo: git@github.com:mhvis/tutti.git
-    git_branch: f-deploy
+    git_repo: "git@github.com:mhvis/tutti.git"
+    git_branch: "f-deploy"
     db_name: tutti
     db_user: tutti
-    certbot_email: sysop@esmgquadrivium.nl
+    certbot_email: "sysop@esmgquadrivium.nl"
+
+  # All roles will be run as root
+  become: yes
 
   roles:
     - common

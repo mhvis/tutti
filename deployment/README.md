@@ -10,7 +10,7 @@ To deploy:
 2. Put the remote machine(s) where this should be deployed in `hosts`.
     You'll need to have SSH keys setup.
 3. Modify variables in `site.yml` if needed.
-4. Run `ansible-playbook all site.yml -i hosts`.
+4. Run `ansible-playbook -i hosts site.yml`.
 
 
 ## Resources
