@@ -6,7 +6,7 @@ from ldap3.utils.log import set_library_log_detail_level, BASIC
 
 from ldapsync.clone import CLONE_SEARCH, clone, check_for_issues
 from ldapsync.ldap import get_ldap_entries, get_connection
-from qluis.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, Membership, ExternalCardLoan
+from members.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, Membership, ExternalCardLoan
 
 
 class Command(BaseCommand):

@@ -1,0 +1,27 @@
+---
+# Task that deletes the database!! (Should probably not run it accidentally)
+- hosts: all
+  vars_files:
+    - vars.yml
+
+  tasks:
+    # First stop and disable the app so that the database is not in use anymore
+    - name: Ensure gunicorn socket is disabled
+      become: yes
+      service:
+        name: gunicorn.socket
+        enabled: no
+        state: stopped
+
+    - name: Ensure gunicorn is stopped
+      become: yes
+      service:
+        name: gunicorn.service
+        state: stopped
+
+    - name: Delete database
+      become: yes
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        state: absent

@@ -10,7 +10,7 @@ from phonenumber_field.validators import validate_international_phonenumber
 
 from ldapsync.ldap import LDAPSearch, LDAPAttributeType
 from ldapsync.ldapoperations import LDAPOperation, ModifyOperation
-from qluis.models import QGroup, Person, GSuiteAccount, Instrument, Key, Membership, ExternalCard, ExternalCardLoan
+from members.models import QGroup, Person, GSuiteAccount, Instrument, Key, Membership, ExternalCard, ExternalCardLoan
 
 CURRENT_MEMBERS_GROUP = 'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl'
 """Distinguished name for the group that stores current Quadrivium members."""

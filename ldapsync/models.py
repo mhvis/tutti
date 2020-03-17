@@ -3,7 +3,7 @@
 from typing import Dict, List
 
 from ldapsync.ldap import LDAPSearch, LDAPAttributeType
-from qluis.models import QGroup, Person
+from members.models import QGroup, Person
 
 
 class LDAPMixin:

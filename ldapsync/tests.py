@@ -8,7 +8,7 @@ from ldapsync.clone import CloneError, clone
 from ldapsync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
 from ldapsync.models import LDAPGroup
 from ldapsync.sync import sync
-from qluis.models import Person, QGroup, ExternalCard, ExternalCardLoan, Membership, Instrument, GSuiteAccount, Key
+from members.models import Person, QGroup, ExternalCard, ExternalCardLoan, Membership, Instrument, GSuiteAccount, Key
 
 
 class CloneTestCase(TestCase):

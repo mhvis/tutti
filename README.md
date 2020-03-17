@@ -33,6 +33,9 @@ Alternatively use `pipenv run <command>`.
 * Lint code: `flake8`
 
 
-## Deployment
+## App structure
 
-* [Use `pipenv sync` for dependencies.](https://pipenv.pypa.io/en/latest/advanced/#using-pipenv-for-deployments)
+* `tutti`: project module, for project settings
+* `members`: membership management app, stores people and groups and more
+* `ldapsync`: synchronization of the members data with an LDAP server
+* `aadsync`: synchronization of the member accounts and groups to Azure Active Directory

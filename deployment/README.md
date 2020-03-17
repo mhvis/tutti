@@ -9,7 +9,7 @@ To deploy:
 1. Install Ansible on a local machine.
 2. Put the remote machine(s) where this should be deployed in `hosts`.
     You'll need to have SSH keys setup.
-3. Modify variables in `site.yml` if needed.
+3. Modify variables in `vars.yml` if needed.
 4. Run `ansible-playbook -i hosts site.yml`.
 
 ## Ad-hoc commands
