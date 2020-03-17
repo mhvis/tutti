@@ -37,5 +37,3 @@ MEDIA_ROOT = '/app/tutti/media'
 # HTTPS
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-
-SECURE_REFERRER_POLICY = 'no-referrer'

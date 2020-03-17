@@ -1,7 +1,7 @@
 
 - name: Install requirements
   shell:
-    cmd: ". {{ virtualenv_path }}/bin/activate && {{ virtualenv_path }}/bin/pipenv sync"
+    cmd: ". {{ virtualenv_path }}/bin/activate && {{ virtualenv_path }}/bin/pipenv sync --sequential"
     chdir: "{{ project_path }}"
 
 - name: Ensure secrets directory exists
@@ -29,3 +29,10 @@
     app_path: "{{ project_path }}"
     virtualenv: "{{ virtualenv_path }}"
     settings: "{{ django_settings_module }}"
+  notify: reload application
+
+- name: Make sure the media directory exists
+  file:
+    path: "{{ media_path }}"
+    state: directory
+    owner: www-data

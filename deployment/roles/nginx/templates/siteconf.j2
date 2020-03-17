@@ -20,11 +20,11 @@ server {
     client_max_body_size 4G;
 
     location /static/ {
-        alias {{ static_path }};
+        alias {{ static_path }}/;
     }
 
     location /media/ {
-        alias {{ media_path }};
+        alias {{ media_path }}/;
     }
 
     location / {

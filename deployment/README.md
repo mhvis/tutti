@@ -12,6 +12,10 @@ To deploy:
 3. Modify variables in `site.yml` if needed.
 4. Run `ansible-playbook -i hosts site.yml`.
 
+## Ad-hoc commands
+
+Todo
+* Set-up admin user: todo
 
 ## Resources
 
