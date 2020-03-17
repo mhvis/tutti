@@ -102,7 +102,6 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Europe/Amsterdam'
 USE_I18N = False
 USE_L10N = False
-USE_THOUSAND_SEPARATOR = True
 USE_TZ = True
 
 

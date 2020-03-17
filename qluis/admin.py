@@ -1,6 +1,10 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import reverse, path
 from django.utils import timezone
 
 from qluis.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership, \
@@ -172,6 +176,51 @@ class PersonAdmin(admin.ModelAdmin):
     # def lookup_allowed(self, lookup, value):
     #     # Don't allow lookups involving passwords.
     #     return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
+
+    def get_urls(self):
+        # Add unsubscribe URL
+        urls = super().get_urls()
+        custom_url = [
+            path('<int:person_id>/unsubscribe/',
+                 self.admin_site.admin_view(self.unsubscribe_view),
+                 name='qluis_person_unsubscribe',
+                 ),
+
+        ]
+        return custom_url + urls
+
+    def unsubscribe_view(self, request, person_id, *args, **kwargs):
+        person = self.get_object(request, person_id)
+        if person is None:
+            self.message_user(request, 'Person with ID “{}” doesn’t exist.'.format(person_id), messages.WARNING)
+            return HttpResponseRedirect(reverse('admin:index'))
+
+        if not self.has_change_permission(request, person):
+            raise PermissionDenied
+
+        memberships_removed = Membership.objects.filter(person=person, end=None, group__end_on_unsubscribe=True)
+        memberships_kept = Membership.objects.filter(person=person, end=None, group__end_on_unsubscribe=False)
+        if request.POST:
+            # Do actual unsubscribe
+            # Pick memberships that are not ended and are for groups that have `end on unsubscribe==True`
+            for membership in memberships_removed:
+                membership.end = timezone.now()
+                membership.save()
+            self.message_user(request,
+                              'Person “{}” has been removed from the internal groups.'.format(person.get_full_name()),
+                              messages.SUCCESS)
+            return HttpResponseRedirect(reverse('admin:qluis_person_change', args=(person.pk,)))
+
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': 'Unsubscribe person',
+            'object': person,
+            'memberships_removed': memberships_removed,
+            'memberships_kept': memberships_kept,
+            'keys': [k.number for k in person.key_access.all()]  # Would be nicer to have this in template only
+        }
+        return TemplateResponse(request, 'admin/qluis/person/unsubscribe.html', context)
 
 
 class CurrentMembershipListFilter(admin.SimpleListFilter):
