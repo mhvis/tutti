@@ -1,7 +1,7 @@
 from django.urls import path
 
-from qluis.views import AdminRedirectView
+from qluis.views import IndexView
 
 urlpatterns = [
-    path('', AdminRedirectView.as_view(), name='index'),
+    path('', IndexView.as_view(), name='index'),
 ]

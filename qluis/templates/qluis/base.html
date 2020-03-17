@@ -1,0 +1,19 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:"en-us" }}">
+<head>
+<title>{% block title %}{% endblock %}</title>
+</head>
+{% load i18n %}
+
+<body>
+
+<a href="{% url 'admin:index' %}">Go to administration site</a>
+
+<h3>Links</h3>
+<ul>
+    <li><a href="https://status.esmgquadrivium.nl">Service status</a></li>
+</ul>
+
+</body>
+</html>
