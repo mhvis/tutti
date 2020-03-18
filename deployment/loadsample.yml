@@ -1,0 +1,19 @@
+---
+# Task that loads sample data and creates superuser with admin/admin
+- hosts: all
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Load sampledata
+      django_manage:
+        command: loaddata
+        fixtures: "sampledata"
+        app_path: "{{ project_path }}"
+        virtualenv: "{{ virtualenv_path }}"
+        settings: "{{ django_settings_module }}"
+    - name: Create superuser
+      shell:
+        cmd: "{{ virtualenv_path }}/bin/python {{ project_path }}/manage.py shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin')\""
+      environment:
+        DJANGO_SETTINGS_MODULE: "{{ django_settings_module }}"

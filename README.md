@@ -35,7 +35,8 @@ Alternatively use `pipenv run <command>`.
 
 ## App structure
 
-* `tutti`: project module, for project settings
-* `members`: membership management app, stores people and groups and more
-* `ldapsync`: synchronization of the members data with an LDAP server
-* `aadsync`: synchronization of the member accounts and groups to Azure Active Directory
+* `tutti`: project module, for project-wide settings.
+* `members`: membership management app, stores people, groups and the rest.
+  Also includes a custom admin site for branding.
+* `ldapsync`: synchronization of the members data with an LDAP server.
+* `aadsync`: synchronization of the member accounts and groups to Azure Active Directory.
