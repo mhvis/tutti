@@ -1,13 +1,5 @@
 {% extends "admin/change_form.html" %}
 {% load static admin_urls %}
-{% block extrastyle %}
-    {{ block.super }}
-    <style>
-        #scala td {
-        {#border: 2px solid #ccc;#}
-        }
-    </style>
-{% endblock %}
 
 {% block breadcrumbs %}
     <div class="breadcrumbs">
@@ -58,8 +50,7 @@
                 <div class="form-row">
                     <label>Groups:</label>
                     <div class="readonly">
-                        {% for membership in object.current_memberships %}
-                            {{ membership.group }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {{ object.groups.all|join:", " }}
                     </div>
                 </div>
                 <div class="form-row">
@@ -82,7 +73,7 @@
                             <tr id="scalaRevoke">
                                 <td>{{ object.initials }} {{ object.last_name }}</td>
                                 <td>Quadrivium</td>
-                                <td>{{ object.tue_card_number }}</td>
+                                <td>{{ object.tue_card_number|default_if_none:"" }}</td>
                                 <td>{{ object.keywatcher_id }}</td>
                                 <td>"Delete"</td>
                                 <td></td>
@@ -123,17 +114,19 @@
             </ul>
 
             <h2>Remove from groups</h2>
-            {% if memberships_removed %}
+            {% if groups_removed %}
                 <p>If you continue, the person will be removed from the following groups:</p>
                 <ul>
-                    {% for membership in memberships_removed %}
-                        <li>{{ membership.group }}</li>{% endfor %}
+                    {% for group in groups_removed %}
+                        <li>{{ group }}</li>
+                    {% endfor %}
                 </ul>
-                {% if memberships_kept %}
+                {% if groups_kept %}
                     <p>The person will remain a member of the following groups:</p>
                     <ul>
-                        {% for membership in memberships_kept %}
-                            <li>{{ membership.group }}</li>{% endfor %}
+                        {% for group in groups_kept %}
+                            <li>{{ group }}</li>
+                        {% endfor %}
                     </ul>
                 {% endif %}
                 <div>

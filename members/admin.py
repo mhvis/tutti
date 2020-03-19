@@ -1,14 +1,15 @@
 from django import forms
 from django.contrib import admin, messages
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
 from django.utils import timezone
 
-from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, Membership, \
-    ExternalCardLoan
+from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
+    ExternalCardLoan, GroupMembership
 
 
 class QAdmin(admin.AdminSite):
@@ -17,6 +18,7 @@ class QAdmin(admin.AdminSite):
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
+admin_site.register(Group, GroupAdmin)
 
 
 # External card thingies
@@ -62,96 +64,69 @@ class ExternalCardAdmin(admin.ModelAdmin):
     inlines = (ExternalCardLoanInline,)
 
 
-class GroupFilter(admin.SimpleListFilter):
-    """Filter for group membership."""
+class UserGroupFormSet(forms.BaseInlineFormSet):
+    """Form for user/group inline that updates historical records (GroupMembership model)."""
+    def save_new(self, form, commit=True):
+        # Whenever a new group entry is added, also store a new history record
+        instance = super().save_new(form, commit)
+        if commit:
+            GroupMembership.objects.create(group=instance.group, user=instance.user)
+        return instance
 
-    title = 'groups'
-    parameter_name = 'group'
-
-    def lookups(self, request, model_admin):
-        return [(group.id, group.name) for group in QGroup.objects.all()]
-
-    def queryset(self, request, queryset):
-        value = self.value()
-        if value and QGroup.objects.filter(id=value).exists():
-            return queryset.filter(membership__end=None, membership__group=value)
-
-
-# Group membership inline thingies
-
-class MembershipForm(forms.ModelForm):
-    """This form extension adds a boolean field for ending a membership."""
-
-    end_now = forms.BooleanField(label='end?', required=False)
-
-    def clean(self):
-        """Set end value to current time if boolean checkbox is checked."""
-        cleaned_data = super().clean()
-        if cleaned_data.get('end_now') is True:
-            self.instance.end = timezone.now()
-        return cleaned_data
+    def delete_existing(self, obj, commit=True):
+        # Whenever a group entry is removed, set the end date on history record
+        super().delete_existing(obj, commit)
+        if commit:
+            membership = GroupMembership.objects.get(group=obj.group, user=obj.user, end=None)
+            membership.end = timezone.now()
+            membership.save()
 
 
-# Genius workaround, thanks to https://stackoverflow.com/a/28149575/2373688
+class UserGroupModelForm(forms.ModelForm):
+    """Filter user/group form for only User instances which have a linked Person instance.
 
-class MembershipChangeInline(admin.TabularInline):
-    """Inline for changing (ending) group membership."""
-
-    model = Membership
-    fields = ('group', 'person', 'start', 'end_now')
-    readonly_fields = ('group', 'person', 'start',)
-
-    # MembershipForm allows for ending group membership using end_now field
-    form = MembershipForm
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def get_queryset(self, request):
-        # Filter for current memberships
-        qs = super().get_queryset(request)
-        return qs.filter(end=None)
+    Note that all users will still be shown in the form, but it's not possible
+    to save a form with invalid Person instances.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['user'].queryset = User.objects.filter(person__isnull=False)
 
 
-class MembershipAddInline(admin.TabularInline):
-    """Inline for adding a new group membership."""
+class UserGroupInline(admin.TabularInline):
+    """Inline for user/group relations (group memberships)."""
 
-    model = Membership
-    fields = ('group', 'person', 'start')
-    readonly_fields = ('start',)
+    model = User.groups.through
     extra = 0
-    verbose_name_plural = 'add new memberships'
-    autocomplete_fields = ('person',)
-
-    def has_delete_permission(self, request, obj=None):
-        return False
+    autocomplete_fields = ('user', 'group')
+    verbose_name = 'group membership'
+    verbose_name_plural = 'group memberships'
+    formset = UserGroupFormSet
+    form = UserGroupModelForm
 
     def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_view_permission(self, request, obj=None):
+        # Can only add or delete
         return False
 
 
 @admin.register(QGroup, site=admin_site)
-class QGroupAdmin(admin.ModelAdmin):
-    search_fields = ('name',)
-    ordering = ('name',)
+class QGroupAdmin(GroupAdmin):
+    # search_fields = ('name',)
+    # ordering = ('name',)
+
     autocomplete_fields = ('owner',)
-    inlines = (MembershipChangeInline, MembershipAddInline)
+    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'permissions',)
+    inlines = (UserGroupInline,)
 
 
 @admin.register(Person, site=admin_site)
 class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
-            'fields': ('username', ('first_name', 'last_name'), 'initials', 'created_at')
+            'fields': ('username', ('first_name', 'last_name'), 'initials', 'email', 'groups')
         }),
         ('Contact details', {
-            'fields': ('email', 'phone_number', 'street', 'postal_code', 'city', 'country')
+            'fields': ('phone_number', 'street', 'postal_code', 'city', 'country')
         }),
         ('Personal details', {
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
@@ -163,19 +138,21 @@ class PersonAdmin(admin.ModelAdmin):
         ('TU/e', {
             'fields': ('tue_card_number', 'key_access', ('keywatcher_id', 'keywatcher_pin'))
         }),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
-    readonly_fields = ('created_at',)
-    list_display = ('username', 'email', 'first_name', 'last_name')
-    list_filter = (GroupFilter,)
+    readonly_fields = ('last_login', 'date_joined')
+    list_display = ('username', 'first_name', 'last_name', 'email')
+    list_filter = ('groups',)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
-    filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access')
-    inlines = (MembershipChangeInline, MembershipAddInline, ExternalCardLoanInline)
+    filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
+
+    inlines = (ExternalCardLoanInline,)
     save_on_top = True
 
-    # def lookup_allowed(self, lookup, value):
-    #     # Don't allow lookups involving passwords.
-    #     return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
+    def lookup_allowed(self, lookup, value):
+        # Don't allow lookups involving passwords.
+        return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
 
     def get_urls(self):
         # Add unsubscribe URL
@@ -190,7 +167,8 @@ class PersonAdmin(admin.ModelAdmin):
         return custom_url + urls
 
     def unsubscribe_view(self, request, person_id, *args, **kwargs):
-        person = self.get_object(request, person_id)
+        """View for person unsubscribed, removes the person from groups on POST."""
+        person = self.get_object(request, person_id)  # type: Person
         if person is None:
             self.message_user(request, 'Person with ID “{}” doesn’t exist.'.format(person_id), messages.WARNING)
             return HttpResponseRedirect(reverse('admin:index'))
@@ -198,14 +176,11 @@ class PersonAdmin(admin.ModelAdmin):
         if not self.has_change_permission(request, person):
             raise PermissionDenied
 
-        memberships_removed = Membership.objects.filter(person=person, end=None, group__end_on_unsubscribe=True)
-        memberships_kept = Membership.objects.filter(person=person, end=None, group__end_on_unsubscribe=False)
+        groups_removed = person.groups.filter(qgroup__end_on_unsubscribe=True)
+        groups_kept = person.groups.difference(groups_removed)
         if request.POST:
-            # Do actual unsubscribe
-            # Pick memberships that are not ended and are for groups that have `end on unsubscribe==True`
-            for membership in memberships_removed:
-                membership.end = timezone.now()
-                membership.save()
+            # Do actual group removal
+            person.groups.remove(*groups_removed)
             self.message_user(request,
                               'Person “{}” has been removed from the internal groups.'.format(person.get_full_name()),
                               messages.SUCCESS)
@@ -216,8 +191,8 @@ class PersonAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
             'title': 'Unsubscribe person',
             'object': person,
-            'memberships_removed': memberships_removed,
-            'memberships_kept': memberships_kept,
+            'groups_removed': groups_removed,
+            'groups_kept': groups_kept,
             'keys': [k.number for k in person.key_access.all()]  # Would be nicer to have this in template only
         }
         return TemplateResponse(request, 'admin/members/person/unsubscribe.html', context)
@@ -240,11 +215,11 @@ class CurrentMembershipListFilter(admin.SimpleListFilter):
             return queryset.filter(end__isnull=False)
 
 
-@admin.register(Membership, site=admin_site)
-class MembershipAdmin(admin.ModelAdmin):
-    """Memberships can only be viewed here, not modified."""
-    list_display = ('person', 'group', 'current', 'start', 'end')
-    list_display_links = None
+@admin.register(GroupMembership, site=admin_site)
+class GroupMembershipAdmin(admin.ModelAdmin):
+    """(Historical) memberships can only be viewed here, not modified."""
+    list_display = ('user', 'group', 'current', 'start', 'end')
+    # list_display_links = None
     list_filter = (CurrentMembershipListFilter, 'group')
 
     def has_add_permission(self, request):

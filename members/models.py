@@ -1,7 +1,5 @@
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
-from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -10,8 +8,11 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 
 class User(AbstractUser):
-    """A Django user, different from a Quadrivium person."""
-    pass
+    """A user for authentication and groups, optionally linked to a Person."""
+
+    def __str__(self):
+        # Default implementation returns username
+        return self.get_full_name()
 
 
 class Instrument(models.Model):
@@ -21,13 +22,8 @@ class Instrument(models.Model):
         return self.name
 
 
-class QGroup(models.Model):
-    """A Quadrivium group, like the board and commissions.
-
-    It is named this way to prevent confusion with the Django built-in Group
-    model.
-    """
-    name = models.CharField(_('name'), max_length=150, unique=True)
+class QGroup(Group):
+    """Extension of the Group model for Quadrivium fields."""
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
     end_on_unsubscribe = models.BooleanField(default=True)
@@ -35,14 +31,11 @@ class QGroup(models.Model):
                               on_delete=models.PROTECT,
                               null=True,
                               blank=True,
-                              help_text='E.g. the commissioner')
+                              help_text='E.g. the commissioner.')
 
     class Meta:
-        verbose_name = _('group')
-        verbose_name_plural = _('groups')
-
-    def __str__(self):
-        return self.name
+        verbose_name = 'group'
+        verbose_name_plural = 'groups'
 
 
 class ExternalCard(models.Model):
@@ -80,22 +73,19 @@ class Key(models.Model):
         return '{} {}'.format(self.number, self.room_name).strip()
 
 
-class Person(models.Model):
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[UnicodeUsernameValidator()],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-    )
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
+class Person(User):
+    """Extends a user with Quadrivium related fields.
 
-    # password = models.CharField(_('password'), max_length=128)
+    We extend User (instead of a separate model) so that we can use the
+    built-in groups field for group membership and make use of the permissions
+    system that comes with it. The user account does not need to have a
+    password set or be active.
+    """
+
+    class Meta:
+        verbose_name = 'person'
+        verbose_name_plural = 'persons'
+
     initials = models.CharField(max_length=30, blank=True)
 
     # Address
@@ -146,58 +136,28 @@ class Person(models.Model):
     keywatcher_id = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher ID')
     keywatcher_pin = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher PIN')
 
-    created_at = models.DateTimeField(default=timezone.now)
-
-    # created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
-    #                                on_delete=models.SET_NULL,
-    #                                null=True)
-
     notes = models.TextField(blank=True)
-
-    def get_full_name(self):
-        """Return the first_name plus the last_name, with a space in between."""
-        full_name = '{} {}'.format(self.first_name, self.last_name)
-        return full_name.strip()
-
-    def __str__(self):
-        return self.get_full_name()
-
-    def current_memberships(self) -> QuerySet:
-        """Get current group memberships."""
-        return self.membership_set.filter(end=None)
 
     def current_external_card_loans(self):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
 
 
-class Membership(models.Model):
-    """Group membership.
+class GroupMembership(models.Model):
+    """Group membership records, including historical memberships.
 
-    If end date is given, that means that this membership has ended.
+    There's a separate table (groups field on a User) which stores the current
+    group memberships. This table stores those as well but also includes group
+    memberships which have ended.
     """
-
-    class Meta:
-        verbose_name = 'group membership'
-        constraints = [
-            # Allow only one membership instance per group/person combi
-            models.UniqueConstraint(fields=['group', 'person'],
-                                    name='unique_memberships',
-                                    condition=Q(end=None))
-        ]
-
-    group = models.ForeignKey(QGroup, on_delete=models.PROTECT)
-    person = models.ForeignKey(Person, on_delete=models.PROTECT)
+    group = models.ForeignKey(Group, on_delete=models.PROTECT)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='person')
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
-
-    def __str__(self):
-        return 'Membership #{}'.format(self.pk)
 
 
 class ExternalCardLoan(models.Model):
     """For when someone borrows an external card from Q."""
-
     external_card = models.ForeignKey(ExternalCard, on_delete=models.PROTECT)
     person = models.ForeignKey(Person, on_delete=models.PROTECT)
     start = models.DateField(default=timezone.now)

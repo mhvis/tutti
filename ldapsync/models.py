@@ -46,7 +46,7 @@ class LDAPGroup(LDAPMixin, QGroup):
             'cn': [self.name],
             'description': [self.description],
             'mail': [self.email],
-            'member': [m.get_dn() for m in LDAPPerson.objects.filter(membership__group=self, membership__end=None)],
+            'member': [m.get_dn() for m in LDAPPerson.objects.filter(groups=self)],
             'qDBLinkID': [self.id],
         }
 
