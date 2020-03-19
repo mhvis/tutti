@@ -8,7 +8,8 @@ from ldapsync.clone import CloneError, clone
 from ldapsync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
 from ldapsync.models import LDAPGroup
 from ldapsync.sync import sync
-from members.models import Person, QGroup, ExternalCard, ExternalCardLoan, Membership, Instrument, GSuiteAccount, Key
+from members.models import Person, QGroup, ExternalCard, ExternalCardLoan, Instrument, GSuiteAccount, Key, \
+    GroupMembership
 
 
 class CloneTestCase(TestCase):
@@ -23,7 +24,8 @@ class CloneTestCase(TestCase):
         clone(entries)
         self.assertEqual(1, Person.objects.all().count())
         self.assertEqual(2, QGroup.objects.all().count())  # Includes 'current members' group
-        self.assertEqual(0, Membership.objects.count())
+        self.assertEqual(0, Person.objects.first().groups.count())  # Person is not member of any group
+        self.assertEqual(0, GroupMembership.objects.count())
         self.assertEqual('aperson', Person.objects.first().username)
         self.assertEqual('agroup', QGroup.objects.get(name='agroup').name)
 
@@ -172,8 +174,9 @@ class CloneTestCase(TestCase):
         clone(entries)
         self.assertEqual(1, Person.objects.count())
         self.assertEqual(1, QGroup.objects.count())
-        self.assertEqual(1, Membership.objects.count())
-        membership = Membership.objects.first()
+        self.assertEqual(0, Person.objects.first().groups.count())  # Person is not a current group member
+        self.assertEqual(1, GroupMembership.objects.count())
+        membership = GroupMembership.objects.first()
         self.assertEqual(datetime(2010, 2, 2, tzinfo=timezone.utc), membership.start)
         self.assertEqual(datetime(2010, 5, 2, tzinfo=timezone.utc), membership.end)
 
@@ -192,8 +195,9 @@ class CloneTestCase(TestCase):
         clone(entries)
         self.assertEqual(1, QGroup.objects.count())
         self.assertEqual(1, Person.objects.count())
-        self.assertEqual(1, Membership.objects.count())
-        membership = Membership.objects.first()
+        self.assertEqual(1, Person.objects.first().groups.count())  # Person is a current group member
+        self.assertEqual(1, GroupMembership.objects.count())
+        membership = GroupMembership.objects.first()
         self.assertEqual(datetime(2010, 2, 2, tzinfo=timezone.utc), membership.start)
         self.assertIsNone(membership.end)
 
@@ -211,8 +215,9 @@ class CloneTestCase(TestCase):
         clone(entries)
         self.assertEqual(2, QGroup.objects.count())  # 2 groups because there's also a current members group
         self.assertEqual(1, Person.objects.count())
-        self.assertEqual(1, Membership.objects.count())
-        membership = Membership.objects.first()
+        self.assertEqual(1, Person.objects.first().groups.count())
+        self.assertEqual(1, GroupMembership.objects.count())
+        membership = GroupMembership.objects.first()
         self.assertIsNone(membership.end)
 
     def test_full_person(self):
@@ -261,7 +266,7 @@ class CloneTestCase(TestCase):
         self.assertEqual(0, ExternalCardLoan.objects.count())
         self.assertEqual(2, GSuiteAccount.objects.count())
         self.assertEqual(2, Key.objects.count())
-        self.assertEqual(1, Membership.objects.count())
+        self.assertEqual(1, GroupMembership.objects.count())
         # Check the values
         gustav = Person.objects.first()  # type: Person
         self.assertEqual('gustav', gustav.username)
@@ -294,7 +299,8 @@ class CloneTestCase(TestCase):
         self.assertEqual('+43654365434680', gustav.phone_number)
 
         # Check group membership
-        membership = Membership.objects.first()  # type: Membership
+        self.assertEqual(1, gustav.groups.count())
+        membership = GroupMembership.objects.first()  # type: GroupMembership
         self.assertEqual(datetime(2010, 1, 1, tzinfo=timezone.utc), membership.start)
         self.assertIsNone(membership.end)
 
@@ -321,7 +327,7 @@ class CloneTestCase(TestCase):
         # Check row counts
         self.assertEqual(2, Person.objects.count())
         self.assertEqual(2, QGroup.objects.count())  # Includes 'current members' group
-        self.assertEqual(2, Membership.objects.count())
+        self.assertEqual(2, GroupMembership.objects.count())
 
         # Check values
         p1 = Person.objects.get(username='test')
@@ -330,6 +336,7 @@ class CloneTestCase(TestCase):
         self.assertEqual('A group', group.name)
         self.assertEqual('Pianists play too much notes.', group.description)
         self.assertEqual(p1, group.owner)
+        self.assertEqual(2, group.user_set.count())  # 2 group members
 
     def test_invalid_member(self):
         """Group member with invalid DN should throw an error."""
@@ -431,37 +438,16 @@ class SyncTestCase(TestCase):
 
 class ModelsTestCase(TestCase):
     def test_group_membership_current(self):
-        """Test current group membership is included in member list."""
+        """Test group membership is included in member list."""
         p = Person.objects.create(username='test')
         g = QGroup.objects.create(name='group')
-        Membership.objects.create(group=g, person=p, start=datetime(2010, 1, 1, tzinfo=timezone.utc))
+        p.groups.add(g)
         ldap_attrs = LDAPGroup.objects.first().get_attributes()
         self.assertEqual(['uid=test,ou=people,dc=esmgquadrivium,dc=nl'], ldap_attrs['member'])
 
-    def test_group_membership_past(self):
-        """Test past group membership is NOT included in member list."""
-        p = Person.objects.create(username='test')
-        g = QGroup.objects.create(name='group')
-        Membership.objects.create(group=g,
-                                  person=p,
-                                  start=datetime(2010, 1, 1, tzinfo=timezone.utc),
-                                  end=datetime(2011, 1, 1, tzinfo=timezone.utc))
+    def test_no_group_membership(self):
+        """Test not a group member."""
+        Person.objects.create(username='test')
+        QGroup.objects.create(name='group')
         ldap_attrs = LDAPGroup.objects.first().get_attributes()
         self.assertEqual([], ldap_attrs['member'])
-
-    def test_group_membership_complex(self):
-        """Test current group membership is included in member list with a past membership."""
-        p = Person.objects.create(username='test')
-        g1 = QGroup.objects.create(name='group')
-        g2 = QGroup.objects.create(name='group2')
-        Membership.objects.create(group=g1,
-                                  person=p,
-                                  start=datetime(2010, 1, 1, tzinfo=timezone.utc),
-                                  end=datetime(2011, 1, 1, tzinfo=timezone.utc))
-        Membership.objects.create(group=g2,
-                                  person=p,
-                                  start=datetime(2014, 1, 1, tzinfo=timezone.utc))
-        ldap_attrs1 = LDAPGroup.objects.get(pk=g1.pk).get_attributes()
-        ldap_attrs2 = LDAPGroup.objects.get(pk=g2.pk).get_attributes()
-        self.assertEqual([], ldap_attrs1['member'])
-        self.assertEqual(['uid=test,ou=people,dc=esmgquadrivium,dc=nl'], ldap_attrs2['member'])

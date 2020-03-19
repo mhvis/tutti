@@ -10,7 +10,8 @@ from phonenumber_field.validators import validate_international_phonenumber
 
 from ldapsync.ldap import LDAPSearch, LDAPAttributeType
 from ldapsync.ldapoperations import LDAPOperation, ModifyOperation
-from members.models import QGroup, Person, GSuiteAccount, Instrument, Key, Membership, ExternalCard, ExternalCardLoan
+from members.models import QGroup, Person, GSuiteAccount, Instrument, Key, ExternalCard, ExternalCardLoan, \
+    GroupMembership
 
 CURRENT_MEMBERS_GROUP = 'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl'
 """Distinguished name for the group that stores current Quadrivium members."""
@@ -268,13 +269,22 @@ def create_person_and_related(attrs, q_member_group: QGroup) -> Person:
     # Set Q membership
     member_start = _get_val(attrs, 'qMemberStart')
     member_end = _get_val(attrs, 'qMemberEnd')
-    if member_start:
-        Membership.objects.create(
+    if member_start and member_end:
+        # For past memberships, only create a historical record
+        GroupMembership.objects.create(
             group=q_member_group,
-            person=person,
+            user=person,
             start=member_start,
             end=member_end
         )
+    elif member_start:
+        # For current memberships, add person to group
+        person.groups.add(q_member_group)
+        # Update the automatically created GroupMembership start date
+        membership = GroupMembership.objects.get(group=q_member_group, user=person, end=None)
+        membership.start = member_start
+        membership.save()
+
     # External card
     if has_external_card:
         external_card, _ = ExternalCard.objects.get_or_create(
@@ -305,7 +315,7 @@ def create_group_and_memberships(attrs: Dict, people: Dict[str, Person]) -> QGro
     # Create group memberships
     for member in attrs.get('member', []):
         person = people[member.lower()]
-        Membership.objects.create(group=group, person=person)
+        person.groups.add(group)
     return group
 
 
