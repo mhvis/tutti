@@ -3,14 +3,14 @@
     "model": "members.instrument",
     "pk": 1,
     "fields": {
-      "name": "Violin"
+      "name": "violin"
     }
   },
   {
     "model": "members.instrument",
     "pk": 2,
     "fields": {
-      "name": "Organ"
+      "name": "organ"
     }
   },
   {
@@ -31,29 +31,46 @@
     }
   },
   {
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+      "name": "Board"
+    }
+  },
+  {
     "model": "members.qgroup",
     "pk": 1,
     "fields": {
-      "name": "Board",
       "description": "Board of Quadrivium.",
       "email": "bestuur@esmgquadrivium.nl"
     }
   },
   {
-    "model": "members.qgroup",
+    "model": "auth.group",
     "pk": 2,
     "fields": {
       "name": "Composers"
     }
   },
   {
-    "model": "members.person",
-    "pk": 1,
+    "model": "members.qgroup",
+    "pk": 2,
+    "fields": {}
+  },
+  {
+    "model": "members.user",
+    "pk": 2,
     "fields": {
       "username": "jsbach",
       "first_name": "Johann Sebastian",
       "last_name": "Bach",
-      "email": "bach@deutschepost.de",
+      "email": "bach@deutschepost.de"
+    }
+  },
+  {
+    "model": "members.person",
+    "pk": 2,
+    "fields": {
       "initials": "J.S.",
       "street": "Ergensstrasse 3",
       "postal_code": "34CH",
@@ -71,13 +88,19 @@
     }
   },
   {
-    "model": "members.person",
-    "pk": 2,
+    "model": "members.user",
+    "pk": 3,
     "fields": {
       "username": "fire69",
       "first_name": "Niccolo",
       "last_name": "Paganini",
-      "email": "playthattune@msn.com",
+      "email": "nipa@gmail.com"
+    }
+  },
+  {
+    "model": "members.person",
+    "pk": 3,
+    "fields": {
       "initials": "N.N.N.",
       "preferred_language": "en-us",
       "date_of_birth": "1782-10-27",
@@ -87,15 +110,6 @@
       "instruments": [
         1
       ]
-    }
-  },
-  {
-    "model": "members.membership",
-    "pk": 1,
-    "fields": {
-      "group": 2,
-      "person": 1,
-      "start": "2020-03-09T14:48:45Z"
     }
   }
 ]
