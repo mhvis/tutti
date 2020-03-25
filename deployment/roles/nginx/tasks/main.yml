@@ -28,7 +28,7 @@
 
 - name: Ensure that the default site is disabled
   file:
-    path: /etc/nginx/sites-enabled/default
+    path: "/etc/nginx/sites-enabled/default"
     state: absent
   notify: reload nginx
 

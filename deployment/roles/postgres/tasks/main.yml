@@ -21,18 +21,18 @@
 
 - name: Ensure password directory exists
   file:
-    path: "{{ postgres_pasword_file | dirname }}"
+    path: "{{ postgres_password_path | dirname }}"
     state: directory
 
 - name: Ensure database password is created
   copy:
     force: no  # Do not overwrite existing password file!
-    dest: "{{ postgres_password_file }}"
+    dest: "{{ postgres_password_path }}"
     content: "{{ lookup('password', '/dev/null') }}"
 
 - name: Retrieve password
   slurp:
-    src: "{{ postgres_password_file }}"
+    src: "{{ postgres_password_path }}"
   register: pw
 
 - name: Ensure database user exists

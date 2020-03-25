@@ -10,10 +10,10 @@ deployment to an Azure virtual machine.
     2. Create an Azure Key Vault for storing secrets.
     3. Set up Managed Service Identity for the virtual machine, so that it can access the key vault.
        ([more info](https://docs.microsoft.com/en-us/azure/key-vault/tutorial-python-linux-virtual-machine))
-2. Put secrets inside the key vault, see `roles/web/templates/azuresettings.py` for the necessary secrets.
+2. Put secrets inside the key vault, see `roles/web/templates/azuresettings.py.j2` for the necessary secrets.
 3. Check/modify variables in:
     * `vars.yml`
-    * `roles/web/templates/azuresettings.py`
+    * `roles/web/templates/azuresettings.py.j2`
 4. Play deployment config:
     1. Install Ansible on your local machine.
     2. Put the remote Azure virtual machine(s) in the `hosts` file.
