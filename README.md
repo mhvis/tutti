@@ -19,9 +19,11 @@ automatically picked up by Pipenv. See also:
 
 ## Quickstart
 
-To load sample data: `python manage.py loaddata sampledata`
-
-Available commands: `ldapclone`, `ldapsync`. Use `python manage.py <command name> -h` for details.
+* To create an admin user run `python manage.py createsuperuser`. You can bypass
+  the OpenID Connect login flow by going to `http://127.0.0.1:8000/admin/login/`.
+* To load sample data run `python manage.py loaddata sampledata`.
+* For LDAP cloning and sync, see `python manage.py ldapclone -h` and `python
+  manage.py ldapsync -h` for details.
 
 ## Development commands
 
