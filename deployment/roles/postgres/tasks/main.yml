@@ -19,23 +19,23 @@
   postgresql_db:
     name: "{{ db_name }}"
 
-- name: Ensure secrets directory exists
+- name: Ensure password directory exists
   file:
-    path: "{{ secrets_path }}"
+    path: "{{ postgres_pasword_file | dirname }}"
     state: directory
 
-- name: Create random password if missing
+- name: Ensure database password is created
   copy:
     force: no  # Do not overwrite existing password file!
-    dest: "{{ secrets_path }}/{{ postgres_pw_file }}"
+    dest: "{{ postgres_password_file }}"
     content: "{{ lookup('password', '/dev/null') }}"
 
 - name: Retrieve password
   slurp:
-    src: "{{ secrets_path }}/{{ postgres_pw_file }}"
+    src: "{{ postgres_password_file }}"
   register: pw
 
-- name: Create database user
+- name: Ensure database user exists
   become: true
   become_user: postgres
   postgresql_user:

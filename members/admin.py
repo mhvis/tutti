@@ -15,10 +15,17 @@ from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount,
 class QAdmin(admin.AdminSite):
     site_header = "ESMG Quadrivium"
 
+    def has_permission(self, request):
+        # Allow everyone to access the admin site (normally the user needs to be staff)
+        #  Users will need to have explicit permissions assigned in order to be able to do something
+        return request.user.is_active
+
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
-admin_site.register(Group, GroupAdmin)
+
+
+# admin_site.register(Group, GroupAdmin)
 
 
 # External card thingies
@@ -64,49 +71,64 @@ class ExternalCardAdmin(admin.ModelAdmin):
     inlines = (ExternalCardLoanInline,)
 
 
-class UserGroupFormSet(forms.BaseInlineFormSet):
-    """Form for user/group inline that updates historical records (GroupMembership model)."""
-    def save_new(self, form, commit=True):
-        # Whenever a new group entry is added, also store a new history record
-        instance = super().save_new(form, commit)
-        if commit:
-            GroupMembership.objects.create(group=instance.group, user=instance.user)
-        return instance
-
-    def delete_existing(self, obj, commit=True):
-        # Whenever a group entry is removed, set the end date on history record
-        super().delete_existing(obj, commit)
-        if commit:
-            membership = GroupMembership.objects.get(group=obj.group, user=obj.user, end=None)
-            membership.end = timezone.now()
-            membership.save()
-
-
-class UserGroupModelForm(forms.ModelForm):
-    """Filter user/group form for only User instances which have a linked Person instance.
-
-    Note that all users will still be shown in the form, but it's not possible
-    to save a form with invalid Person instances.
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['user'].queryset = User.objects.filter(person__isnull=False)
+# class UserGroupFormSet(forms.BaseInlineFormSet):
+#     """Form for user/group inline that updates historical records (GroupMembership model)."""
+#
+#     def save_new(self, form, commit=True):
+#         # Whenever a new group entry is added, also store a new history record
+#         instance = super().save_new(form, commit)
+#         if commit:
+#             GroupMembership.objects.create(group=instance.group, user=instance.user)
+#         return instance
+#
+#     def delete_existing(self, obj, commit=True):
+#         # Whenever a group entry is removed, set the end date on history record
+#         super().delete_existing(obj, commit)
+#         if commit:
+#             membership = GroupMembership.objects.get(group=obj.group, user=obj.user, end=None)
+#             membership.end = timezone.now()
+#             membership.save()
 
 
-class UserGroupInline(admin.TabularInline):
-    """Inline for user/group relations (group memberships)."""
+# class UserGroupModelForm(forms.ModelForm):
+#     """Filter user/group form for only User instances which have a linked Person instance.
+#
+#     Note that all users will still be shown in the form, but it's not possible
+#     to save a form with invalid Person instances.
+#     """
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['user'].queryset = User.objects.filter(person__isnull=False)
 
-    model = User.groups.through
-    extra = 0
-    autocomplete_fields = ('user', 'group')
-    verbose_name = 'group membership'
-    verbose_name_plural = 'group memberships'
-    formset = UserGroupFormSet
-    form = UserGroupModelForm
 
-    def has_change_permission(self, request, obj=None):
-        # Can only add or delete
-        return False
+# class UserGroupInline(admin.TabularInline):
+#     """Inline for user/group relations (group memberships)."""
+#
+#     model = User.groups.through
+#     extra = 0
+#     fields = ('user', 'group')
+#     autocomplete_fields = ('user',)
+#     verbose_name = 'group membership'
+#     verbose_name_plural = 'group memberships'
+#     formset = UserGroupFormSet
+#     form = UserGroupModelForm
+#
+#     def has_add_permission(self, request, obj):
+#         # We override this because the superclass would check for User/Group model permissions.
+#         # We use Person/QGroup instead.
+#         # Todo: autocomplete field does not work with this (Forbidden)
+#         return request.user.has_perms(['members.add_qgroup', 'members.add_person'])
+#
+#     def has_view_permission(self, request, obj=None):
+#         return request.user.has_perms(['members.view_qgroup', 'members.view_person'])
+#
+#     def has_delete_permission(self, request, obj=None):
+#         return request.user.has_perms(['members.delete_qgroup', 'members.delete_person'])
+#
+#     def has_change_permission(self, request, obj=None):
+#         # Can only add or delete
+#         return False
 
 
 @admin.register(QGroup, site=admin_site)
@@ -116,7 +138,7 @@ class QGroupAdmin(GroupAdmin):
 
     autocomplete_fields = ('owner',)
     fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'permissions',)
-    inlines = (UserGroupInline,)
+    # inlines = (UserGroupInline,)
 
 
 @admin.register(Person, site=admin_site)

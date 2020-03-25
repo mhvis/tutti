@@ -13,7 +13,7 @@ Group=www-data
 # see http://0pointer.net/blog/dynamic-users-with-systemd.html
 RuntimeDirectory=gunicorn
 WorkingDirectory={{ project_path }}
-ExecStart={{ virtualenv_path }}/bin/gunicorn --env DJANGO_SETTINGS_MODULE={{ django_settings_module }} -w 3 --log-syslog {{ wsgi_module }}
+ExecStart={{ virtualenv_path }}/bin/gunicorn -e DJANGO_SETTINGS_MODULE={{ django_settings_module }} -w {{ no_workers }} --log-syslog {{ wsgi_module }}
 ExecReload=/bin/kill -s HUP $MAINPID
 KillMode=mixed
 TimeoutStopSec=5

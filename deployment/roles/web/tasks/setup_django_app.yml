@@ -1,19 +1,23 @@
-
 - name: Install requirements
   shell:
     cmd: ". {{ virtualenv_path }}/bin/activate && {{ virtualenv_path }}/bin/pipenv sync --sequential"
     chdir: "{{ project_path }}"
 
-- name: Ensure secrets directory exists
+- name: Ensure secret key directory exists
   file:
-    path: "{{ secrets_path }}"
+    path: "{{ secret_key_path | dirname }}"
     state: directory
 
-- name: Create secret key if missing
+- name: Ensure a secret key exists
   copy:
     force: no  # Do not overwrite existing key file!
-    dest: "{{ secrets_path }}/{{ secret_key_file }}"
+    dest: "{{ secret_key_path }}"
     content: "{{ lookup('password', '/dev/null length=50') }}"
+
+- name: Ensure settings module exists
+  template:
+    src: azuresettings.py.j2
+    dest: "{{ project_path }}/azuresettings.py"
 
 - name: Run Django migrations
   django_manage:
@@ -26,6 +30,7 @@
 - name: Run Django collectstatic
   django_manage:
     command: collectstatic
+    clear: yes  # Clear existing static files
     app_path: "{{ project_path }}"
     virtualenv: "{{ virtualenv_path }}"
     settings: "{{ django_settings_module }}"

@@ -17,13 +17,13 @@
 
 - name: Get certificate
   command:
-    cmd: certbot certonly -n --nginx --keep -d {{ server_name }} --agree-tos -m {{ certbot_email }}
-    creates: /etc/letsencrypt/renewal/tutti.esmgquadrivium.nl.conf
+    cmd: "certbot certonly -n --nginx --keep -d {{ server_name }} --agree-tos -m {{ certbot_email }}"
+    creates: "/etc/letsencrypt/renewal/{{ server_name }}.conf"
 
-- name: Create the Nginx configuration file
+- name: Ensure the Nginx configuration file exists
   template:
     src: siteconf.j2
-    dest: /etc/nginx/sites-available/{{ application_name }}
+    dest: "/etc/nginx/sites-available/app"
   notify: reload nginx
 
 - name: Ensure that the default site is disabled
@@ -34,8 +34,8 @@
 
 - name: Ensure that the application site is enabled
   file:
-    src: /etc/nginx/sites-available/{{ application_name }}
-    dest: /etc/nginx/sites-enabled/{{ application_name }}
+    src: "/etc/nginx/sites-available/app"
+    dest: "/etc/nginx/sites-enabled/app"
     state: link
   notify: reload nginx
 

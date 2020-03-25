@@ -1,20 +1,27 @@
 ---
-application_name: tutti
 server_name: tutti.esmgquadrivium.nl
-base_path: "/app/{{ application_name }}"
-project_path: "{{ base_path }}/src"
-virtualenv_path: "{{ base_path }}/venv"
-static_path: "{{ base_path }}/static"
-media_path: "{{ base_path }}/media"
 
-secrets_path: "{{ base_path }}/secrets"
-postgres_pw_file: "postgres_pw.txt"
-secret_key_file: "secret_key.txt"
+# Paths
+project_path: "/app/src"
+virtualenv_path: "/app/venv"
+static_path: "/app/static"
+media_path: "/app/media"
+
+# Secrets
+postgres_password_path: "/app/postgres_password.txt"
+secret_key_path: "/app/secret_key.txt"
 
 wsgi_module: tutti.wsgi
-django_settings_module: tutti.productionsettings
+django_settings_module: azuresettings
 git_repo: "git@github.com:mhvis/tutti.git"
 git_branch: "f-deploy"
 db_name: tutti
 db_user: tutti
 certbot_email: "sysop@esmgquadrivium.nl"
+
+# The number of worker processes for handling requests.
+#
+# A positive integer generally in the 2-4 x $(NUM_CORES) range. You’ll want to
+# vary this a bit to find the best for your particular application’s work load.
+# https://docs.gunicorn.org/en/stable/settings.html#workers
+no_workers: 3

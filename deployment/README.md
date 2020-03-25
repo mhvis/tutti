@@ -1,21 +1,28 @@
 # Deployment
 
 [Ansible](https://docs.ansible.com/ansible/latest/index.html) Playbook for
-deployment to a remote machine. This is a complete deployment which includes (will include)
-automatic backup creation.
+deployment to an Azure virtual machine.
 
-To deploy:
+## Instructions
 
-1. Install Ansible on a local machine.
-2. Put the remote machine(s) where this should be deployed in `hosts`.
-    You'll need to have SSH keys setup.
-3. Modify variables in `vars.yml` if needed.
-4. Run `ansible-playbook -i hosts site.yml`.
+1. Prepare virtual machine:
+    1. Create Azure virtual machine with Ubuntu 18.04 LTS, accessible using an SSH key.
+    2. Create an Azure Key Vault for storing secrets.
+    3. Set up Managed Service Identity for the virtual machine, so that it can access the key vault.
+       ([more info](https://docs.microsoft.com/en-us/azure/key-vault/tutorial-python-linux-virtual-machine))
+2. Put secrets inside the key vault, see `roles/web/templates/azuresettings.py` for the necessary secrets.
+3. Check/modify variables in:
+    * `vars.yml`
+    * `roles/web/templates/azuresettings.py`
+4. Play deployment config:
+    1. Install Ansible on your local machine.
+    2. Put the remote Azure virtual machine(s) in the `hosts` file.
+    3. Run `ansible-playbook -i hosts site.yml`.
 
-## Ad-hoc commands
+## Other playbooks
 
-Todo
-* Set-up admin user: todo
+* `ansible-playbook -i hosts reset.yml`: this removes the database, uploaded files,
+  randomly generated secrets.
 
 ## Resources
 
