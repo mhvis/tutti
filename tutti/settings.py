@@ -27,9 +27,8 @@ INSTALLED_APPS = [
     'django_countries',
 
     'members.apps.MembersConfig',
-    # 'ldapproxy.apps.LdapProxyConfig'
-    # 'ldapserver.apps.LdapServerConfig'
-    'ldapsync.apps.LdapSyncConfig'
+    'ldapsync.apps.LdapSyncConfig',
+    'oidc.apps.OIDCConfig',
 ]
 
 MIDDLEWARE = [
@@ -120,8 +119,15 @@ LDAP = {
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
+# OpenID Connect configuration
+
+AUTHLIB_OAUTH_CLIENTS = {
+    'keycloak': {
+        'client_id': 'tutti',
+        'client_secret': '',  # Needs to be set in deployment
+    }
+}
+
 # When users need to be logged in, the OpenID Connect flow will be started by
 # the login view.
-# LOGIN_URL = 'oidc_authentication_init'
-# LOGIN_REDIRECT_URL = "/"
-# LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = 'oidc:login'

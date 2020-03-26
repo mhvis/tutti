@@ -15,5 +15,9 @@
     <li><a href="https://status.esmgquadrivium.nl">Service status</a></li>
 </ul>
 
+{% if user.is_authenticated %}
+    <a href="{% url 'oidc:logout' %}">Log out</a>
+{% endif %}
+
 </body>
 </html>

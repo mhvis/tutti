@@ -42,3 +42,4 @@ Alternatively use `pipenv run <command>`.
   Also includes a custom admin site for branding.
 * `ldapsync`: synchronization of the members data with an LDAP server.
 * `aadsync`: synchronization of the member accounts and groups to Azure Active Directory.
+* `oidc`: handle user login via OpenID Connect.
