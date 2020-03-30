@@ -10,8 +10,8 @@ oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-oauth.register(
-    name='activedirectory',
-    server_metadata_url='https://login.microsoftonline.com/e37b402e-3c13-4bbc-8129-2dcdc6758e6d/v2.0/.well-known/openid-configuration',
-    client_kwargs={'scope': 'openid email profile'},
-)
+# oauth.register(
+#     name='activedirectory',
+#     server_metadata_url='https://login.microsoftonline.com/e37b402e-3c13-4bbc-8129-2dcdc6758e6d/v2.0/.well-known/openid-configuration',
+#     client_kwargs={'scope': 'openid email profile'},
+# )
