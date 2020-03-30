@@ -92,7 +92,7 @@ class ModifyOperation(LDAPOperation):
 
     def apply(self, conn: Connection):
         if not self.values or not self.values[0]:
-            self.values = []
+            self.values = None
         conn.modify(self.dn, {self.attribute: [(MODIFY_REPLACE, self.values)]})
 
 
