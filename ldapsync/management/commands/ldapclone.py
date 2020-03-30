@@ -6,7 +6,7 @@ from ldap3.utils.log import set_library_log_detail_level, BASIC
 
 from ldapsync.clone import CLONE_SEARCH, clone, check_for_issues
 from ldapsync.ldap import get_ldap_entries, get_connection
-from members.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, Membership, ExternalCardLoan
+from members.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, GroupMembership, ExternalCardLoan
 
 
 class Command(BaseCommand):
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 return
 
             self.stdout.write('Deleting Django entries...')
-            Membership.objects.all().delete()
+            GroupMembership.objects.all().delete()
             ExternalCardLoan.objects.all().delete()
             Instrument.objects.all().delete()
             QGroup.objects.all().delete()
