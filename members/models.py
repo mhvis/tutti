@@ -84,7 +84,7 @@ class Person(User):
 
     class Meta:
         verbose_name = 'person'
-        verbose_name_plural = 'persons'
+        verbose_name_plural = 'people'
 
     initials = models.CharField(max_length=30, blank=True)
 
