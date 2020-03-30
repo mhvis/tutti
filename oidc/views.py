@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
-from django.shortcuts import resolve_url
+from django.shortcuts import resolve_url, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
@@ -46,7 +46,8 @@ class AuthView(View):
             raise PermissionDenied
         # Log the user in
         login(request, user)
-        return HttpResponseRedirect(self.get_success_url())
+        return redirect('index')
+        # return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
         url = self.get_redirect_url()
