@@ -91,6 +91,8 @@ class ModifyOperation(LDAPOperation):
         return False
 
     def apply(self, conn: Connection):
+        if not self.values or not self.values[0]:
+            self.values = []
         conn.modify(self.dn, {self.attribute: [(MODIFY_REPLACE, self.values)]})
 
 

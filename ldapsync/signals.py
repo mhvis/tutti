@@ -9,6 +9,7 @@ from members.models import Person
 
 @receiver(pre_save, sender=Person)
 def person_save(sender, instance: Person, created: bool, **kwargs):
+
     pass
 
 
