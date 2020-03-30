@@ -1,7 +1,7 @@
 """LDAP add, delete and modify operations."""
 from typing import Dict, List
 
-from ldap3 import Connection
+from ldap3 import Connection, MODIFY_REPLACE
 
 
 class LDAPOperation:
@@ -33,6 +33,9 @@ class AddOperation(LDAPOperation):
             return self.dn == o.dn and self.attributes == o.attributes
         return False
 
+    def apply(self, conn: Connection):
+        conn.add(self.dn, self.attributes['objectClass'], self.attributes)
+
 
 class DeleteOperation(LDAPOperation):
     """Delete an LDAP entry."""
@@ -52,6 +55,9 @@ class DeleteOperation(LDAPOperation):
         if isinstance(o, DeleteOperation):
             return self.dn == o.dn
         return False
+
+    def apply(self, conn: Connection):
+        conn.delete(self.dn)
 
 
 class ModifyOperation(LDAPOperation):
@@ -84,6 +90,9 @@ class ModifyOperation(LDAPOperation):
             return self.dn == o.dn and self.attribute == o.attribute and values_equal
         return False
 
+    def apply(self, conn: Connection):
+        conn.modify(self.dn, {self.attribute: [(MODIFY_REPLACE, self.values)]})
+
 
 class ModifyDNOperation(LDAPOperation):
     """Modify the DN of an LDAP entry."""
@@ -99,3 +108,6 @@ class ModifyDNOperation(LDAPOperation):
         if isinstance(o, ModifyDNOperation):
             return self.dn == o.dn and self.new_dn == o.new_dn
         return False
+
+    def apply(self, conn: Connection):
+        conn.modify_dn(self.dn, self.new_dn)

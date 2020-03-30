@@ -130,7 +130,7 @@ class Person(User):
                                              verbose_name='G Suite accounts')
 
     iban = IBANField(blank=True, verbose_name='IBAN')
-    person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID')
+    person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID', help_text='Davilex code.')
 
     key_access = models.ManyToManyField(Key, blank=True)
     keywatcher_id = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher ID')
