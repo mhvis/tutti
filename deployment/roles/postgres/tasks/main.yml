@@ -34,6 +34,14 @@
   slurp:
     src: "{{ postgres_password_path }}"
   register: pw
+  tags:
+    - app
+
+- name: Store password in variable
+  set_fact:
+    db_password: "{{ pw['content'] | b64decode }}"
+  tags:
+    - app
 
 - name: Ensure database user exists
   become: true
@@ -41,4 +49,4 @@
   postgresql_user:
     db: "{{ db_name }}"
     name: "{{ db_user }}"
-    password: "{{ pw['content'] | b64decode }}"
+    password: "{{ db_password }}"

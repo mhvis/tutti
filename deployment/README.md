@@ -19,10 +19,13 @@ deployment to an Azure virtual machine.
     2. Put the remote Azure virtual machine(s) in the `hosts` file.
     3. Run `ansible-playbook -i hosts site.yml`.
 
-## Other playbooks
+## Other playbooks/tags
 
 * `ansible-playbook -i hosts reset.yml`: this removes the database, uploaded files,
   randomly generated secrets.
+* `ansible-playbook -i hosts site.yml --tags "app"`: this does a quick update
+  on an already deployed host by skipping installation steps and only updating
+  source code.
 
 ## Resources
 

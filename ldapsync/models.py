@@ -41,11 +41,13 @@ class LDAPGroup(LDAPMixin, QGroup):
         return 'cn={},ou=groups,dc=esmgquadrivium,dc=nl'.format(self.name.lower())
 
     def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
+        # Attributes like description might have an empty string as value, in
+        #     which case we should provide an empty list instead of [''].
         return {
-            'objectClass': ['esmgqGroup'],
+            'objectClass': ['esmgqGroup', 'groupOfNames', 'top'],
             'cn': [self.name],
-            'description': [self.description],
-            'mail': [self.email],
+            'description': [self.description] if self.description else [],
+            'mail': [self.email] if self.email else [],
             'member': [m.get_dn() for m in LDAPPerson.objects.filter(groups=self)],
             'qDBLinkID': [self.id],
         }
@@ -74,14 +76,16 @@ class LDAPPerson(LDAPMixin, Person):
         return 'uid={},ou=people,dc=esmgquadrivium,dc=nl'.format(self.username.lower())
 
     def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
+        # Attributes like first_name might have an empty string as value, in
+        #     which case we should provide an empty list instead of [''].
         return {
-            'objectClass': ['esmgqPerson'],
+            'objectClass': ['esmgqPerson', 'inetOrgPerson', 'organizationalPerson', 'person', 'top'],
             'uid': [self.username],
-            'givenName': [self.first_name],
-            'sn': [self.last_name],
-            'cn': [self.get_full_name()],
-            'mail': [self.email],
-            'preferredLanguage': [self.preferred_language],
+            'givenName': [self.first_name] if self.first_name else [],
+            'sn': [self.last_name] if self.last_name else [],
+            'cn': [self.get_full_name()] if self.get_full_name() else [],
+            'mail': [self.email] if self.email else [],
+            'preferredLanguage': [self.preferred_language] if self.preferred_language else [],
             'qAzureUPN': ['{}@esmgquadrivium.nl'.format(self.username.lower())],
             'qGSuite': [a.email for a in self.gsuite_accounts.all()],
             'qDBLinkID': [self.id],

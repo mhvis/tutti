@@ -32,9 +32,13 @@
     dest: "{{ project_path }}"
     accept_hostkey: yes
   notify: reload application
+  tags:
+    - app
 
 - name: Delete all .pyc files
   command: find . -name '*.pyc' -delete
   args:
     chdir: "{{ project_path }}"
   changed_when: False
+  tags:
+    - app

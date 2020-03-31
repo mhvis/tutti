@@ -67,8 +67,8 @@ def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
         del to_change[dn]
 
     # Remap so that the dictionaries are hashed based on the matching attribute
-    change_to = remap(change_to, on)
-    to_change = remap(to_change, on)
+    change_to = remap(change_to, on=on)
+    to_change = remap(to_change, on=on)
 
     # Get add/delete operations
     to_add = change_to.keys() - to_change.keys()
@@ -85,7 +85,8 @@ def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
 
         # DN
         # Modify DN needs to be performed before attribute modify!
-        # Otherwise the LDAP server will probably throw an error.
+        # Otherwise the DN for the attribute modify can't be found in LDAP
+        # (it will still have the old value)
         if new_dn.lower() != cur_dn.lower():
             ops.append(ModifyDNOperation(cur_dn, new_dn))
 
@@ -97,6 +98,6 @@ def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
         # Attribute changes and additions
         for key, new_values in new_attrs.items():
             cur_values = cur_attrs.get(key, [])
-            if sorted(new_values) != sorted(cur_values):
+            if sorted(new_values) != sorted(cur_values):  # Need to sort because the value order does not matter
                 ops.append(ModifyOperation(new_dn, key, new_values))
     return ops
