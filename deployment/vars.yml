@@ -14,7 +14,7 @@ secret_key_path: "/app/secret_key.txt"
 wsgi_module: tutti.wsgi
 django_settings_module: azuresettings
 git_repo: "git@github.com:mhvis/tutti.git"
-git_branch: "f-deploy"
+git_branch: "master"
 db_name: tutti
 db_user: tutti
 certbot_email: "sysop@esmgquadrivium.nl"

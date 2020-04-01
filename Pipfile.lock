@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6ae608ec899b20e5f1efd116b9f08a604d499b2b56d9ddbb4433bb76dd27c9de"
+            "sha256": "bcdbc62a09bc75e3cb88e40a1d5579efe5cdf743f4d0e54cc7a3ab53cc1dcb29"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -113,11 +113,11 @@
         },
         "django": {
             "hashes": [
-                "sha256:50b781f6cbeb98f673aa76ed8e572a019a45e52bdd4ad09001072dfd91ab07c8",
-                "sha256:89e451bfbb815280b137e33e454ddd56481fdaa6334054e6e031041ee1eda360"
+                "sha256:642d8eceab321ca743ae71e0f985ff8fdca59f07aab3a9fb362c617d23e33a76",
+                "sha256:d4666c2edefa38c5ede0ec1655424c56dc47ceb04b6d8d62a7eac09db89545c1"
             ],
             "index": "pypi",
-            "version": "==3.0.4"
+            "version": "==3.0.5"
         },
         "django-countries": {
             "hashes": [
@@ -127,13 +127,21 @@
             "index": "pypi",
             "version": "==6.1.2"
         },
-        "django-localflavor": {
+        "django-health-check": {
             "hashes": [
-                "sha256:15eee64032384ec6a9969f21fdb83fc41e7798f61e2478dd12dc94bfdbc3540e",
-                "sha256:8208bbd210a2003cd2e292759ec339b366806a1554a831e73353bd71981e2705"
+                "sha256:0563827e003d25fd4d9ebbd7467dea5f390435628d645aaa63f8889deaded73a",
+                "sha256:9e6b7d93d4902901474efd4e25d31b5aaea7563b570c0260adce52cd3c3a9e36"
             ],
             "index": "pypi",
-            "version": "==3.0"
+            "version": "==3.12.1"
+        },
+        "django-localflavor": {
+            "hashes": [
+                "sha256:24e9a03bc11ced92365821d3cfdd96eb4e2f3e44a6f40e86c645d3e0ec65ec53",
+                "sha256:3c3034dc64a1f7e5efd9eb53d653af905c20482d438c0e8b825d02e3121b86fa"
+            ],
+            "index": "pypi",
+            "version": "==3.0.1"
         },
         "django-phonenumber-field": {
             "hashes": [
@@ -160,11 +168,11 @@
         },
         "phonenumbers": {
             "hashes": [
-                "sha256:161a99966dcfc29d52dfc36e5613ec0a04362409d5ccd384185b1506b462d156",
-                "sha256:43b42af336bee2d8fdebe6c6c8ade2deacce8cf776dc12aa34dcb8ccc96dd70d"
+                "sha256:59ae9cb25fb03027c9f2bf5584098e699be7eca12c443838b83752956be15cda",
+                "sha256:bebf881ef0e775b93062fbd107bf164b5baef877a7b8f702e93a9a5d24ae4065"
             ],
             "index": "pypi",
-            "version": "==8.12.0"
+            "version": "==8.12.1"
         },
         "pyasn1": {
             "hashes": [

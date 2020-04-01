@@ -25,6 +25,9 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'localflavor',
     'django_countries',
+    'health_check',
+    'health_check.db',
+    'health_check.storage',
 
     'members.apps.MembersConfig',
     'ldapsync.apps.LdapSyncConfig',

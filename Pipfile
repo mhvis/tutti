@@ -17,6 +17,7 @@ django-localflavor = "*"
 django-countries = "*"
 authlib = "*"
 requests = "*"
+django-health-check = "*"
 
 [requires]
 python_version = "3.6"
