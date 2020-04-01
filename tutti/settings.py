@@ -110,6 +110,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
 
 AUTH_USER_MODEL = 'members.User'
 
