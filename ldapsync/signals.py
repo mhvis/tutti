@@ -5,8 +5,7 @@ from qluis.models import Person
 
 
 # TODO! We can use these signals to automatically add or delete entries in LDAP
-#  whenever a new entry is created here. However this will conflict with the
-#  ldapclone command!
+#  whenever a new entry is created here.
 
 @receiver(pre_save, sender=Person)
 def person_save(sender, instance: Person, created: bool, **kwargs):

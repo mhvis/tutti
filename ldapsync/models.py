@@ -1,40 +1,20 @@
-import re
-from datetime import date
-from typing import Union, Dict, List, Optional
+"""Module for presenting the local Django data as an LDAP dictionary."""
 
-from ldapsync.ldaputil import raise_for_multi_value
-from qluis.models import Group, Person, ExternalCard, Instrument, Key, GSuiteAccount, Membership
+from typing import Dict, List
+
+from ldapsync.ldap import LDAPSearch, LDAPAttributeType
+from qluis.models import QGroup, Person
 
 
-class LdapSyncMixin:
+class LDAPMixin:
     """Mixin for model classes to add methods for syncing with LDAP."""
 
-    base_dn = None
-    """Base DN for entries of this type in LDAP (base path)."""
+    def get_dn(self) -> str:
+        """Get the (normalized, i.e. lowercase) Distinguished Name for the instance."""
+        raise NotImplementedError()
 
-    object_class = None
-    """LDAP object class for entries of this type."""
-
-    link_attribute = 'qDBLinkID'
-    """LDAP attribute that stores the primary key value of the corresponding
-    Django entry, for each LDAP entry."""
-
-    attribute_keys = None
-    """List/tuple of LDAP attribute keys that are defined for this type. Should
-    not include the link attribute, but should include the DN attribute."""
-
-    dn_attribute = None
-    """LDAP attribute that is used for the DN."""
-
-    def get_dn(self):
-        """Construct DN for the entry."""
-        dn_attribute_value = self.get_attribute_values()[self.dn_attribute][0]
-        return '{attr}={val},{base_dn}'.format(attr=self.dn_attribute,
-                                               val=dn_attribute_value,
-                                               base_dn=self.base_dn)
-
-    def get_attribute_values(self) -> Dict[str, List]:
-        """Get attribute values in the format that LDAP expects.
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
+        """Get the LDAP attribute values.
 
         Returns:
             Dictionary of the instance attributes in LDAP directory format.
@@ -43,221 +23,88 @@ class LdapSyncMixin:
         raise NotImplementedError()
 
     @classmethod
-    def create_from_attribute_values(cls, attributes):
-        """Create new instance on the database using LDAP attributes.
-
-        Args:
-            attributes: Dictionary of LDAP attributes (see ldap3 library).
-
-        Returns:
-            The created instance.
-        """
+    def get_search(cls) -> LDAPSearch:
+        """Get search parameters for retrieval of LDAP data."""
         raise NotImplementedError()
 
+    @classmethod
+    def get_entries(cls) -> Dict[str, Dict[str, List[str]]]:
+        """Get all the local database entries of this model in LDAP format."""
+        return {i.get_dn(): i.get_attributes() for i in cls.objects.all()}
 
-class SyncedGroup(LdapSyncMixin, Group):
+
+class LDAPGroup(LDAPMixin, QGroup):
     class Meta:
         proxy = True
 
-    base_dn = 'ou=groups,dc=esmgquadrivium,dc=nl'
-    object_class = 'esmgqGroup'
-    attribute_keys = ('cn', 'description', 'mail', 'member')
-    dn_attribute = 'cn'
+    def get_dn(self):
+        return 'cn={},ou=groups,dc=esmgquadrivium,dc=nl'.format(self.name.lower())
 
-    @classmethod
-    def create_from_attribute_values(cls, attributes):
-        raise_for_multi_value(attributes['cn'],
-                              attributes['description'],
-                              attributes['mail'])
-        instance = cls(
-            name=attributes['cn'].value,
-            description=attributes['description'].value or '',
-            email=attributes['mail'].value or '',
-        )
-        instance.save()
-        return instance
-
-    def get_attribute_values(self) -> Dict[str, List]:
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
         return {
+            'objectClass': ['esmgqGroup'],
             'cn': [self.name],
+            'description': [self.description],
+            'mail': [self.email],
+            'member': [m.get_dn() for m in LDAPPerson.objects.filter(membership__group=self, membership__end=None)],
+            'qDBLinkID': [self.id],
         }
 
+    @classmethod
+    def get_search(cls) -> LDAPSearch:
+        return LDAPSearch(
+            base_dn='ou=groups,dc=esmgquadrivium,dc=nl',
+            object_class='esmgqGroup',
+            attributes=[
+                'objectClass',
+                'cn',
+                'description',
+                'mail',
+                'member',
+                'qDBLinkID',
+            ]
+        )
 
-class SyncedPerson(LdapSyncMixin, Person):
+
+class LDAPPerson(LDAPMixin, Person):
     class Meta:
         proxy = True
 
-    base_dn = 'ou=people,dc=esmgquadrivium,dc=nl'
-    object_class = 'esmgqPerson'
-    attribute_keys = (
-        'uid',
-        'givenName',
-        'sn',
-        'cn',
-        'mail',
-        'initials',
-        'l',
-        'street',
-        'postalCode',
-        'preferredLanguage',
-        'qAzureUPN',
-        'qBHVCertificate',
-        'qCardExternalDepositMade',
-        'qCardExternalDescription',
-        'qCardExternalNumber',
-        'qCardNumber',
-        'qDateOfBirth',
-        'qFieldOfStudy',
-        'qFoundVia',
-        'qGSuite',
-        'qGender',
-        'qIBAN',
-        'qID',
-        'qInstrumentVoice',
-        'qIsStudent',
-        'qKeyAccess',
-        'qKeyWatcherID',
-        'qKeyWatcherPIN',
-        'qMemberEnd',
-        'qMemberStart',
-        'qPermissionExQuus',
-        'qSEPADirectDebit',
-        'memberOf',
-        'telephoneNumber'
-    )
-    dn_attribute = 'uid'
+    def get_dn(self) -> str:
+        return 'uid={},ou=people,dc=esmgquadrivium,dc=nl'.format(self.username.lower())
 
-    def get_attribute_values(self) -> Dict[str, List]:
+    def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
         return {
+            'objectClass': ['esmgqPerson'],
             'uid': [self.username],
             'givenName': [self.first_name],
             'sn': [self.last_name],
             'cn': [self.get_full_name()],
             'mail': [self.email],
-            'initials': [self.initials],
-            'l': [self.city],
-            'postalCode': [self.postal_code],
             'preferredLanguage': [self.preferred_language],
             'qAzureUPN': ['{}@esmgquadrivium.nl'.format(self.username.lower())],
-
+            'qGSuite': [a.email for a in self.gsuite_accounts.all()],
+            'qDBLinkID': [self.id],
         }
 
     @classmethod
-    def create_from_attribute_values(cls, attributes):
-        # Make sure that not some multi values exist
-        raise_for_multi_value(attributes['uid'],
-                              attributes['givenName'],
-                              attributes['sn'],
-                              attributes['mail'],
-                              attributes['initials'],
-                              attributes['l'],
-                              attributes['postalCode'],
-                              attributes['preferredLanguage'],
-                              attributes['qCardNumber'],
-                              attributes['qBHVCertificate'],
-                              attributes['qCardExternalDepositMade'],
-                              attributes['qCardExternalDescription'],
-                              attributes['qCardExternalNumber'],
-                              attributes['qDateOfBirth'],
-                              attributes['qFieldOfStudy'],
-                              attributes['qFoundVia'],
-                              attributes['qGender'],
-                              attributes['qIBAN'],
-                              attributes['qID'],
-                              attributes['qIsStudent'],
-                              attributes['qKeyWatcherID'],
-                              attributes['qKeyWatcherPIN'],
-                              attributes['qMemberStart'],
-                              attributes['qMemberEnd'],
-                              attributes['qPermissionExQuus'],
-                              attributes['qSEPADirectDebit'],
-                              attributes['telephoneNumber'],
-                              attributes['street'],
-                              )
-
-        def convert_birthday(ldap_value: Optional[int]) -> Optional[date]:
-            if not ldap_value:
-                return None
-            s = str(ldap_value)
-            return date(year=int(s[0:4]), month=int(s[4:6]), day=int(s[6:8]))
-
-        instance = cls(
-            username=attributes['uid'].value.lower(),
-            first_name=attributes['givenName'].value or '',
-            last_name=attributes['sn'].value or '',
-            email=attributes['mail'].value or '',
-            initials=attributes['initials'].value or '',
-            city=attributes['l'].value or '',
-            postal_code=attributes['postalCode'].value or '',
-            preferred_language=attributes['preferredLanguage'].value or '',
-            bhv_certificate=attributes['qBHVCertificate'].value,
-            date_of_birth=convert_birthday(attributes['qDateOfBirth'].value),
-            field_of_study=attributes['qFieldOfStudy'].value or '',
-            found_via=attributes['qFoundVia'].value or '',
-            gender=(attributes['qGender'].value or '').lower(),
-            iban=attributes['qIBAN'].value or '',
-            person_id=attributes['qID'].value or '',
-            is_student=attributes['qIsStudent'].value,
-            keywatcher_id=attributes['qKeyWatcherID'].value or '',
-            keywatcher_pin=attributes['qKeyWatcherPIN'].value or '',
-            membership_start=attributes['qMemberStart'].value,
-            membership_end=attributes['qMemberEnd'].value,
-            permission_exquus=attributes['qPermissionExQuus'].value,
-            sepa_direct_debit=attributes['qSEPADirectDebit'].value,
-            phone_number=attributes['telephoneNumber'].value or '',
-            street=attributes['street'].value or '',
+    def get_search(cls) -> LDAPSearch:
+        return LDAPSearch(
+            base_dn='ou=people,dc=esmgquadrivium,dc=nl',
+            object_class='esmgqPerson',
+            attributes=[
+                'objectClass',
+                'uid',
+                'givenName',
+                'sn',
+                'cn',
+                'mail',
+                'preferredLanguage',
+                'qAzureUPN',
+                'qGSuite',
+                'qDBLinkID',
+            ]
         )
-        instance.save()
 
-        # External cards
-        external_number = attributes['qCardExternalNumber'].value
-        if external_number:
-            external_card, _ = ExternalCard.objects.get_or_create(
-                card_number=attributes['qCardNumber'].value,
-                reference_number=external_number,
-                description=attributes['qCardExternalDescription'].value or ''
-            )
-            instance.external_card = external_card
-            instance.external_card_deposit_made = attributes['qCardExternalDepositMade'].value
-            instance.save()
-        else:
-            instance.tue_card_number = attributes['qCardNumber'].value
-            instance.save()
-
-        # Instruments
-        for i in attributes['qInstrumentVoice'].values:
-            instrument, _ = Instrument.objects.get_or_create(name=i.lower())
-            instance.instruments.add(instrument)
-
-        # Keys
-        for k in attributes['qKeyAccess'].values:
-            key, _ = Key.objects.get_or_create(number=k)
-            instance.key_access.add(key)
-
-        # Groups
-        for group_dn in attributes['memberOf'].values:  # type: str
-            match = re.fullmatch(r'cn=([^,]+),ou=[Gg]roups,dc=esmgquadrivium,dc=nl',
-                                 group_dn.strip())
-            if not match:
-                raise Exception('Invalid group DN: {}'.format(group_dn))
-            cn = match.group(1)
-            group = Group.objects.get(name__iexact=cn)
-            cur_memberships = Membership.objects.filter(person__username__iexact=instance.username,
-                                                        group__name__iexact=cn,
-                                                        end__isnull=True)
-            if cur_memberships.count() == 0:
-                Membership.objects.create(group=group, person=instance)
-
-        # GSuite accounts
-        for gsuite_mail in attributes['qGSuite'].values:
-            gsuite_account, _ = GSuiteAccount.objects.get_or_create(email=gsuite_mail)
-            instance.gsuite_accounts.add(gsuite_account)
-
-        return instance
-
-
-SYNC_MODELS = SyncedGroup, SyncedPerson
-"""Iterable of all models that can be synced with LDAP."""
-
-SyncModel = Union[SYNC_MODELS]
-"""Type for sync model to use for type hints."""
+# class SyncLogEntry(models.Model):
+#     """Log entry of a sync run."""
