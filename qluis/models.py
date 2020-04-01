@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -30,6 +30,7 @@ class QGroup(models.Model):
     name = models.CharField(_('name'), max_length=150, unique=True)
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
+    end_on_unsubscribe = models.BooleanField(default=True)
     owner = models.ForeignKey('Person',
                               on_delete=models.PROTECT,
                               null=True,
@@ -160,6 +161,14 @@ class Person(models.Model):
 
     def __str__(self):
         return self.get_full_name()
+
+    def current_memberships(self) -> QuerySet:
+        """Get current group memberships."""
+        return self.membership_set.filter(end=None)
+
+    def current_external_card_loans(self):
+        """Get current external card loans."""
+        return self.externalcardloan_set.filter(end=None)
 
 
 class Membership(models.Model):
