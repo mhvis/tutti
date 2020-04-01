@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -58,7 +57,7 @@ class AuthView(View):
         redirect_to = self.request.GET.get(REDIRECT_FIELD_NAME, '')
         url_is_safe = url_has_allowed_host_and_scheme(
             url=redirect_to,
-            allowed_hosts={self.request.as_host()},
+            allowed_hosts={self.request.as_host()},  # Todo: request.as_host() seems to be broken for WSGI
             require_https=self.request.is_secure(),
         )
         return redirect_to if url_is_safe else ''

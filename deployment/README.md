@@ -27,6 +27,14 @@ deployment to an Azure virtual machine.
   on an already deployed host by skipping installation steps and only updating
   source code.
 
+## Todo
+
+(Not very important)
+
+* Remove the roles and use includes instead to make the structure simpler.
+* Remove Microsoft Identity Manager code from `azuresettings.py`, use client-side secret retrieval.
+
+
 ## Resources
 
 The playbook is based on https://github.com/jcalazan/ansible-django-stack
