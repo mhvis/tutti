@@ -34,7 +34,8 @@ class AddOperation(LDAPOperation):
         return False
 
     def apply(self, conn: Connection):
-        conn.add(self.dn, self.attributes['objectClass'], self.attributes)
+        # Do LDAP operation
+        conn.add(self.dn, attributes=self.attributes)
 
 
 class DeleteOperation(LDAPOperation):
@@ -91,8 +92,8 @@ class ModifyOperation(LDAPOperation):
         return False
 
     def apply(self, conn: Connection):
-        if not self.values or not self.values[0]:
-            self.values = None
+        # if not self.values or not self.values[0]:
+        #     self.values = None
         conn.modify(self.dn, {self.attribute: [(MODIFY_REPLACE, self.values)]})
 
 
