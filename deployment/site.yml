@@ -7,8 +7,27 @@
   # All roles will be run as root
   become: yes
 
-  roles:
-    - common
-    - postgres
-    - nginx
-    - web
+  tasks:
+    - name: Create app backup (see doQumentatie)
+      service:
+        name: borgmatic
+        state: started
+      tags:
+        - app
+
+    - include_role:
+        name: common
+      tags:
+        - app
+    - include_role:
+        name: postgres
+      tags:
+        - app
+    - include_role:
+        name: nginx
+      tags:
+        - app
+    - include_role:
+        name: web
+      tags:
+        - app

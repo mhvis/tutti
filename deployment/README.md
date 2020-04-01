@@ -1,26 +1,27 @@
 # Deployment
 
 [Ansible](https://docs.ansible.com/ansible/latest/index.html) Playbook for
-deployment to an Azure virtual machine.
+deployment to a virtual machine.
 
 Deployment configuration for backup is not included here, but kept in
 https://github.com/mhvis/doqumentatie.
 
-## Instructions
+## Requirements
 
-1. Prepare virtual machine:
-    1. Create Azure virtual machine with Ubuntu 18.04 LTS, accessible using an SSH key.
-    2. Create an Azure Key Vault for storing secrets.
-    3. Set up Managed Service Identity for the virtual machine, so that it can access the key vault.
-       ([more info](https://docs.microsoft.com/en-us/azure/key-vault/tutorial-python-linux-virtual-machine))
-2. Put secrets inside the key vault, see `roles/web/templates/azuresettings.py.j2` for the necessary secrets.
-3. Check/modify variables in:
+* Ubuntu 18.04 LTS machine to deploy to
+* Azure Key Vault for secret storage, see `roles/web/templates/azuresettings.py.j2` for the necessary secrets
+* To run the deployment, you'll need to have installed locally, so not on the remote server:
+  * Ansible
+  * AzureCLI, for retrieving the secrets in Azure Key Vault.
+    After installation, run `az login` to log in with Q account.
+
+## Usage
+
+1. Check/modify variables in:
     * `vars.yml`
     * `roles/web/templates/azuresettings.py.j2`
-4. Play deployment config:
-    1. Install Ansible on your local machine.
-    2. Put the remote Azure virtual machine(s) in the `hosts` file.
-    3. Run `ansible-playbook -i hosts site.yml`.
+    * `hosts` (stores the hostname for the deployment over SSH)
+2. Run `ansible-playbook -i hosts site.yml`
 
 ## Other playbooks/tags
 

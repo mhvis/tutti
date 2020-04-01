@@ -35,32 +35,9 @@ MEDIA_ROOT = '{{ media_path }}'
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
-
-# Injected secrets
-#
-# The secrets set below are injected using Azure Managed Service Identity. The
-# secrets are stored inside Azure Key Vault. They can be accessed on the
-# virtual machine if it is set up correctly in Azure.
-# See: https://docs.microsoft.com/en-us/azure/key-vault/tutorial-python-linux-virtual-machine
-
-def get_vault_access_token() -> str:
-    """Get access token for Azure Key Vault from Managed Service Identity."""
-    import requests
-    msi_endpoint = "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net"
-    r = requests.get(msi_endpoint, headers={"Metadata": "true"})
-    return r.json()['access_token']
-
-
-vault_access_token = get_vault_access_token()
-
-
-def get_key_vault_secret(access_token, name):
-    """Get value of an Azure Key Vault secret."""
-    import requests
-    secret_url = 'https://esmg.vault.azure.net/secrets/{}?api-version=2016-10-01'.format(name)
-    resp = requests.get(url=secret_url, headers={"Authorization": "Bearer " + access_token})
-    return resp.json()['value']
-
-
 # Keycloak OpenID Connect client secret
-AUTHLIB_OAUTH_CLIENTS['keycloak']['client_secret'] = get_key_vault_secret(vault_access_token, 'keycloak-tutti')
+AUTHLIB_OAUTH_CLIENTS['keycloak']['client_secret'] = '{{ keycloak_client_secret }}'
+
+# LDAP login configuration
+LDAP['USER'] = 'cn=Tutti,ou=Special Users,dc=esmgquadrivium,dc=nl'
+LDAP['PASSWORD'] = '{{ ldap_password }}'

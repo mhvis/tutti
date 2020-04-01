@@ -7,9 +7,16 @@ virtualenv_path: "/app/venv"
 static_path: "/app/static"
 media_path: "/app/media"
 
-# Secrets
+# Secret setup
 postgres_password_path: "/app/postgres_password.txt"
 secret_key_path: "/app/secret_key.txt"
+# Name of Azure Key Vault where the secrets are stored
+vault_name: esmg
+vault_secret_names:
+  # Secret that holds the OpenID Connect client secret (for single sign-on)
+  keycloak_client_secret: "keycloak-tutti"
+  # Secret that holds the password for LDAP
+  ldap_password: "389-ds-tutti"
 
 wsgi_module: tutti.wsgi
 django_settings_module: azuresettings

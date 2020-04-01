@@ -5,6 +5,35 @@
   tags:
     - app
 
+# Retrieve Azure Key Vault secrets
+#
+# This is implemented in a very ugly way (namely using commands) because Ansible can't yet do this properly.
+- name: Retrieve Keycloak client secret from Azure Key Vault
+  become: no
+  local_action:
+    module: command
+    cmd: "az keyvault secret show --name {{ vault_secret_names.keycloak_client_secret }} --vault-name {{ vault_name }}"
+  register: keyvault_keycloak_client_secret
+  tags:
+    - app
+
+- name: Retrieve LDAP password from Azure Key Vault
+  become: no
+  local_action:
+    module: command
+    cmd: "az keyvault secret show --name {{ vault_secret_names.ldap_password }} --vault-name {{ vault_name }}"
+  register: keyvault_ldap_password
+  tags:
+    - app
+
+- name: Extract secrets
+  set_fact:
+    keycloak_client_secret: "{{ (keyvault_keycloak_client_secret.stdout | from_json).value }}"
+    ldap_password: "{{ (keyvault_ldap_password.stdout | from_json).value }}"
+  tags:
+    - app
+
+# Generate secret key
 - name: Ensure secret key directory exists
   file:
     path: "{{ secret_key_path | dirname }}"
