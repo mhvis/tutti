@@ -97,7 +97,7 @@ class LDAPPerson(LDAPMixin, Person):
         if self.last_name:
             result['sn'] = [self.last_name]
         if self.get_full_name():
-            result['cn'] = self.get_full_name()
+            result['cn'] = [self.get_full_name()]
         if self.email:
             result['mail'] = [self.email]
         if self.preferred_language:
