@@ -3,6 +3,9 @@
 [Ansible](https://docs.ansible.com/ansible/latest/index.html) Playbook for
 deployment to an Azure virtual machine.
 
+Deployment configuration for backup is not included here, but kept in
+https://github.com/mhvis/doqumentatie.
+
 ## Instructions
 
 1. Prepare virtual machine:
@@ -38,6 +41,3 @@ deployment to an Azure virtual machine.
 ## Resources
 
 The playbook is based on https://github.com/jcalazan/ansible-django-stack
-
-Backups (todo): https://github.com/borgbase/ansible-role-borgbackup
-or https://github.com/SphericalElephant/ansible-role-borgbackup

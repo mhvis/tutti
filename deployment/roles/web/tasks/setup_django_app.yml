@@ -16,6 +16,20 @@
     dest: "{{ secret_key_path }}"
     content: "{{ lookup('password', '/dev/null length=50') }}"
 
+- name: Retrieve secret key
+  slurp:
+    src: "{{ secret_key_path }}"
+  register: secret_key_file
+  tags:
+    - app
+
+# Todo: needs cleaner approach instead of 'create secret key, retrieve, store'.
+- name: Store secret key in variable
+  set_fact:
+    secret_key: "{{ secret_key_file['content'] | b64decode }}"
+  tags:
+    - app
+
 - name: Ensure settings module exists
   template:
     src: azuresettings.py.j2

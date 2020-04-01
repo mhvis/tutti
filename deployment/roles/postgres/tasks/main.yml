@@ -37,6 +37,7 @@
   tags:
     - app
 
+# Todo: needs cleaner approach instead of 'create password, retrieve, store'.
 - name: Store password in variable
   set_fact:
     db_password: "{{ pw['content'] | b64decode }}"
