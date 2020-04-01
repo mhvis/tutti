@@ -27,8 +27,15 @@ LDAPSearch = namedtuple('LDAPSearch', ['base_dn', 'object_class', 'attributes'])
 
 
 def _normalize_attrs(attrs: Dict) -> Dict:
-    """Make sure that every value is a list, also for single-valued attributes."""
-    return {k: v if isinstance(v, list) else [v] for k, v in attrs.items()}
+    """Make sure that every value is a list, also for single-valued attributes.
+
+    Discards empty lists.
+    """
+    # Convert to list
+    result = {k: v if isinstance(v, list) else [v] for k, v in attrs.items()}
+    # Discard empty lists
+    result = {k: v for k, v in attrs.items() if v}
+    return result
 
 
 def _normalize_dn(dn: str) -> str:

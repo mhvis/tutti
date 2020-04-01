@@ -33,6 +33,19 @@ class SyncTestCase(TestCase):
         operations = sync(change_to, to_change, on='id')
         self.assertEqual([ModifyOperation('uid=test', 'name', ['Piet'])], operations)
 
+    def test_modify_empty_missing1(self):
+        change_to = {'uid=test': {'uid': ['test'], 'name': [], 'id': ['4']}}
+        to_change = {'uid=test': {'uid': ['test'], 'id': ['4']}}
+        operations = sync(change_to, to_change, on='id')
+        self.assertEqual([], operations)
+
+    # This is currently not supported
+    # def test_modify_empty_missing2(self):
+    #     change_to = {'uid=test': {'uid': ['test'], 'id': ['4']}}
+    #     to_change = {'uid=test': {'uid': ['test'], 'name': [], 'id': ['4']}}
+    #     operations = sync(change_to, to_change, on='id')
+    #     self.assertEqual([], operations)
+
     def test_modify_list(self):
         change_to = {'uid=test': {'uid': ['test'], 'name': ['Piet', 'Henk'], 'id': [4]}}
         to_change = {'uid=test': {'uid': ['test'], 'name': ['Piet'], 'id': [4]}}

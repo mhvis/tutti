@@ -42,6 +42,9 @@ def sync(change_to: Dict[str, Dict[str, List[LDAPAttributeType]]],
     Distinguished Name of an entry, the value is a dictionary of entry
     attributes to list of values.
 
+    Note: empty lists in the attribute dictionary are not supported and results
+    in undefined behavior!
+
     Args:
         change_to: The dataset which has the new data.
         to_change: The dataset that is old and needs to be modified.
