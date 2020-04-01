@@ -19,6 +19,10 @@ class Command(BaseCommand):
         parser.add_argument('--debug',
                             action='store_true',
                             help='Enable ldap3 debug output.')
+        # Todo!
+        # parser.add_argument('--email-on-error',
+        #                     action='store_true',
+        #                     help='Will send an e-mail to the administrators when an exception was raised.')
 
     def handle(self, *args, **options):
         if options['debug']:

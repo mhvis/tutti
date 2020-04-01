@@ -41,16 +41,25 @@ class LDAPGroup(LDAPMixin, QGroup):
         return 'cn={},ou=groups,dc=esmgquadrivium,dc=nl'.format(self.name.lower())
 
     def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
-        # Attributes like description might have an empty string as value, in
-        #     which case we should provide an empty list instead of [''].
-        return {
+        # Attributes may only exist if they have a value
+
+        # Mandatory attributes
+        result = {
             'objectClass': ['esmgqGroup', 'groupOfNames', 'top'],
             'cn': [self.name],
-            'description': [self.description] if self.description else [],
-            'mail': [self.email] if self.email else [],
-            'member': [m.get_dn() for m in LDAPPerson.objects.filter(groups=self)],
             'qDBLinkID': [self.id],
         }
+
+        # Optional
+        if self.description:
+            result['description'] = [self.description]
+        if self.email:
+            result['mail'] = [self.email]
+        members = LDAPPerson.objects.filter(groups=self)
+        if members:
+            result['member'] = [m.get_dn() for m in members]
+
+        return result
 
     @classmethod
     def get_search(cls) -> LDAPSearch:
@@ -76,20 +85,27 @@ class LDAPPerson(LDAPMixin, Person):
         return 'uid={},ou=people,dc=esmgquadrivium,dc=nl'.format(self.username.lower())
 
     def get_attributes(self) -> Dict[str, List[LDAPAttributeType]]:
-        # Attributes like first_name might have an empty string as value, in
-        #     which case we should provide an empty list instead of [''].
-        return {
+        # Empty values are not allowed to be in the dictionary
+        result = {
             'objectClass': ['esmgqPerson', 'inetOrgPerson', 'organizationalPerson', 'person', 'top'],
             'uid': [self.username],
-            'givenName': [self.first_name] if self.first_name else [],
-            'sn': [self.last_name] if self.last_name else [],
-            'cn': [self.get_full_name()] if self.get_full_name() else [],
-            'mail': [self.email] if self.email else [],
-            'preferredLanguage': [self.preferred_language] if self.preferred_language else [],
             'qAzureUPN': ['{}@esmgquadrivium.nl'.format(self.username.lower())],
-            'qGSuite': [a.email for a in self.gsuite_accounts.all()],
             'qDBLinkID': [self.id],
         }
+        if self.first_name:
+            result['givenName'] = [self.first_name]
+        if self.last_name:
+            result['sn'] = [self.last_name]
+        if self.get_full_name():
+            result['cn'] = self.get_full_name()
+        if self.email:
+            result['mail'] = [self.email]
+        if self.preferred_language:
+            result['preferredLanguage'] = [self.preferred_language]
+        gsuite_accounts = self.gsuite_accounts.all()
+        if gsuite_accounts:
+            result['qGSuite'] = [a.email for a in gsuite_accounts]
+        return result
 
     @classmethod
     def get_search(cls) -> LDAPSearch:

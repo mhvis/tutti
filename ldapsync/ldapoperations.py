@@ -34,7 +34,7 @@ class AddOperation(LDAPOperation):
         return False
 
     def apply(self, conn: Connection):
-        # Do LDAP operation
+        # Note! The LDAP server complains if an attribute has an empty list as the value.
         conn.add(self.dn, attributes=self.attributes)
 
 

@@ -18,4 +18,4 @@ class ModelsTestCase(TestCase):
         Person.objects.create(username='test')
         QGroup.objects.create(name='group')
         ldap_attrs = LDAPGroup.objects.first().get_attributes()
-        self.assertEqual([], ldap_attrs['member'])
+        self.assertNotIn('member', ldap_attrs)
