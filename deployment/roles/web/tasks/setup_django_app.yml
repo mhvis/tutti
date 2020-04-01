@@ -1,0 +1,65 @@
+- name: Install requirements
+  shell:
+    cmd: ". {{ virtualenv_path }}/bin/activate && {{ virtualenv_path }}/bin/pipenv sync --sequential"
+    chdir: "{{ project_path }}"
+  tags:
+    - app
+
+- name: Ensure secret key directory exists
+  file:
+    path: "{{ secret_key_path | dirname }}"
+    state: directory
+
+- name: Ensure a secret key exists
+  copy:
+    force: no  # Do not overwrite existing key file!
+    dest: "{{ secret_key_path }}"
+    content: "{{ lookup('password', '/dev/null length=50') }}"
+
+- name: Retrieve secret key
+  slurp:
+    src: "{{ secret_key_path }}"
+  register: secret_key_file
+  tags:
+    - app
+
+# Todo: needs cleaner approach instead of 'create secret key, retrieve, store'.
+- name: Store secret key in variable
+  set_fact:
+    secret_key: "{{ secret_key_file['content'] | b64decode }}"
+  tags:
+    - app
+
+- name: Ensure settings module exists
+  template:
+    src: azuresettings.py.j2
+    dest: "{{ project_path }}/azuresettings.py"
+  tags:
+    - app
+
+- name: Run Django migrations
+  django_manage:
+    command: migrate
+    app_path: "{{ project_path }}"
+    virtualenv: "{{ virtualenv_path }}"
+    settings: "{{ django_settings_module }}"
+  notify: reload application
+  tags:
+    - app
+
+- name: Run Django collectstatic
+  django_manage:
+    command: collectstatic
+    clear: yes  # Clear existing static files
+    app_path: "{{ project_path }}"
+    virtualenv: "{{ virtualenv_path }}"
+    settings: "{{ django_settings_module }}"
+  notify: reload application
+  tags:
+    - app
+
+- name: Make sure the media directory exists
+  file:
+    path: "{{ media_path }}"
+    state: directory
+    owner: www-data

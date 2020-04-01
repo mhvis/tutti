@@ -1,0 +1,55 @@
+upstream app_server {
+    # fail_timeout=0 means we always retry an upstream even if it failed
+    # to return a good HTTP response
+
+    # for UNIX domain socket setups
+    server unix:/run/gunicorn.sock fail_timeout=0;
+
+    # for a TCP configuration
+    # server 192.168.0.7:8000 fail_timeout=0;
+}
+
+server {
+    listen 443 ssl;
+    # Azure does not support IPv6, if it did, we should add:
+    # listen [::]:443 ssl;
+
+    server_name {{ server_name }};
+
+    ssl_certificate /etc/letsencrypt/live/{{server_name}}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{server_name}}/privkey.pem;
+
+    client_max_body_size 4G;
+
+    location /static/ {
+        alias {{ static_path }}/;
+    }
+
+    location /media/ {
+        alias {{ media_path }}/;
+    }
+
+    location / {
+        include proxy_params;
+        # we don't want nginx trying to do something clever with
+        # redirects, we set the Host: header above already.
+        proxy_redirect off;
+        proxy_pass http://app_server;
+    }
+}
+
+server {
+    listen 80;
+    # Azure does not support IPv6, if it did, we should add:
+    # listen [::]:80;
+    server_name {{ server_name }};
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    # if no Host match, close the connection to prevent host spoofing
+    listen 80 default_server;
+    # Azure does not support IPv6, if it did, we should add:
+    # listen [::]:80;
+    return 444;
+}

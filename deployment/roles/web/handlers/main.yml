@@ -1,0 +1,6 @@
+---
+
+- name: reload application
+  service:
+    name: gunicorn
+    state: reloaded

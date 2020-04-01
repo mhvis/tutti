@@ -1,0 +1,147 @@
+{% extends "admin/change_form.html" %}
+{% load static admin_urls %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">Home</a>
+        &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+        &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        &rsaquo; <a
+            href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}">{{ object|truncatewords:"18" }}</a>
+        &rsaquo; Unsubscribe
+    </div>
+{% endblock %}
+
+{% block content %}
+    <script>
+        // Some function to select an element
+        function selectElementContents(el) {
+            var body = document.body, range, sel;
+            if (document.createRange && window.getSelection) {
+                range = document.createRange();
+                sel = window.getSelection();
+                sel.removeAllRanges();
+                try {
+                    range.selectNodeContents(el);
+                    sel.addRange(range);
+                } catch (e) {
+                    range.selectNode(el);
+                    sel.addRange(range);
+                }
+            } else if (body.createTextRange) {
+                range = body.createTextRange();
+                range.moveToElementText(el);
+                range.select();
+            }
+        }
+    </script>
+    <div id="content-main" class="delete-confirmation">
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="module aligned">
+                <div class="form-row">
+                    <label>Name:</label>
+                    <div class="readonly">{{ object.get_full_name }}</div>
+                </div>
+                <div class="form-row">
+                    <label>E-mail:</label>
+                    <div class="readonly">{{ object.email }}</div>
+                </div>
+                <div class="form-row">
+                    <label>Groups:</label>
+                    <div class="readonly">
+                        {{ object.groups.all|join:", " }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>Scala key access/cards:</label>
+                    <div class="readonly">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Association</th>
+                                <th>TU/e card number</th>
+                                <th>KeyWatcher ID</th>
+                                <th>??</th>
+                                <th>??</th>
+                                <th>Key access</th>
+                                <th>??</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr id="scalaRevoke">
+                                <td>{{ object.initials }} {{ object.last_name }}</td>
+                                <td>Quadrivium</td>
+                                <td>{{ object.tue_card_number|default_if_none:"" }}</td>
+                                <td>{{ object.keywatcher_id }}</td>
+                                <td>"Delete"</td>
+                                <td></td>
+                                <td>{{ keys|join:"," }}</td>
+                                <td>Uitgeschreven</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="button"
+                                onclick="selectElementContents(document.getElementById('scalaRevoke'))">
+                            Select for copy
+                        </button>
+
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>External card:</label>
+                    <div class="readonly">
+                        {% if object.current_external_card_loans %}
+                            This person has an external card:
+                            {% for loan in object.current_external_card_loans %}
+                                {% if not forloop.first %}and{% endif %}
+                                <a href="{% url 'admin:members_externalcardloan_change' loan.pk %}">{{ loan.external_card }}</a>
+                            {% endfor %}
+                        {% else %}
+                            This person does not currently have an external card.
+                        {% endif %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <h2>Unsubscribe checklist</h2>
+            <ul>
+                <li>Revoke keys and card access</li>
+                <li>Retrieve external card (if any)</li>
+                <li>Ask for exQuus membership</li>
+                <li>Remove from groups (this page)</li>
+                <li>Let the person know</li>
+            </ul>
+
+            <h2>Remove from groups</h2>
+            {% if groups_removed %}
+                <p>If you continue, the person will be removed from the following groups:</p>
+                <ul>
+                    {% for group in groups_removed %}
+                        <li>{{ group }}</li>
+                    {% endfor %}
+                </ul>
+                {% if groups_kept %}
+                    <p>The person will remain a member of the following groups:</p>
+                    <ul>
+                        {% for group in groups_kept %}
+                            <li>{{ group }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <div>
+                    <input type="hidden" name="post" value="yes">
+                    <input type="submit" class="" value="Remove from groups">
+                    <a href="{% url 'admin:members_person_change' object.pk %}" class="button cancel-link">Go back</a>
+                </div>
+            {% else %}
+                <p>The person is not a member of any internal groups. Nothing needs to be done.</p>
+                <a href="{% url 'admin:members_person_change' object.pk %}"
+                   class="button cancel-link"
+                   style="margin-left:0;">Go back</a>
+            {% endif %}
+        </form>
+    </div>
+
+{% endblock %}

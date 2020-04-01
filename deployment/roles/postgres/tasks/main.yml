@@ -1,0 +1,53 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+      - libpq-dev
+
+- name: Ensure the PostgreSQL service is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Ensure database is created
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: "{{ db_name }}"
+
+- name: Ensure password directory exists
+  file:
+    path: "{{ postgres_password_path | dirname }}"
+    state: directory
+
+- name: Ensure database password is created
+  copy:
+    force: no  # Do not overwrite existing password file!
+    dest: "{{ postgres_password_path }}"
+    content: "{{ lookup('password', '/dev/null') }}"
+
+- name: Retrieve password
+  slurp:
+    src: "{{ postgres_password_path }}"
+  register: pw
+  tags:
+    - app
+
+# Todo: needs cleaner approach instead of 'create password, retrieve, store'.
+- name: Store password in variable
+  set_fact:
+    db_password: "{{ pw['content'] | b64decode }}"
+  tags:
+    - app
+
+- name: Ensure database user exists
+  become: true
+  become_user: postgres
+  postgresql_user:
+    db: "{{ db_name }}"
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"

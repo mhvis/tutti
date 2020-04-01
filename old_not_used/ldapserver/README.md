@@ -1,3 +1,0 @@
-# ldapserver
-
-Presents the models

@@ -1,0 +1,14 @@
+---
+# Deploy everything
+- hosts: all
+  vars_files:
+    - vars.yml
+
+  # All roles will be run as root
+  become: yes
+
+  roles:
+    - common
+    - postgres
+    - nginx
+    - web

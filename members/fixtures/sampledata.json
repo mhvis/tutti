@@ -1,0 +1,115 @@
+[
+  {
+    "model": "members.instrument",
+    "pk": 1,
+    "fields": {
+      "name": "violin"
+    }
+  },
+  {
+    "model": "members.instrument",
+    "pk": 2,
+    "fields": {
+      "name": "organ"
+    }
+  },
+  {
+    "model": "members.externalcard",
+    "pk": 1,
+    "fields": {
+      "card_number": 1554525,
+      "reference_number": 5,
+      "description": "Cluster 3"
+    }
+  },
+  {
+    "model": "members.externalcard",
+    "pk": 2,
+    "fields": {
+      "card_number": 1553335,
+      "reference_number": 2
+    }
+  },
+  {
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+      "name": "Board"
+    }
+  },
+  {
+    "model": "members.qgroup",
+    "pk": 1,
+    "fields": {
+      "description": "Board of Quadrivium.",
+      "email": "bestuur@esmgquadrivium.nl"
+    }
+  },
+  {
+    "model": "auth.group",
+    "pk": 2,
+    "fields": {
+      "name": "Composers"
+    }
+  },
+  {
+    "model": "members.qgroup",
+    "pk": 2,
+    "fields": {}
+  },
+  {
+    "model": "members.user",
+    "pk": 2,
+    "fields": {
+      "username": "jsbach",
+      "first_name": "Johann Sebastian",
+      "last_name": "Bach",
+      "email": "bach@deutschepost.de"
+    }
+  },
+  {
+    "model": "members.person",
+    "pk": 2,
+    "fields": {
+      "initials": "J.S.",
+      "street": "Ergensstrasse 3",
+      "postal_code": "34CH",
+      "city": "Leipzig",
+      "phone_number": "+49223451543",
+      "preferred_language": "en-us",
+      "tue_card_number": 33655413,
+      "date_of_birth": "1685-03-31",
+      "gender": "Male",
+      "is_student": true,
+      "sepa_direct_debit": true,
+      "instruments": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "members.user",
+    "pk": 3,
+    "fields": {
+      "username": "fire69",
+      "first_name": "Niccolo",
+      "last_name": "Paganini",
+      "email": "nipa@gmail.com"
+    }
+  },
+  {
+    "model": "members.person",
+    "pk": 3,
+    "fields": {
+      "initials": "N.N.N.",
+      "preferred_language": "en-us",
+      "date_of_birth": "1782-10-27",
+      "gender": "Male",
+      "is_student": true,
+      "sepa_direct_debit": true,
+      "instruments": [
+        1
+      ]
+    }
+  }
+]

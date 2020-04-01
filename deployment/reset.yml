@@ -1,0 +1,47 @@
+---
+# Will remove the database, uploaded files and generated secrets.
+# Should probably not run it accidentally! ;)
+- hosts: all
+  vars_files:
+    - vars.yml
+
+  tasks:
+    # Stop and disable the app, otherwise we can't remove the database
+    - name: Ensure gunicorn socket is disabled
+      become: yes
+      service:
+        name: gunicorn.socket
+        enabled: no
+        state: stopped
+
+    - name: Ensure gunicorn is stopped
+      become: yes
+      service:
+        name: gunicorn.service
+        state: stopped
+
+    # Delete database and instance files
+    - name: Ensure database is deleted
+      become: yes
+      become_user: postgres
+      postgresql_db:
+        name: "{{ db_name }}"
+        state: absent
+
+    - name: Ensure secret key is deleted
+      become: yes
+      file:
+        path: "{{ secret_key_path }}"
+        state: absent
+
+    - name: Ensure PostgreSQL user password is deleted
+      become: yes
+      file:
+        path: "{{ postgres_password_path }}"
+        state: absent
+
+    - name: Ensure media folder is deleted
+      become: yes
+      file:
+        path: "{{ media_path }}"
+        state: absent

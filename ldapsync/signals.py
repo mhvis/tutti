@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 
-from qluis.models import Person
+from members.models import Person
 
 
 # TODO! We can use these signals to automatically add or delete entries in LDAP
@@ -9,6 +9,7 @@ from qluis.models import Person
 
 @receiver(pre_save, sender=Person)
 def person_save(sender, instance: Person, created: bool, **kwargs):
+
     pass
 
 
