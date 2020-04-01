@@ -34,7 +34,7 @@ def _normalize_attrs(attrs: Dict) -> Dict:
     # Convert to list
     result = {k: v if isinstance(v, list) else [v] for k, v in attrs.items()}
     # Discard empty lists
-    result = {k: v for k, v in attrs.items() if v}
+    result = {k: v for k, v in result.items() if v}
     return result
 
 
