@@ -1,6 +1,9 @@
+from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
@@ -127,14 +130,37 @@ class ExternalCardAdmin(admin.ModelAdmin):
 #         # Can only add or delete
 #         return False
 
+class QGroupModelForm(forms.ModelForm):
+    """Group form with a field for group members."""
+
+    group_members = forms.ModelMultipleChoiceField(
+        queryset=Person.objects.all(),
+        widget=FilteredSelectMultiple(
+            verbose_name='people',
+            is_stacked=False),
+        required=False)
+
+
+    class Meta:
+        fields = ('group_members',)
+        model = QGroup
+
 
 @admin.register(QGroup, site=admin_site)
 class QGroupAdmin(GroupAdmin):
     # search_fields = ('name',)
     # ordering = ('name',)
+    form = QGroupModelForm
 
+    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'group_members', 'permissions')
     autocomplete_fields = ('owner',)
-    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'permissions',)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)  # type: forms.ModelForm
+        print(form)
+        # print(form.fields['group_members'])
+        return form
+    # filter_horizontal = ('people',)
     # inlines = (UserGroupInline,)
 
 
