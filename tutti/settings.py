@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'members.apps.MembersConfig',
     'ldapsync.apps.LdapSyncConfig',
     'oidc.apps.OIDCConfig',
+    'pennotools.apps.PennotoolsConfig',
 ]
 
 MIDDLEWARE = [
