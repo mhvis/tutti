@@ -4,24 +4,52 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
 </head>
+<link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+{% block responsive %}
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
+{% endblock %}
 {% load i18n %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static "css/Qstyle.css" %}">
+{% endblock %}
 
 <body>
 
+{% block header %}
+<div id="header">
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'members:index' %}">
+    <img src="{% static 'admin/logo_white.svg' %}" height="60px"/>
+</a></h1>
+{% endblock %}
+{% block usertools %}
+    {% block customtools %}
+    {% endblock %}
 <p>
     <a href="{% url 'admin:index' %}">Go to administration site</a>
     {% if user.is_authenticated %}
         | <a href="{% url 'oidc:logout' %}">Log out</a>
     {% endif %}
 </p>
+{% endblock %}
+</div>
+{% endblock %}
 
+{% block content %}
 <p>Deze pagina wordt beter</p>
+{% endblock %}
 
+
+{% block footer %}
 <hr>
 <p>
     <a href="https://status.esmgquadrivium.nl">System status</a>
     | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
 </p>
+{% endblock %}
 
 </body>
 </html>
