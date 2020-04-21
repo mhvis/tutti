@@ -1,5 +1,16 @@
 {% extends "members/base.html" %}
 
+{% block title %}Q-rekening | Penno Tools{% endblock %}
+
 {% block content %}
-<p>Hello!</p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="Debit">Debit </label>
+    <input id="Debit" type="file" name="Debit">
+    <p>
+    <label for="Credit">Credit </label>
+    <input id="Credit" type="file" name="Credit">
+    </p>
+    <input type="submit" value="OK">
+</form>
 {% endblock %}

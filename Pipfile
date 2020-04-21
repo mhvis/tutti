@@ -18,6 +18,8 @@ django-countries = "*"
 authlib = "*"
 requests = "*"
 django-health-check = "*"
+xlrd = "*"
+xlsxwriter = "*"
 
 [requires]
 python_version = "3.6"
