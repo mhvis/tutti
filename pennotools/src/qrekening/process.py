@@ -66,7 +66,8 @@ def get_value(p, header):
     if header == 'Cred Open': return p.get_credit_amounts()
     if header == 'Totaal Open Tekst': return '{0:.2f}'.format(p.get_total())
     if header == 'Totaal Open Temp' or header == 'bedrag': return p.get_total()
-    if header == 'beschrijving': return 'Qrekening Maart 2019'
+    if header == 'beschrijving': return 'Qrekening %s %s' % (datetime.datetime.today().strftime('%B'),
+                                                             datetime.datetime.today().strftime('%Y'))
     if header == 'endtoendid': return p.id+datetime.date.today().strftime('%m')+datetime.date.today().strftime('%y')
     return ''
 
