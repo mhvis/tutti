@@ -1,11 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render
-from .forms import UploadFileForm
 import xlrd
 import xlsxwriter
 from io import BytesIO
+from .src.qrekening.process import read_exc, combinePersons, initializeWorkbook, writeSepa
 
 
 class QrekeningView(LoginRequiredMixin, TemplateView):
@@ -25,8 +25,9 @@ def get_debtor_creditor(request):
         wb = xlsxwriter.Workbook(output)
 
         # Process workbook
-        ws = wb.add_worksheet('TestSheet')
-        ws.write(0, 0, 'Test Value')
+        dav_persons = read_exc(wb_debit, True, read_exc(wb_credit, False, {}))
+        combinePersons(dav_persons)
+        initializeWorkbook(dav_persons, wb)
 
         # Write workbook
         wb.close()
@@ -35,8 +36,6 @@ def get_debtor_creditor(request):
             output,
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = 'attachment; filename=%s_Report.xlsx' % 'wessel'
+        response['Content-Disposition'] = 'attachment; filename=qrekening.xlsx'
         return response
-    else:
-        form = UploadFileForm()
-    return render(request, 'pennotools/qrekening.html', {'form': form})
+    return render(request, 'pennotools/qrekening.html')

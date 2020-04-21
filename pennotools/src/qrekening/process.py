@@ -1,12 +1,10 @@
-from xlrd import open_workbook
 import datetime
-import xlwt
 from .qPerson import DavilexPerson
 from .config import sepa_headers
-from qluis.models import Person
+from members.models import Person
 
 
-def read_exc(sheet, debet, persons):
+def read_exc(wb, debet, persons):
     """
     - read_exc: reads an excel sheet
     - Input: | sheet: a string of the path to the excel sheet
@@ -14,7 +12,6 @@ def read_exc(sheet, debet, persons):
              | persons: dict (qID:DavilexPerson)
     - Returns: list(DavilexPerson)
     """
-    wb = open_workbook(sheet)
     for s in wb.sheets():
         col_names = s.row(0)
         person_finished = True
@@ -77,15 +74,14 @@ def get_value(p, header):
 """
 - Write people to the excelsheet
 """
-def initializeWorkbook(davPeople, path):
-    workbook = xlwt.Workbook()
-    creditors =  workbook.add_sheet('Crediteuren')
+def initializeWorkbook(davPeople, workbook):
+    creditors =  workbook.add_worksheet('Crediteuren')
     cred_row = 1
-    debtors = workbook.add_sheet('Debiteuren')
+    debtors = workbook.add_worksheet('Debiteuren')
     debt_row = 1
-    debtorsSelf = workbook.add_sheet('DebiteurenZelf')
+    debtorsSelf = workbook.add_worksheet('DebiteurenZelf')
     debtSelf_row = 1
-    external = workbook.add_sheet('Externen')
+    external = workbook.add_worksheet('Externen')
     external_row = 1
     headers = ['StuurStatus','CODE','Naam','Opmerkingen','Email','Bankreknr','Deb Tot Open','Deb Omschrijving','Deb Datum','Deb Bedrag','Deb Open','Cred Tot Open','Cred Omschrijving','Cred Datum','Cred Bedrag','Cred Open','Totaal Open Tekst','Totaal Open Temp']
     for s in [creditors,debtors,debtorsSelf,external]:
@@ -110,14 +106,11 @@ def initializeWorkbook(davPeople, path):
             for i in range(len(headers)):
                 external.write(external_row,i,get_value(p,headers[i]))
             external_row += 1
-    name = 'Qrekening.xls'
-    workbook.save(path + name)
-    return path + name
+    return workbook
 
 
-def writeSepa(davPeople, path):
-    workbook = xlwt.Workbook()
-    debtors = workbook.add_sheet('Debiteuren')
+def writeSepa(davPeople, workbook):
+    debtors = workbook.add_worksheet('Debiteuren')
     debt_row = 1
     for s in [debtors]:
         for i in range(len(sepa_headers)):
@@ -144,6 +137,4 @@ def writeSepa(davPeople, path):
                         else:
                             debtors.write(debt_row,i,get_value(p,sepa_headers[i]))
                 debt_row += 1
-    name = 'QrekeningSEPA.xls'
-    workbook.save(path + name)
-    return path + name
+    return workbook
