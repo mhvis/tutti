@@ -13,7 +13,7 @@ class QrekeningView(LoginRequiredMixin, TemplateView):
 
 
 def get_debtor_creditor(request):
-    """Process a Q-rekening debtor or creditor file and download Qrekening"""
+    """Process a Q-rekening debtor or creditor file and download Qrekening."""
     if request.method == 'POST':
         debit = request.FILES['Debit']
         credit = request.FILES['Credit']

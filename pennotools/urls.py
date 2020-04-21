@@ -1,6 +1,6 @@
 from django.urls import path
 
-from pennotools.views import QrekeningView, get_debtor_creditor
+from pennotools.views import get_debtor_creditor
 
 app_name = 'pennotools'
 urlpatterns = [
