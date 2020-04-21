@@ -27,7 +27,10 @@ def get_debtor_creditor(request):
         # Process workbook
         dav_persons = read_exc(wb_debit, True, read_exc(wb_credit, False, {}))
         combinePersons(dav_persons)
-        initializeWorkbook(dav_persons, wb)
+        if 'qrekening' in request.POST:
+            initializeWorkbook(dav_persons, wb)
+        elif 'sepa' in request.POST:
+            writeSepa(dav_persons, wb)
 
         # Write workbook
         wb.close()
@@ -37,5 +40,9 @@ def get_debtor_creditor(request):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=qrekening.xlsx'
+        if 'qrekening' in request.POST:
+            response['Content-Disposition'] = 'attachment; filename=qrekening.xlsx'
+        elif 'sepa' in request.POST:
+            response['Content-Disposition'] = 'attachment; filename=SEPA.xlsx'
         return response
     return render(request, 'pennotools/qrekening.html')
