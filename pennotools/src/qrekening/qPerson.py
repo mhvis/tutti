@@ -1,10 +1,9 @@
 from datetime import datetime
 
-"""
-- A davilex transaction
-"""
+
 class Boekstuk:
     """
+    A Davilex transaction.
     - Input: | p: DavilexPerson
              | amount: int
              | description: string (dd/mm/yyyy)
@@ -18,6 +17,7 @@ class Boekstuk:
     def get_date(self):
         return self.date.strftime("%d-%m-%Y")
 
+
 class DavilexPerson:
     def __init__(self, p):
         self.name = p['Omschrijving']
@@ -28,35 +28,35 @@ class DavilexPerson:
         self.qPerson = None
 
     """
-    - addBoekstuk: Create a Boekstuk object from a dictionary
+    - add_boekstuk: Create a Boekstuk object from a dictionary
     - Input: | row: list of tuples (dictionary)
              | debet: boolean whether it is debet (true) or credit (false)
     """
-    def addBoekstuk(self, row, debet):
+    def add_boekstuk(self, row, debet):
         b = Boekstuk(self, row['Openstaand'], row['Fac/Bet Datum'], row['Omschrijving'])
-        if (debet):
+        if debet:
             self.debet.append(b)
         else:
             self.credit.append(b)
 
     """
-    - addPerson: Add an LDAP person to the object
+    - add_person: Add an LDAP person to the object
     - Input: | p: Person
     """
-    def addPerson(self, p):
-        if (self.qPerson == None):
-            if (p.person_id == self.id):
+    def add_person(self, p):
+        if self.qPerson is None:
+            if p.person_id == self.id:
                 self.qPerson = p
         else: 
             raise Exception('Duplicate qID in the database')
 
     def get_email(self):
-        if (self.qPerson == None):
+        if self.qPerson is None:
             return 'None'
         return self.qPerson.email
 
     def get_iban(self):
-        if (self.qPerson == None):
+        if self.qPerson is None:
             return ''
         return self.qPerson.iban
 
