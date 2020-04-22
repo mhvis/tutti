@@ -234,26 +234,30 @@ class CurrentMembershipListFilter(admin.SimpleListFilter):
             return queryset.filter(end__isnull=False)
 
 
-@admin.register(GroupMembership, site=admin_site)
-class GroupMembershipAdmin(admin.ModelAdmin):
-    """(Historical) memberships can only be viewed here, not modified."""
-    list_display = ('user', 'group', 'current', 'start', 'end')
-    # list_display_links = None
-    list_filter = (CurrentMembershipListFilter, 'group')
+# Viewing historic group memberships in the admin site has been disabled due to
+# bug #23. This is probably fine, this page was confusing anyway because
+# current and old group membership are mixed.
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def current(self, obj):
-        return obj.end is None
-
-    current.boolean = True
+# @admin.register(GroupMembership, site=admin_site)
+# class GroupMembershipAdmin(admin.ModelAdmin):
+#     """(Historical) memberships can only be viewed here, not modified."""
+#     list_display = ('user', 'group', 'current', 'start', 'end')
+#     # list_display_links = None
+#     list_filter = (CurrentMembershipListFilter, 'group')
+#
+#     def has_add_permission(self, request):
+#         return False
+#
+#     def has_change_permission(self, request, obj=None):
+#         return False
+#
+#     # def has_delete_permission(self, request, obj=None):
+#     #     return False
+#
+#     def current(self, obj):
+#         return obj.end is None
+#
+#     current.boolean = True
 
 
 admin_site.register(Instrument)
