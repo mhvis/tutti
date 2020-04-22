@@ -1,9 +1,9 @@
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin import RelatedFieldListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.core.exceptions import PermissionDenied
-from django.db import models
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
@@ -23,9 +23,6 @@ class QAdmin(admin.AdminSite):
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
-
-
-# admin_site.register(Group, GroupAdmin)
 
 
 # External card thingies
@@ -71,25 +68,6 @@ class ExternalCardAdmin(admin.ModelAdmin):
     inlines = (ExternalCardLoanInline,)
 
 
-# class UserGroupFormSet(forms.BaseInlineFormSet):
-#     """Form for user/group inline that updates historical records (GroupMembership model)."""
-#
-#     def save_new(self, form, commit=True):
-#         # Whenever a new group entry is added, also store a new history record
-#         instance = super().save_new(form, commit)
-#         if commit:
-#             GroupMembership.objects.create(group=instance.group, user=instance.user)
-#         return instance
-#
-#     def delete_existing(self, obj, commit=True):
-#         # Whenever a group entry is removed, set the end date on history record
-#         super().delete_existing(obj, commit)
-#         if commit:
-#             membership = GroupMembership.objects.get(group=obj.group, user=obj.user, end=None)
-#             membership.end = timezone.now()
-#             membership.save()
-
-
 # class UserGroupModelForm(forms.ModelForm):
 #     """Filter user/group form for only User instances which have a linked Person instance.
 #
@@ -131,15 +109,32 @@ class ExternalCardAdmin(admin.ModelAdmin):
 #         return False
 
 class QGroupModelForm(forms.ModelForm):
-    """Group form with a field for group members."""
+    """Group form with a field for group members.
+
+    We can't directly use the `user_set` attribute from the `User.groups`
+    attribute because it is linked to the `Group` model and not to `QGroup`.
+    Therefore we need to use a custom field.
+    """
 
     group_members = forms.ModelMultipleChoiceField(
         queryset=Person.objects.all(),
         widget=FilteredSelectMultiple(
             verbose_name='people',
-            is_stacked=False),
+            is_stacked=False),  # Horizontal widget
         required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:  # When creating a new group, this will be False
+            self.fields['group_members'].initial = self.instance.user_set.all()
+
+    def _save_m2m(self):
+        """See superclass method, additionally saves the group members."""
+        # A bit ugly to override the private method _save_m2m here.
+        # Alternatively it is possible to wrap the save_m2m function from the
+        # superclass but that is way more verbose.
+        super()._save_m2m()
+        self.instance.user_set.set(self.cleaned_data['group_members'])
 
     class Meta:
         fields = ('group_members',)
@@ -148,20 +143,19 @@ class QGroupModelForm(forms.ModelForm):
 
 @admin.register(QGroup, site=admin_site)
 class QGroupAdmin(GroupAdmin):
-    # search_fields = ('name',)
-    # ordering = ('name',)
     form = QGroupModelForm
 
     fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'group_members', 'permissions')
     autocomplete_fields = ('owner',)
 
-    def get_form(self, request, obj=None, change=False, **kwargs):
-        form = super().get_form(request, obj, change, **kwargs)  # type: forms.ModelForm
-        print(form)
-        # print(form.fields['group_members'])
-        return form
-    # filter_horizontal = ('people',)
     # inlines = (UserGroupInline,)
+
+
+class GroupListFilter(RelatedFieldListFilter):
+    """Filter that orders on the `name` field."""
+
+    def field_admin_ordering(self, field, request, model_admin):
+        return ('name',)
 
 
 @admin.register(Person, site=admin_site)
@@ -187,7 +181,7 @@ class PersonAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email')
-    list_filter = ('groups',)
+    list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
