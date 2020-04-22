@@ -6,7 +6,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, path
 
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
-    ExternalCardLoan, GroupMembership
+    ExternalCardLoan
 
 
 class QAdmin(admin.AdminSite):
