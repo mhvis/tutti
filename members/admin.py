@@ -217,47 +217,9 @@ class PersonAdmin(admin.ModelAdmin):
         return TemplateResponse(request, 'admin/members/person/unsubscribe.html', context)
 
 
-class CurrentMembershipListFilter(admin.SimpleListFilter):
-    """Filter for current group memberships."""
-
-    title = 'current'
-    parameter_name = 'current'
-
-    def lookups(self, request, model_admin):
-        return (('y', 'Only current'),
-                ('n', 'Only past'))
-
-    def queryset(self, request, queryset):
-        if self.value() == 'y':
-            return queryset.filter(end=None)
-        if self.value() == 'n':
-            return queryset.filter(end__isnull=False)
-
-
 # Viewing historic group memberships in the admin site has been disabled due to
-# bug #23. This is probably fine, this page was confusing anyway because
-# current and old group membership are mixed.
-
-# @admin.register(GroupMembership, site=admin_site)
-# class GroupMembershipAdmin(admin.ModelAdmin):
-#     """(Historical) memberships can only be viewed here, not modified."""
-#     list_display = ('user', 'group', 'current', 'start', 'end')
-#     # list_display_links = None
-#     list_filter = (CurrentMembershipListFilter, 'group')
-#
-#     def has_add_permission(self, request):
-#         return False
-#
-#     def has_change_permission(self, request, obj=None):
-#         return False
-#
-#     # def has_delete_permission(self, request, obj=None):
-#     #     return False
-#
-#     def current(self, obj):
-#         return obj.end is None
-#
-#     current.boolean = True
+# bug #23. This is probably fine, this page was redundant anyway, this
+# information should be visible on person and group pages instead.
 
 
 admin_site.register(Instrument)
