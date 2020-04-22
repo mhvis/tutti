@@ -68,45 +68,35 @@ class ExternalCardAdmin(admin.ModelAdmin):
     inlines = (ExternalCardLoanInline,)
 
 
-# class UserGroupModelForm(forms.ModelForm):
-#     """Filter user/group form for only User instances which have a linked Person instance.
-#
-#     Note that all users will still be shown in the form, but it's not possible
-#     to save a form with invalid Person instances.
-#     """
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields['user'].queryset = User.objects.filter(person__isnull=False)
+# Group membership inlines
+
+class GroupMembershipInline(admin.TabularInline):
+    """Inline for viewing group memberships."""
+    model = GroupMembership
+    fields = ('group', 'user', 'start', 'end')
+
+    # ordering = ('end', 'start')  # Todo optionally specify ordering
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
-# class UserGroupInline(admin.TabularInline):
-#     """Inline for user/group relations (group memberships)."""
-#
-#     model = User.groups.through
-#     extra = 0
-#     fields = ('user', 'group')
-#     autocomplete_fields = ('user',)
-#     verbose_name = 'group membership'
-#     verbose_name_plural = 'group memberships'
-#     formset = UserGroupFormSet
-#     form = UserGroupModelForm
-#
-#     def has_add_permission(self, request, obj):
-#         # We override this because the superclass would check for User/Group model permissions.
-#         # We use Person/QGroup instead.
-#         # Todo: autocomplete field does not work with this (Forbidden)
-#         return request.user.has_perms(['members.add_qgroup', 'members.add_person'])
-#
-#     def has_view_permission(self, request, obj=None):
-#         return request.user.has_perms(['members.view_qgroup', 'members.view_person'])
-#
-#     def has_delete_permission(self, request, obj=None):
-#         return request.user.has_perms(['members.delete_qgroup', 'members.delete_person'])
-#
-#     def has_change_permission(self, request, obj=None):
-#         # Can only add or delete
-#         return False
+class CurrentGroupMembershipInline(GroupMembershipInline):
+    """Inline for viewing current group memberships."""
+    fields = ('group', 'user', 'start')
+
+    def get_queryset(self, request):
+        # Filter for memberships without end date
+        return super().get_queryset(request).filter(end=None)
+
+
+# QGroup
 
 class QGroupModelForm(forms.ModelForm):
     """Group form with a field for group members.
@@ -148,8 +138,10 @@ class QGroupAdmin(GroupAdmin):
     fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'group_members', 'permissions')
     autocomplete_fields = ('owner',)
 
-    # inlines = (UserGroupInline,)
+    inlines = (CurrentGroupMembershipInline,)
 
+
+# Person
 
 class GroupListFilter(RelatedFieldListFilter):
     """Filter that orders on the `name` field."""
@@ -186,7 +178,7 @@ class PersonAdmin(admin.ModelAdmin):
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
 
-    inlines = (ExternalCardLoanInline,)
+    inlines = (ExternalCardLoanInline, GroupMembershipInline)
     save_on_top = True
 
     def lookup_allowed(self, lookup, value):
