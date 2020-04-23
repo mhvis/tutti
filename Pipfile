@@ -18,6 +18,7 @@ django-countries = "*"
 authlib = "*"
 requests = "*"
 django-health-check = "*"
+django-import-export = "*"
 
 [requires]
 python_version = "3.6"

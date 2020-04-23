@@ -25,9 +25,10 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'localflavor',
     'django_countries',
-    'health_check',
+    'health_check',  # django-health-check
     'health_check.db',
     'health_check.storage',
+    'import_export',  # django-import-export
 
     'members.apps.MembersConfig',
     'ldapsync.apps.LdapSyncConfig',

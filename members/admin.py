@@ -4,7 +4,9 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
+from import_export.admin import ExportMixin, ImportExportMixin
 
+from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
     ExternalCardLoan, GroupMembership
 
@@ -139,7 +141,7 @@ class QGroupAdmin(GroupAdmin):
 
 
 @admin.register(Person, site=admin_site)
-class PersonAdmin(admin.ModelAdmin):
+class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('username', ('first_name', 'last_name'), 'initials', 'email', 'groups')
@@ -168,6 +170,8 @@ class PersonAdmin(admin.ModelAdmin):
 
     inlines = (ExternalCardLoanInline,)
     save_on_top = True
+
+    resource_class = PersonResource  # Import/export settings
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
