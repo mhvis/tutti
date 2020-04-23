@@ -25,8 +25,9 @@ class Instrument(models.Model):
 class QGroup(Group):
     """Extension of the Group model for Quadrivium fields."""
     description = models.TextField(blank=True)
-    email = models.EmailField(blank=True)
-    end_on_unsubscribe = models.BooleanField(default=True)
+    email = models.EmailField(blank=True, verbose_name='e-mail')
+    end_on_unsubscribe = models.BooleanField(default=True,
+                                             help_text='If set, when a person is unsubscribed she is removed from this group.')
     owner = models.ForeignKey('Person',
                               on_delete=models.PROTECT,
                               null=True,
