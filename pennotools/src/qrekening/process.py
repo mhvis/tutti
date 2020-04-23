@@ -5,7 +5,8 @@ from members.models import Person
 
 
 def read_exc(wb, debet, persons):
-    """
+    """Read the given excel sheet.
+
     - read_exc: reads an excel sheet
     - Input: | sheet: a string of the path to the excel sheet
              | debet: boolean whether it is debet (true) or credit (false)
@@ -35,9 +36,7 @@ def read_exc(wb, debet, persons):
 
 
 def combine_persons(davilex_people):
-    """
-    - Link a Person to a DavilexPerson
-    """
+    """Link a Person to a DavilexPerson."""
     for name, value in davilex_people.items():
         try:
             person = Person.objects.get(person_id__exact=value.id)
@@ -48,56 +47,46 @@ def combine_persons(davilex_people):
 
 
 def get_value(p, header):
-    if header == 'StuurStatus':
+    if header == 'StuurStatus' or header == 'Opmerkingen':
         return ''
-    if header == 'CODE' or header == 'mandaatid':
+    elif header == 'CODE' or header == 'mandaatid':
         return p.id
-    if header == 'Naam' or header == 'naam':
+    elif header == 'Naam' or header == 'naam':
         return p.name
-    if header == 'Opmerkingen':
-        return ''
-    if header == 'Email':
+    elif header == 'Email':
         return p.get_email()
-    if header == 'Bankreknr' or header == 'IBAN':
+    elif header == 'Bankreknr' or header == 'IBAN':
         return p.get_iban()
-    if header == 'Deb Tot Open':
+    elif header == 'Deb Tot Open':
         return p.get_debet_total()
-    if 'Deb Omschrijving' in header:
+    elif 'Deb Omschrijving' in header:
         return p.get_debet_description()
-    if header == 'Deb Datum':
+    elif header == 'Deb Datum':
         return p.get_debet_dates()
-    if header == 'Deb Bedrag':
+    elif header == 'Deb Bedrag' or header == 'Deb Open':
         return p.get_debet_amounts()
-    if header == 'Deb Open':
-        return p.get_debet_amounts()
-    if header == 'Cred Tot Open':
+    elif header == 'Cred Tot Open':
         return p.get_credit_total()
-    if 'Cred Omschrijving' in header:
+    elif 'Cred Omschrijving' in header:
         return p.get_credit_description()
-    if header == 'Cred Datum':
+    elif header == 'Cred Datum':
         return p.get_credit_dates()
-    if header == 'Cred Bedrag':
+    elif header == 'Cred Bedrag' or header == 'Cred Open':
         return p.get_credit_amounts()
-    if header == 'Cred Open':
-        return p.get_credit_amounts()
-    if header == 'Totaal Open Tekst':
+    elif header == 'Totaal Open Tekst':
         return '{0:.2f}'.format(p.get_total())
-    if header == 'Totaal Open Temp' or header == 'bedrag':
+    elif header == 'Totaal Open Temp' or header == 'bedrag':
         return p.get_total()
-    if header == 'beschrijving':
+    elif header == 'beschrijving':
         return 'Qrekening %s %s' % (datetime.datetime.today().strftime('%B'),
                                     datetime.datetime.today().strftime('%Y'))
-    if header == 'endtoendid':
+    elif header == 'endtoendid':
         return p.id + datetime.date.today().strftime('%m') + datetime.date.today().strftime('%y')
     return ''
 
 
-"""
-- Write people to the excelsheet
-"""
-
-
 def initialize_workbook(dav_people, workbook):
+    """Write people to the excelsheet."""
     creditors = workbook.add_worksheet('Crediteuren')
     cred_row = 1
     debtors = workbook.add_worksheet('Debiteuren')

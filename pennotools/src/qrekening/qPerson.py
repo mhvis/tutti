@@ -2,8 +2,8 @@ from datetime import datetime
 
 
 class Boekstuk:
-    """
-    A Davilex transaction.
+    """A Davilex transaction.
+
     - Input: | p: DavilexPerson
              | amount: int
              | description: string (dd/mm/yyyy)
@@ -47,7 +47,7 @@ class DavilexPerson:
         if self.qPerson is None:
             if p.person_id == self.id:
                 self.qPerson = p
-        else: 
+        else:
             raise Exception('Duplicate qID in the database')
 
     def get_email(self):
@@ -91,6 +91,3 @@ class DavilexPerson:
 
     def get_credit_description(self):
         return '\n'.join([c.description for c in self.credit])
-
-
-
