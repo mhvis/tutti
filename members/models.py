@@ -150,8 +150,8 @@ class GroupMembership(models.Model):
     group memberships. This table stores those as well but also includes group
     memberships which have ended.
     """
-    group = models.ForeignKey(Group, on_delete=models.PROTECT)
-    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='person')
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='person')
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
 
