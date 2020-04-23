@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
-from import_export.admin import ExportMixin, ImportExportMixin
+from import_export.admin import ImportExportMixin
 
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
