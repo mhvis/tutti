@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, path
 
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
-    ExternalCardLoan
+    ExternalCardLoan, GroupMembership
 
 
 class QAdmin(admin.AdminSite):
