@@ -1,6 +1,6 @@
 {% load static i18n %}<!doctype html>
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE|default:"en-us" }}">
+<html lang="{{ LANGUAGE_CODE|default:'en-us' }}">
 <head>
     <title>{% block title %}{% endblock %}</title>
 </head>
@@ -36,14 +36,20 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'admin:index' %}">Go to admin site <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="{% url 'admin:index' %}">Go to admin site </a>
       </li>
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <a class="nav-link dropdown-toggle"
+               href="#"
+               id="navbarDropdown"
+               role="button"
+               data-toggle="dropdown"
+               aria-haspopup="true"
+               aria-expanded="false">
                 Secretaris
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="{% url 'pennotools:qrekening' %}">Q rekening</a>
+                <a class="dropdown-item disabled" href="#">Quick search</a>
                 <a class="dropdown-item disabled" href="#">Scala app</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item disabled" href="#">Statistics</a>
@@ -51,7 +57,13 @@
         </li>
         {% if perms.pennotools %}
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle"
+           href="#"
+           id="navbarDropdown"
+           role="button"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false">
           Penningmeester
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -75,19 +87,22 @@
 {% endblock %}
 
 
-
+<div id="content">
 {% block content %}
 <p>Deze pagina wordt beter</p>
 {% endblock %}
+</div>
 
 
-{% block footer %}
 <hr>
+<div id="footer">
+{% block footer %}
 <p>
     <a href="https://status.esmgquadrivium.nl">System status</a>
     | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
 </p>
 {% endblock %}
+</div>
 
 </body>
 </html>
