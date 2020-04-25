@@ -1,4 +1,6 @@
 """Production specific settings for Azure virtual machine deployment."""
+from datetime import date
+
 from tutti.settings import *  # noqa: F403
 
 DEBUG = False
@@ -41,3 +43,8 @@ AUTHLIB_OAUTH_CLIENTS['keycloak']['client_secret'] = '{{ keycloak_client_secret 
 # LDAP login configuration
 LDAP['USER'] = 'cn=Tutti,ou=Special Users,dc=esmgquadrivium,dc=nl'
 LDAP['PASSWORD'] = '{{ ldap_password }}'
+
+# Version info
+# noinspection PyTypeChecker,PyUnresolvedReferences
+VERSION_DATE = date({{ansible_date_time.year}}, {{ansible_date_time.month}}, {{ansible_date_time.day}})
+VERSION_URL = 'https://github.com/mhvis/tutti/commits/{{ git_branch }}'

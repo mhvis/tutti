@@ -1,4 +1,4 @@
-{% load static i18n %}<!doctype html>
+{% load static i18n humanize %}<!doctype html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}">
 <head>
@@ -21,7 +21,16 @@
 <p>
     <a href="https://status.esmgquadrivium.nl">System status</a>
     | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
+    {# Poor man's version info, see VERSION_* in settings.py. #}
+    |
+    {% if VERSION_DATE %}
+        Last updated: <a href="{{ VERION_URL }}">{{ VERSION_DATE|naturalday }}</a>
+    {% else %}
+        Development version
+    {% endif %}
+
 </p>
+{# Todo: this template is not specific for the members app, it should be moved outside of it. #}
 
 </body>
 </html>
