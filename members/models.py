@@ -25,8 +25,9 @@ class Instrument(models.Model):
 class QGroup(Group):
     """Extension of the Group model for Quadrivium fields."""
     description = models.TextField(blank=True)
-    email = models.EmailField(blank=True)
-    end_on_unsubscribe = models.BooleanField(default=True)
+    email = models.EmailField(blank=True, verbose_name='e-mail')
+    end_on_unsubscribe = models.BooleanField(default=True,
+                                             help_text='If set, when a person is unsubscribed she is removed from this group.')
     owner = models.ForeignKey('Person',
                               on_delete=models.PROTECT,
                               null=True,
@@ -150,8 +151,8 @@ class GroupMembership(models.Model):
     group memberships. This table stores those as well but also includes group
     memberships which have ended.
     """
-    group = models.ForeignKey(Group, on_delete=models.PROTECT)
-    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name='person')
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='person')
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
 

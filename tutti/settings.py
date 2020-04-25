@@ -1,6 +1,7 @@
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -21,13 +22,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 
     'phonenumber_field',
     'localflavor',
     'django_countries',
-    'health_check',
+    'health_check',  # django-health-check
     'health_check.db',
     'health_check.storage',
+    'import_export',  # django-import-export
 
     'members.apps.MembersConfig',
     'ldapsync.apps.LdapSyncConfig',
@@ -58,6 +61,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'tutti.context_processors.version_info',
             ],
         },
     },
@@ -136,3 +140,10 @@ AUTHLIB_OAUTH_CLIENTS = {
 # When users need to be logged in, the OpenID Connect flow will be started by
 # the login view.
 LOGIN_URL = 'oidc:login'
+
+
+# Poor man's version display.
+#
+# When set, will display in the footer something like: Last updated: today
+VERSION_DATE = None  # Set to date value
+VERSION_URL = ""  # Link to e.g. GitHub master branch

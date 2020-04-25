@@ -1,10 +1,15 @@
+from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin import RelatedFieldListFilter
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
+from import_export.admin import ImportExportMixin
 
+from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
     ExternalCardLoan, GroupMembership
 
@@ -20,9 +25,6 @@ class QAdmin(admin.AdminSite):
 
 admin_site = QAdmin()
 admin_site.register(User, UserAdmin)
-
-
-# admin_site.register(Group, GroupAdmin)
 
 
 # External card thingies
@@ -68,78 +70,90 @@ class ExternalCardAdmin(admin.ModelAdmin):
     inlines = (ExternalCardLoanInline,)
 
 
-# class UserGroupFormSet(forms.BaseInlineFormSet):
-#     """Form for user/group inline that updates historical records (GroupMembership model)."""
-#
-#     def save_new(self, form, commit=True):
-#         # Whenever a new group entry is added, also store a new history record
-#         instance = super().save_new(form, commit)
-#         if commit:
-#             GroupMembership.objects.create(group=instance.group, user=instance.user)
-#         return instance
-#
-#     def delete_existing(self, obj, commit=True):
-#         # Whenever a group entry is removed, set the end date on history record
-#         super().delete_existing(obj, commit)
-#         if commit:
-#             membership = GroupMembership.objects.get(group=obj.group, user=obj.user, end=None)
-#             membership.end = timezone.now()
-#             membership.save()
+# Group membership inlines
+
+class GroupMembershipInline(admin.TabularInline):
+    """Inline for viewing group memberships."""
+    model = GroupMembership
+    fields = ('group', 'user', 'start', 'end')
+
+    # ordering = ('end', 'start')  # Todo optionally specify ordering
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
-# class UserGroupModelForm(forms.ModelForm):
-#     """Filter user/group form for only User instances which have a linked Person instance.
-#
-#     Note that all users will still be shown in the form, but it's not possible
-#     to save a form with invalid Person instances.
-#     """
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields['user'].queryset = User.objects.filter(person__isnull=False)
+class CurrentGroupMembershipInline(GroupMembershipInline):
+    """Inline for viewing current group memberships."""
+    fields = ('group', 'user', 'start')
+
+    def get_queryset(self, request):
+        # Filter for memberships without end date
+        return super().get_queryset(request).filter(end=None)
 
 
-# class UserGroupInline(admin.TabularInline):
-#     """Inline for user/group relations (group memberships)."""
-#
-#     model = User.groups.through
-#     extra = 0
-#     fields = ('user', 'group')
-#     autocomplete_fields = ('user',)
-#     verbose_name = 'group membership'
-#     verbose_name_plural = 'group memberships'
-#     formset = UserGroupFormSet
-#     form = UserGroupModelForm
-#
-#     def has_add_permission(self, request, obj):
-#         # We override this because the superclass would check for User/Group model permissions.
-#         # We use Person/QGroup instead.
-#         # Todo: autocomplete field does not work with this (Forbidden)
-#         return request.user.has_perms(['members.add_qgroup', 'members.add_person'])
-#
-#     def has_view_permission(self, request, obj=None):
-#         return request.user.has_perms(['members.view_qgroup', 'members.view_person'])
-#
-#     def has_delete_permission(self, request, obj=None):
-#         return request.user.has_perms(['members.delete_qgroup', 'members.delete_person'])
-#
-#     def has_change_permission(self, request, obj=None):
-#         # Can only add or delete
-#         return False
+# QGroup
+
+class QGroupModelForm(forms.ModelForm):
+    """Group form with a field for group members.
+
+    We can't directly use the `user_set` attribute from the `User.groups`
+    attribute because it is linked to the `Group` model and not to `QGroup`.
+    Therefore we need to use a custom field.
+    """
+
+    group_members = forms.ModelMultipleChoiceField(
+        queryset=Person.objects.all(),
+        widget=FilteredSelectMultiple(
+            verbose_name='people',
+            is_stacked=False),  # Horizontal widget
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:  # When creating a new group, this will be False
+            self.fields['group_members'].initial = self.instance.user_set.all()
+
+    def _save_m2m(self):
+        """See superclass method, additionally saves the group members."""
+        # A bit ugly to override the private method _save_m2m here.
+        # Alternatively it is possible to wrap the save_m2m function from the
+        # superclass but that is way more verbose.
+        super()._save_m2m()
+        self.instance.user_set.set(self.cleaned_data['group_members'])
+
+    class Meta:
+        fields = ('group_members',)
+        model = QGroup
 
 
 @admin.register(QGroup, site=admin_site)
 class QGroupAdmin(GroupAdmin):
-    # search_fields = ('name',)
-    # ordering = ('name',)
+    form = QGroupModelForm
 
+    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'group_members', 'permissions')
     autocomplete_fields = ('owner',)
-    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'permissions',)
-    # inlines = (UserGroupInline,)
+
+    inlines = (CurrentGroupMembershipInline,)
+
+
+# Person
+
+class GroupListFilter(RelatedFieldListFilter):
+    """Filter that orders on the `name` field."""
+
+    def field_admin_ordering(self, field, request, model_admin):
+        return ('name',)
 
 
 @admin.register(Person, site=admin_site)
-class PersonAdmin(admin.ModelAdmin):
+class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('username', ('first_name', 'last_name'), 'initials', 'email', 'groups')
@@ -161,13 +175,15 @@ class PersonAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email')
-    list_filter = ('groups',)
+    list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
 
-    inlines = (ExternalCardLoanInline,)
+    inlines = (ExternalCardLoanInline, GroupMembershipInline)
     save_on_top = True
+
+    resource_class = PersonResource  # Import/export settings
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
@@ -217,43 +233,9 @@ class PersonAdmin(admin.ModelAdmin):
         return TemplateResponse(request, 'admin/members/person/unsubscribe.html', context)
 
 
-class CurrentMembershipListFilter(admin.SimpleListFilter):
-    """Filter for current group memberships."""
-
-    title = 'current'
-    parameter_name = 'current'
-
-    def lookups(self, request, model_admin):
-        return (('y', 'Only current'),
-                ('n', 'Only past'))
-
-    def queryset(self, request, queryset):
-        if self.value() == 'y':
-            return queryset.filter(end=None)
-        if self.value() == 'n':
-            return queryset.filter(end__isnull=False)
-
-
-@admin.register(GroupMembership, site=admin_site)
-class GroupMembershipAdmin(admin.ModelAdmin):
-    """(Historical) memberships can only be viewed here, not modified."""
-    list_display = ('user', 'group', 'current', 'start', 'end')
-    # list_display_links = None
-    list_filter = (CurrentMembershipListFilter, 'group')
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def current(self, obj):
-        return obj.end is None
-
-    current.boolean = True
+# Viewing historic group memberships in the admin site has been disabled due to
+# bug #23. This is probably fine, this page was redundant anyway, this
+# information should be visible on person and group pages instead.
 
 
 admin_site.register(Instrument)

@@ -18,6 +18,7 @@ django-countries = "*"
 authlib = "*"
 requests = "*"
 django-health-check = "*"
+django-import-export = "*"
 xlrd = "*"
 xlsxwriter = "*"
 
