@@ -1,6 +1,6 @@
 import datetime
-from .qPerson import DavilexPerson
-from .config import sepa_headers, output_headers
+from pennotools.src.qrekening.qPerson import DavilexPerson
+from pennotools.src.qrekening.config import sepa_headers, output_headers
 from members.models import Person
 
 
@@ -24,11 +24,11 @@ def read_exc(wb, debet, persons):
             if col_value['Zoekcode'] != '' and 'totaal' in col_value['Omschrijving']:
                 person_finished = True
             elif not person_finished:
-                current_person.addBoekstuk(col_value, debet)
+                current_person.add_boekstuk(col_value, debet)
             elif col_value['Zoekcode'] != '' and col_value['Omschrijving'] != '':
                 try:
                     current_person = persons[col_value['Zoekcode']]
-                except:
+                except KeyError:
                     current_person = DavilexPerson(col_value)
                     persons[col_value['Zoekcode']] = current_person
                 person_finished = False
@@ -41,7 +41,7 @@ def combine_persons(davilex_people):
         try:
             person = Person.objects.get(person_id__exact=value.id)
             if person:
-                value.addPerson(person)
+                value.add_person(person)
         except Person.DoesNotExist:
             pass
 

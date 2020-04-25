@@ -6,6 +6,6 @@ urlpatterns = [
     path('admin/', admin_site.urls),
     path('oidc/', include('oidc.urls')),
     path('ht/', include('health_check.urls')),
-    path('', include('members.urls', namespace='members')),
-    path('penno/', include('pennotools.urls', namespace='pennotools')),
+    path('', include('members.urls')),
+    path('penno/', include('pennotools.urls')),
 ]

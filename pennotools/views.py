@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView
 
-from .src.qrekening.process import read_exc, combine_persons, initialize_workbook, write_sepa
+from pennotools.src.qrekening.process import read_exc, combine_persons, initialize_workbook, write_sepa
 
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
