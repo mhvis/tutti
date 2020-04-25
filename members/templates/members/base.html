@@ -24,7 +24,7 @@
     {# Poor man's version info, see VERSION_* in settings.py. #}
     |
     {% if VERSION_DATE %}
-        Last updated: <a href="{{ VERION_URL }}">{{ VERSION_DATE|naturalday }}</a>
+        Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
     {% else %}
         Development version
     {% endif %}
