@@ -30,10 +30,10 @@
     {% endblock %}
 <p>
     <a href="{% url 'admin:index' %}">Go to administration site</a>
+    {% if perms.pennotools %}
         | <a href="{% url 'pennotools:qrekening' %}">Q rekening</a>
-    {% if user.is_authenticated %}
-        | <a href="{% url 'oidc:logout' %}">Log out</a>
     {% endif %}
+    | <a href="{% url 'oidc:logout' %}">Log out</a>
 </p>
 {% endblock %}
 </div>
