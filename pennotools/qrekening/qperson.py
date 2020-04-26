@@ -4,61 +4,72 @@ from datetime import datetime
 class Boekstuk:
     """A Davilex transaction.
 
-    - Input: | p: DavilexPerson
-             | amount: int
+    - Input: | person: DavilexPerson
              | description: string (dd/mm/yyyy)
     """
-    def __init__(self, p, amount, date, description):
-        self.relation = p
+
+    def __init__(self, amount: float, date: datetime, description: str):
         self.amount = amount
-        self.date = datetime.fromordinal(datetime(1900, 1, 1).toordinal() + int(date) - 2)
+        self.date = date
         self.description = description
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, Boekstuk):
+            return False
+        if self.amount != o.amount or self.date != o.date or self.description != o.description:
+            return False
+        return True
 
     def get_date(self):
         return self.date.strftime("%d-%m-%Y")
 
 
 class DavilexPerson:
-    def __init__(self, p):
-        self.name = p['Omschrijving']
-        self.id = p['Zoekcode']
-        # Sets of Boekstuk objects
+    def __init__(self, name: str, id: str):
+        self.name = name
+        self.id = id
+        # Lists of Boekstuk objects
         self.debet = []
         self.credit = []
-        self.qPerson = None
+        self.q_person = None
 
-    """
-    - add_boekstuk: Create a Boekstuk object from a dictionary
-    - Input: | row: list of tuples (dictionary)
-             | debet: boolean whether it is debet (true) or credit (false)
-    """
-    def add_boekstuk(self, row, debet):
-        b = Boekstuk(self, row['Openstaand'], row['Fac/Bet Datum'], row['Omschrijving'])
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, DavilexPerson):
+            return False
+        if self.name != o.name or self.id != o.id or self.debet != o.debet or self.credit != o.credit:
+            return False
+        return True
+
+    def add_boekstuk(self, debet: bool, amount: float, date: datetime, description: str):
+        """Create a Boekstuk object from a dictionary."""
+        b = Boekstuk(amount, date, description)
         if debet:
             self.debet.append(b)
         else:
             self.credit.append(b)
 
-    """
-    - add_person: Add an LDAP person to the object
-    - Input: | p: Person
-    """
     def add_person(self, p):
-        if self.qPerson is None:
-            if p.person_id == self.id:
-                self.qPerson = p
-        else:
-            raise Exception('Duplicate qID in the database')
+        """Link a database person with this object.
+
+        Args:
+            p: Person.
+        """
+        if self.q_person:
+            raise ValueError("DavilexPerson is linked")
+        if p.person_id != self.id:
+            raise ValueError("Person ID inconsistent")
+        self.q_person = p
 
     def get_email(self):
-        if self.qPerson is None:
-            return 'None'
-        return self.qPerson.email
+        """Returns empty string if e-mail is unknown."""
+        if self.q_person is None:
+            return ''
+        return self.q_person.email
 
     def get_iban(self):
-        if self.qPerson is None:
+        if self.q_person is None:
             return ''
-        return self.qPerson.iban
+        return self.q_person.iban
 
     def get_total(self):
         total = 0
