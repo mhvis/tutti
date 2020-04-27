@@ -80,10 +80,10 @@ class DavilexPerson:
         return total
 
     def get_debet_amounts(self):
-        return '\n'.join([str(d.amount) for d in self.debet])
+        return '\n'.join(['{0:.2f}'.format(d.amount) for d in self.debet])
 
     def get_credit_amounts(self):
-        return '\n'.join([str(c.amount) for c in self.credit])
+        return '\n'.join(['{0:.2f}'.format(c.amount) for c in self.credit])
 
     def get_debet_dates(self):
         return '\n'.join([d.get_date() for d in self.debet])

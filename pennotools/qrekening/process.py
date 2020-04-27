@@ -89,7 +89,7 @@ def get_qrekening(dav_people: Dict[str, DavilexPerson]):
 sepa_header = ['IBAN',
                'BIC',
                'mandaatid',
-               'mandaatdatum',  # This was 'madaatdatum' before, I changed this, is that okay? --Maarten
+               'mandaatdatum',
                'bedrag',
                'naam',
                'beschrijving',
@@ -97,11 +97,15 @@ sepa_header = ['IBAN',
                ]
 
 
-def get_sepa_rows(p: DavilexPerson, split=100) -> List[Dict]:
+def get_sepa_rows(p: DavilexPerson, description, split: float = 100) -> List[Dict]:
     """Get SEPA rows for a person.
 
     Args:
+        p: Person.
+        description: Description which is included in the SEPA rows. Can be a
+            string or a callable which returns a string.
         split: Amount is split over multiple rows if it is higher than this.
+
     """
     rows = []
 
@@ -113,8 +117,8 @@ def get_sepa_rows(p: DavilexPerson, split=100) -> List[Dict]:
             'mandaatdatum': '',
             'bedrag': amount,
             'naam': p.name,
-            'beschrijving': 'Qrekening {}'.format(date.today().strftime('%B %Y')),
-            'endtoendid': p.id + date.today().strftime('%m%y'),
+            'beschrijving': description() if callable(description) else description,
+            'endtoendid': '{}{}'.format(p.id, date.today().strftime('%m%y')),
         }
 
     total = p.get_total()
@@ -125,13 +129,23 @@ def get_sepa_rows(p: DavilexPerson, split=100) -> List[Dict]:
     return rows
 
 
-def get_sepa(dav_people: Dict[str, DavilexPerson]) -> List[Dict]:
-    """Get SEPA rows for Davilex people."""
+def sepa_default_description():
+    return 'Qrekening {}'.format(date.today().strftime('%B %Y'))
+
+
+def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_description) -> List[Dict]:
+    """Get SEPA rows for Davilex people.
+
+    Args:
+        dav_people: Davilex people.
+        description: Description used for the SEPA rows. Can be a string or a
+            callable which returns a string.
+    """
     rows = []
     for p in dav_people.values():
         if p.q_person:
             if p.get_total() < 0 or not p.get_iban():
                 pass
             else:
-                rows += get_sepa_rows(p)
+                rows += get_sepa_rows(p, description)
     return rows
