@@ -48,7 +48,7 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
                 # Person boekstuk row
                 current_person.add_boekstuk(
                     debet,
-                    row['Bedrag'],
+                    row['Openstaand'],
                     xldate_as_datetime(row['Fac/Bet Datum'], 0),  # 1900-based datemode
                     row['Omschrijving'].strip(),
                     # Todo: Wessel ik heb deze strip toegevoegd voor de 4 spaties voorop, is dat okay?
