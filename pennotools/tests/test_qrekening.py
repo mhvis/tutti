@@ -21,7 +21,7 @@ class QRekeningTestCase(TestCase):
         johbac.add_boekstuk(True, Decimal('400.00'), datetime(2020, 10, 7), 'Partita score')
         johbac.add_boekstuk(True, Decimal('60.00'), datetime(2016, 10, 7), 'Organ repair')
         nicpag = DavilexPerson('Niccolo Paganini', 'NICPAG')
-        nicpag.add_boekstuk(True, Decimal('10000.00'), datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
+        nicpag.add_boekstuk(True, Decimal('9000.00'), datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
         devil = DavilexPerson('The Devil', 'DEVIL')
         devil.add_boekstuk(True, Decimal('100000000000.00'), datetime(2012, 11, 28), 'Soul of Paganini')
         expect = {

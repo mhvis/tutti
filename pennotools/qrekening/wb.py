@@ -51,7 +51,7 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
                 # Amount is converted from float to Decimal where the Decimal
                 # takes over the float imprecision. Then the Decimal is rounded
                 # to 2 decimal places to get rid of the imprecision.
-                amount = Decimal(row['Bedrag']).quantize(Decimal('1.00'))
+                amount = Decimal(row['Openstaand']).quantize(Decimal('1.00'))
 
                 current_person.add_boekstuk(
                     debet,
