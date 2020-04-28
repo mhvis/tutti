@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, date
+from decimal import Decimal
 
 import xlrd
 from django.test import TestCase
@@ -17,12 +18,12 @@ class QRekeningTestCase(TestCase):
 
         # Expected result
         johbac = DavilexPerson('Johann Sebastian Bach', 'JOHBAC')
-        johbac.add_boekstuk(True, 400.0, datetime(2020, 10, 7), 'Partita score')
-        johbac.add_boekstuk(True, 60.0, datetime(2016, 10, 7), 'Organ repair')
+        johbac.add_boekstuk(True, Decimal('400.00'), datetime(2020, 10, 7), 'Partita score')
+        johbac.add_boekstuk(True, Decimal('60.00'), datetime(2016, 10, 7), 'Organ repair')
         nicpag = DavilexPerson('Niccolo Paganini', 'NICPAG')
-        nicpag.add_boekstuk(True, 10000.0, datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
+        nicpag.add_boekstuk(True, Decimal('10000.00'), datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
         devil = DavilexPerson('The Devil', 'DEVIL')
-        devil.add_boekstuk(True, 100000000000.0, datetime(2012, 11, 28), 'Soul of Paganini')
+        devil.add_boekstuk(True, Decimal('100000000000.00'), datetime(2012, 11, 28), 'Soul of Paganini')
         expect = {
             'JOHBAC': johbac,
             'NICPAG': nicpag,
@@ -43,15 +44,15 @@ class QRekeningTestCase(TestCase):
     def test_get_qrekening(self):
         # Construct some dav_people
         johbac = DavilexPerson('Johann Sebastian Bach', 'JOHBAC')
-        johbac.add_boekstuk(True, 400.0, datetime(2020, 10, 7), 'Partita score')
-        johbac.add_boekstuk(True, 60.0, datetime(2016, 10, 7), 'Organ repair')
-        johbac.add_boekstuk(False, 1000.0, datetime(2001, 1, 2), 'Volunteer contribution')
+        johbac.add_boekstuk(True, Decimal('400.00'), datetime(2020, 10, 7), 'Partita score')
+        johbac.add_boekstuk(True, Decimal('60.00'), datetime(2016, 10, 7), 'Organ repair')
+        johbac.add_boekstuk(False, Decimal('1000.00'), datetime(2001, 1, 2), 'Volunteer contribution')
         nicpag = DavilexPerson('Niccolo Paganini', 'NICPAG')
-        nicpag.add_boekstuk(True, 10000.0, datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
-        nicpag.add_boekstuk(False, 9999.99, datetime(2002, 11, 29), 'Guarneri violin')
+        nicpag.add_boekstuk(True, Decimal('10000.00'), datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
+        nicpag.add_boekstuk(False, Decimal('9999.99'), datetime(2002, 11, 29), 'Guarneri violin')
         devil = DavilexPerson('The Devil', 'DEVIL')
-        devil.add_boekstuk(True, 100000000000.0, datetime(2012, 11, 28), 'Soul of Paganini')
-        devil.add_boekstuk(True, 5481348.54, datetime(1910, 12, 31), 'Mozart\'s gambled money')
+        devil.add_boekstuk(True, Decimal('100000000000.00'), datetime(2012, 11, 28), 'Soul of Paganini')
+        devil.add_boekstuk(True, Decimal('5481348.54'), datetime(1910, 12, 31), 'Mozart\'s gambled money')
         dav_people = {
             'JOHBAC': johbac,
             'NICPAG': nicpag,
@@ -84,7 +85,7 @@ class QRekeningTestCase(TestCase):
                  'Deb Datum': '28-11-2002', 'Deb Bedrag': '10000.00', 'Deb Open': '10000.00',
                  'Cred Tot Open': '9999.99', 'Cred Omschrijving': 'Guarneri violin', 'Cred Datum': '29-11-2002',
                  'Cred Bedrag': '9999.99', 'Cred Open': '9999.99', 'Totaal Open Tekst': '0.01',
-                 'Totaal Open Temp': 0.01}
+                 'Totaal Open Temp': Decimal('0.01')}
             ],
             [
                 # External
@@ -95,7 +96,7 @@ class QRekeningTestCase(TestCase):
                  'Deb Open': '100000000000.00\n5481348.54',
                  'Cred Tot Open': '0.00', 'Cred Omschrijving': '', 'Cred Datum': '',
                  'Cred Bedrag': '', 'Cred Open': '', 'Totaal Open Tekst': '100005481348.54',
-                 'Totaal Open Temp': 100005481348.54}
+                 'Totaal Open Temp': Decimal('100005481348.54')}
             ]
         )
 
@@ -107,15 +108,15 @@ class QRekeningTestCase(TestCase):
     def test_get_sepa(self):
         # Construct some dav_people
         johbac = DavilexPerson('Johann Sebastian Bach', 'JOHBAC')
-        johbac.add_boekstuk(True, 400.0, datetime(2020, 10, 7), 'Partita score')
-        johbac.add_boekstuk(True, 60.0, datetime(2016, 10, 7), 'Organ repair')
-        johbac.add_boekstuk(False, 10.0, datetime(2001, 1, 2), 'Volunteer contribution')
+        johbac.add_boekstuk(True, Decimal('400.00'), datetime(2020, 10, 7), 'Partita score')
+        johbac.add_boekstuk(True, Decimal('60.00'), datetime(2016, 10, 7), 'Organ repair')
+        johbac.add_boekstuk(False, Decimal('10.00'), datetime(2001, 1, 2), 'Volunteer contribution')
         nicpag = DavilexPerson('Niccolo Paganini', 'NICPAG')
-        nicpag.add_boekstuk(True, 10000.0, datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
-        nicpag.add_boekstuk(False, 9999.99, datetime(2002, 11, 29), 'Guarneri violin')
+        nicpag.add_boekstuk(True, Decimal('10000.00'), datetime(2002, 11, 28), 'Stradivarius violin')  # Good value
+        nicpag.add_boekstuk(False, Decimal('9999.99'), datetime(2002, 11, 29), 'Guarneri violin')
         devil = DavilexPerson('The Devil', 'DEVIL')
-        devil.add_boekstuk(True, 100000000000.0, datetime(2012, 11, 28), 'Soul of Paganini')
-        devil.add_boekstuk(True, 5481348.54, datetime(1910, 12, 31), 'Mozart\'s gambled money')
+        devil.add_boekstuk(True, Decimal('100000000000.00'), datetime(2012, 11, 28), 'Soul of Paganini')
+        devil.add_boekstuk(True, Decimal('5481348.54'), datetime(1910, 12, 31), 'Mozart\'s gambled money')
         dav_people = {
             'JOHBAC': johbac,
             'NICPAG': nicpag,
@@ -142,7 +143,8 @@ class QRekeningTestCase(TestCase):
             {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 50,
              'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
              'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02INGB0123456789', 'BIC': '', 'mandaatid': 'NICPAG', 'mandaatdatum': '', 'bedrag': 0.01,
+            {'IBAN': 'NL02INGB0123456789', 'BIC': '', 'mandaatid': 'NICPAG', 'mandaatdatum': '',
+             'bedrag': Decimal('0.01'),
              'naam': 'Niccolo Paganini', 'beschrijving': 'Q afschrijving',
              'endtoendid': 'NICPAG{}'.format(date.today().strftime('%m%y'))},
         ]

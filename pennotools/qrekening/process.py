@@ -147,5 +147,5 @@ def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_desc
             if p.get_total() < 0 or not p.get_iban():
                 pass
             else:
-                rows += get_sepa_rows(p, description)
+                rows += get_sepa_rows(p, description=description)
     return rows

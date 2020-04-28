@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 
 class Boekstuk:
@@ -8,7 +9,7 @@ class Boekstuk:
              | description: string (dd/mm/yyyy)
     """
 
-    def __init__(self, amount: float, date: datetime, description: str):
+    def __init__(self, amount: Decimal, date: datetime, description: str):
         self.amount = amount
         self.date = date
         self.description = description
@@ -40,7 +41,7 @@ class DavilexPerson:
             return False
         return True
 
-    def add_boekstuk(self, debet: bool, amount: float, date: datetime, description: str):
+    def add_boekstuk(self, debet: bool, amount: Decimal, date: datetime, description: str):
         """Create a Boekstuk object from a dictionary."""
         b = Boekstuk(amount, date, description)
         if debet:
@@ -71,8 +72,8 @@ class DavilexPerson:
             return ''
         return self.q_person.iban
 
-    def get_total(self):
-        total = 0
+    def get_total(self) -> Decimal:
+        total = Decimal('0.00')
         for d in self.debet:
             total += d.amount
         for c in self.credit:
@@ -80,10 +81,12 @@ class DavilexPerson:
         return total
 
     def get_debet_amounts(self):
-        return '\n'.join(['{0:.2f}'.format(d.amount) for d in self.debet])
+        # Decimal type has a notion of significance, so this will always print
+        #   2 decimal places, assuming the amount is set correctly.
+        return '\n'.join([str(d.amount) for d in self.debet])
 
     def get_credit_amounts(self):
-        return '\n'.join(['{0:.2f}'.format(c.amount) for c in self.credit])
+        return '\n'.join([str(c.amount) for c in self.credit])
 
     def get_debet_dates(self):
         return '\n'.join([d.get_date() for d in self.debet])
@@ -92,10 +95,10 @@ class DavilexPerson:
         return '\n'.join([c.get_date() for c in self.credit])
 
     def get_debet_total(self):
-        return '{0:.2f}'.format(sum(d.amount for d in self.debet))
+        return str(sum([d.amount for d in self.debet], Decimal('0.00')))  # Start with 2 decimal places for display
 
     def get_credit_total(self):
-        return '{0:.2f}'.format(sum(c.amount for c in self.credit))
+        return str(sum([c.amount for c in self.credit], Decimal('0.00')))
 
     def get_debet_description(self):
         return '\n'.join([d.description for d in self.debet])
