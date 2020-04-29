@@ -22,7 +22,8 @@ DATABASES['default'] = {  # noqa: F405
 # Authentication works via IP address, thus it only works on the production server.
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp-relay.gmail.com'
-EMAIL_USE_SSL = True
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 SERVER_EMAIL = 'info@esmgquadrivium.nl'
 DEFAULT_FROM_EMAIL = 'info@esmgquadrivium.nl'
 ADMINS = [('Maarten Visscher', 'sysop@esmgquadrivium.nl')]
