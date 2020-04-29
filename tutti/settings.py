@@ -23,6 +23,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
+    'ldapsync.apps.LdapSyncConfig',
+    'oidc.apps.OIDCConfig',
+    'pages.apps.PagesConfig',
+
+    'django.contrib.admin',
+
     'compressor',  # django_compressor
     'phonenumber_field',
     'localflavor',
@@ -31,12 +38,6 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
-
-    'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
-    'django.contrib.admin',
-
-    'ldapsync.apps.LdapSyncConfig',
-    'oidc.apps.OIDCConfig',
 ]
 
 MIDDLEWARE = [
@@ -112,14 +113,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 ]
+STATIC_ROOT = 'static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media'
