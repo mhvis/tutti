@@ -16,7 +16,6 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -24,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    'compressor',  # django_compressor
     'phonenumber_field',
     'localflavor',
     'django_countries',
@@ -32,7 +32,9 @@ INSTALLED_APPS = [
     'health_check.storage',
     'import_export',  # django-import-export
 
-    'members.apps.MembersConfig',
+    'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
+    'django.contrib.admin',
+
     'ldapsync.apps.LdapSyncConfig',
     'oidc.apps.OIDCConfig',
 ]
@@ -52,7 +54,8 @@ ROOT_URLCONF = 'tutti.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        # 'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -111,6 +114,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
+]
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
 ]
 
 MEDIA_URL = '/media/'

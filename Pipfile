@@ -19,6 +19,7 @@ authlib = "*"
 requests = "*"
 django-health-check = "*"
 django-import-export = "*"
+django-compressor = "*"
 
 [requires]
 python_version = "3.6"
