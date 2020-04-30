@@ -124,7 +124,7 @@ def get_sepa_rows(p: DavilexPerson, description, split: float = 100) -> List[Dic
     total = p.get_total()
     while total > split:
         rows.append(get_row(amount=split))
-        total -= 100
+        total -= split
     rows.append(get_row(amount=total))
     return rows
 
@@ -144,7 +144,7 @@ def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_desc
     rows = []
     for p in dav_people.values():
         if p.q_person:
-            if p.get_total() < 0 or not p.get_iban():
+            if p.get_total() < 0 or not p.get_iban() or not p.q_person.sepa_direct_debit:
                 pass
             else:
                 rows += get_sepa_rows(p, description=description)
