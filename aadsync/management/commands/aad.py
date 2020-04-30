@@ -53,8 +53,10 @@ class Command(BaseCommand):
 
         # Get Tutti data
         lines = []
+        huidige_leden = QGroup.objects.get(pk=51)
         for group in QGroup.objects.all():
-            peeps = ['{}@esmgquadrivium.nl'.format(p.username) for p in group.user_set.all()]
+            peep_qs = group.user_set.filter(group=huidige_leden)
+            peeps = ['{}@esmgquadrivium.nl'.format(p.username) for p in peep_qs]
             peeps.sort()
             lines.append('{}: {}'.format(group.name, '|'.join(peeps)))
         lines.sort()
