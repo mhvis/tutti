@@ -6,3 +6,5 @@ db.sqlite3
 # Django user media and collected static files
 media/
 static/
+
+node_modules/
