@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'ldapsync.apps.LdapSyncConfig',
     'oidc.apps.OIDCConfig',
     'pages.apps.PagesConfig',
+    'aadsync.apps.AADSyncConfig',
 
     'django.contrib.admin',
 

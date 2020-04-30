@@ -20,6 +20,8 @@ requests = "*"
 django-health-check = "*"
 django-import-export = "*"
 django-compressor = "*"
+requests-oauthlib = "*"
+msal = "*"
 
 [requires]
 python_version = "3.6"

@@ -187,7 +187,9 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
-        return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
+        # return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
+        # But do allow the rest
+        return not lookup.startswith('password')
 
     def get_urls(self):
         # Add unsubscribe URL
