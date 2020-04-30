@@ -23,6 +23,9 @@ server {
 
     location /static/ {
         alias {{ static_path }}/;
+        # We cache static files indefinitely(!)
+        expires max;
+        add_header Cache-Control "public";
     }
 
     location /media/ {

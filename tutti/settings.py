@@ -31,7 +31,6 @@ INSTALLED_APPS = [
 
     'django.contrib.admin',
 
-    'compressor',  # django_compressor
     'phonenumber_field',
     'localflavor',
     'django_countries',
@@ -56,7 +55,6 @@ ROOT_URLCONF = 'tutti.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # 'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -120,8 +118,14 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
 ]
+# On ManifestStaticFilesStorage:
+#
+# We cache static files indefinitely! Therefore file names need to be changed
+# whenever the file contents have changed in order for client caches to be
+# updated with the new file. Otherwise they'll keep using the old cached
+# version.
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 STATIC_ROOT = 'static'
 
 MEDIA_URL = '/media/'

@@ -1,8 +1,10 @@
-{% load static i18n humanize compress %}<!DOCTYPE html>
+{% load static i18n humanize %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"en" }}">
 <head>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
     <title>{% block title %}Tutti{% endblock %}</title>
 </head>
 
@@ -15,7 +17,7 @@
     {% endif %}
 </p>
 
-<p>Deze pagina wordt beter</p>
+{% block content %}<p>Deze pagina wordt beter</p>{% endblock %}
 
 <hr>
 <p>
@@ -30,7 +32,7 @@
     {% endif %}
 
 </p>
-{# Todo: this template is not specific for the members app, it should be moved outside of it. #}
 
+<script src="{% static 'bundle.js' %}"></script>
 </body>
 </html>

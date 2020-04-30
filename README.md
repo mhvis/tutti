@@ -37,11 +37,7 @@ Alternatively use `pipenv run <command>`.
 
 ## Build CSS+JS
 
-To build CSS and JavaScript, NPM needs to be installed.
-The following commands need to be run inside the `frontend` directory.
-
-* `npm install`
-* `npm run build`
+See `frontend/README.md`.
 
 
 ## App structure

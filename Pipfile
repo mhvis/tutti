@@ -19,7 +19,6 @@ authlib = "*"
 requests = "*"
 django-health-check = "*"
 django-import-export = "*"
-django-compressor = "*"
 requests-oauthlib = "*"
 msal = "*"
 
