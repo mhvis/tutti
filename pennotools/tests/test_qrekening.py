@@ -123,8 +123,10 @@ class QRekeningTestCase(TestCase):
             'DEVIL': devil,
         }
         # Construct matching person entries
-        Person.objects.create(username='jsbach', person_id='JOHBAC', iban='NL02ABNA0123456789', email='js@back.is')
-        Person.objects.create(username='paganini', person_id='NICPAG', iban='NL02INGB0123456789')
+        Person.objects.create(username='jsbach', person_id='JOHBAC', iban='NL02ABNA0123456789', email='js@back.is',
+                              sepa_direct_debit=True)
+        Person.objects.create(username='paganini', person_id='NICPAG', iban='NL02INGB0123456789',
+                              sepa_direct_debit=True)
 
         # Expected result
         expect = [
