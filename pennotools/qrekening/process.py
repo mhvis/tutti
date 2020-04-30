@@ -124,7 +124,7 @@ def get_sepa_rows(p: DavilexPerson, description, split: float = 100) -> List[Dic
     total = p.get_total()
     while total > split:
         rows.append(get_row(amount=split))
-        total -= 100
+        total -= split
     rows.append(get_row(amount=total))
     return rows
 
