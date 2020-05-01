@@ -176,7 +176,10 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email')
     list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
-    search_fields = ('username', 'first_name', 'last_name', 'email')
+    search_fields = ('username', 'first_name', 'last_name', 'email',
+                     'initials', 'phone_number',
+                     'street', 'postal_code', 'city',
+                     'person_id', 'iban', 'notes')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
 
