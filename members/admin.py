@@ -188,6 +188,13 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
 
     resource_class = PersonResource  # Import/export settings
 
+    def has_import_permission(self, request):
+        # Only allow import if user has change+add+delete permission
+        return request.user.has_perms(['members.add_person', 'members.change_person', 'members.delete_person'])
+
+    def has_export_permission(self, request):
+        return request.user.has_perm('members.view_person')
+
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
         # return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
