@@ -176,7 +176,10 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email')
     list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
-    search_fields = ('username', 'first_name', 'last_name', 'email')
+    search_fields = ('username', 'first_name', 'last_name', 'email',
+                     'initials', 'phone_number',
+                     'street', 'postal_code', 'city',
+                     'person_id', 'iban', 'notes')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
 
@@ -184,6 +187,13 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     save_on_top = True
 
     resource_class = PersonResource  # Import/export settings
+
+    def has_import_permission(self, request):
+        # Only allow import if user has change+add+delete permission
+        return request.user.has_perms(['members.add_person', 'members.change_person', 'members.delete_person'])
+
+    def has_export_permission(self, request):
+        return request.user.has_perm('members.view_person')
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.

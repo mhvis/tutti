@@ -10,16 +10,79 @@
 
 <body>
 
-<p>
-    <a href="{% url 'admin:index' %}">Go to administration site</a>
-    {% if user.is_authenticated %}
-        | <a href="{% url 'oidc:logout' %}">Log out</a>
-    {% endif %}
-</p>
+{% block header %}
+<div id="header">
+    <nav class="navbar navbar-expand-lg navbar-dark header">
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'members:index' %}">
+    <img src="{% static 'admin/logo_white.svg' %}" height="60px"/>
+</a></h1>
+{% endblock %}
+{% block usertools %}
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'admin:index' %}">Go to admin site </a>
+      </li>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle"
+               href="#"
+               id="navbarDropdown"
+               role="button"
+               data-toggle="dropdown"
+               aria-haspopup="true"
+               aria-expanded="false">
+                Secretaris
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item disabled" href="#">Quick search</a>
+                <a class="dropdown-item disabled" href="#">Scala app</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item disabled" href="#">Statistics</a>
+            </div>
+        </li>
+        {% if perms.pennotools %}
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle"
+           href="#"
+           id="navbarDropdown"
+           role="button"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false">
+          Penningmeester
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="{% url 'pennotools:qrekening' %}">Q rekening</a>
+          <a class="dropdown-item disabled" href="#">Contributie</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item disabled" href="#">Statistics</a>
+        </div>
+      </li>
+        {% endif %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a>
+        </li>
+    </ul>
+  </div>
+</nav>
+    {% block customtools %}
+    {% endblock %}
+{% endblock %}
+</div>
+{% endblock %}
 
-{% block content %}<p>Deze pagina wordt beter</p>{% endblock %}
+
+<div id="content">
+{% block content %}
+<p>Deze pagina wordt beter</p>
+{% endblock %}
+</div>
+
 
 <hr>
+<div id="footer">
+{% block footer %}
 <p>
     <a href="https://status.esmgquadrivium.nl">System status</a>
     | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
@@ -32,6 +95,8 @@
     {% endif %}
 
 </p>
+{% endblock %}
+</div>
 
 <script src="{% static 'bundle.js' %}"></script>
 </body>

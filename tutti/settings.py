@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
+    'pennotools.apps.PennotoolsConfig',
 ]
 
 MIDDLEWARE = [
@@ -126,7 +127,7 @@ STATICFILES_FINDERS = [
 # updated with the new file. Otherwise they'll keep using the old cached
 # version.
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
-STATIC_ROOT = 'static'
+# STATIC_ROOT = 'static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media'
