@@ -58,7 +58,6 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
                     amount,
                     xldate_as_datetime(row['Fac/Bet Datum'], 0),  # 1900-based datemode
                     row['Omschrijving'].strip(),
-                    # Todo: Wessel ik heb deze strip toegevoegd voor de 4 spaties voorop, is dat okay?
                 )
     except KeyError as e:
         # KeyError is raised when an invalid header is encountered

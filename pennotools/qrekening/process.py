@@ -57,7 +57,7 @@ def get_qrekening_row(p: DavilexPerson) -> Dict:
         'Cred Datum': p.get_credit_dates(),
         'Cred Bedrag': p.get_credit_amounts(),
         'Cred Open': p.get_credit_amounts(),
-        'Totaal Open Tekst': '{0:.2f}'.format(p.get_total()),
+        'Totaal Open Tekst': str((p.get_total().quantize(Decimal('0.01')))),
         'Totaal Open Temp': p.get_total(),
     }
 
