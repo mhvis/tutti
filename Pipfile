@@ -19,6 +19,8 @@ authlib = "*"
 requests = "*"
 django-health-check = "*"
 django-import-export = "*"
+requests-oauthlib = "*"
+msal = "*"
 xlrd = "*"
 xlsxwriter = "*"
 

@@ -49,7 +49,10 @@ server {
 server {
     # if no Host match, close the connection to prevent host spoofing
     listen 80 default_server;
+    listen 443 ssl default_server;
     # Azure does not support IPv6, if it did, we should add:
     # listen [::]:80;
+    include snippets/snakeoil.conf;  # Some random certificate
+    server_name _;
     return 444;
 }
