@@ -3,10 +3,11 @@ from io import BytesIO
 import xlrd
 import xlsxwriter
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.views.generic import TemplateView
 
-from pennotools.src.qrekening.process import read_exc, combine_persons, initialize_workbook, write_sepa
+from pennotools.qrekening.process import combine_persons
+from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
@@ -20,10 +21,11 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         """Process a Q-rekening debtor or creditor file and download Qrekening."""
         if 'Debit' not in request.FILES or 'Credit' not in request.FILES:
-            return HttpResponseBadRequest('Need to provide debit and credit files')
+            return self.get(request, form_invalid=True)
 
         debit = request.FILES['Debit']
         credit = request.FILES['Credit']
+
         wb_debit = xlrd.open_workbook(file_contents=debit.read())
         wb_credit = xlrd.open_workbook(file_contents=credit.read())
 
@@ -32,10 +34,13 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         wb = xlsxwriter.Workbook(output)
 
         # Process workbook
-        dav_persons = read_exc(wb_debit, True, read_exc(wb_credit, False, {}))
+        try:
+            dav_persons = read_exc(wb_debit, True, read_exc(wb_credit, False, {}))
+        except ValueError as e:
+            return self.get(request, file_invalid=e)
         combine_persons(dav_persons)
         if 'qrekening' in request.POST:
-            initialize_workbook(dav_persons, wb)
+            write_qrekening(dav_persons, wb)
         elif 'sepa' in request.POST:
             write_sepa(dav_persons, wb)
 

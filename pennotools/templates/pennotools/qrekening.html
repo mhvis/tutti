@@ -3,21 +3,27 @@
 {% block title %}Q-rekening | Penno Tools{% endblock %}
 
 {% block content %}
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <table class="table">
-        <tbody>
-        <tr>
-            <th scope="row"><label for="Debit">Debit</label></th>
-            <td><input id="Debit" type="file" name="Debit"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="Credit">Credit</label></th>
-            <td><input id="Credit" type="file" name="Credit"></td>
-        </tr>
-        </tbody>
-    </table>
-    <input type="submit" name="qrekening" class="btn btn-dark" value="Q rekening">
-    <input type="submit" name="sepa" class="btn btn-dark" value="SEPA file">
-</form>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table class="table">
+            <tbody>
+            <tr>
+                <th scope="row"><label for="Debit">Debit</label></th>
+                <td><input id="Debit" type="file" name="Debit"></td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="Credit">Credit</label></th>
+                <td><input id="Credit" type="file" name="Credit"></td>
+            </tr>
+            </tbody>
+        </table>
+        <input type="submit" name="qrekening" class="btn btn-dark" value="Q rekening">
+        <input type="submit" name="sepa" class="btn btn-dark" value="SEPA file">
+        {% if form_invalid %}
+            <div class="alert alert-danger mt-3">Both debit and credit files need to be provided.</div>
+        {% endif %}
+        {% if file_invalid %}
+            <div class="alert alert-danger mt-3">Input file has unexpected format: {{ file_invalid }}.</div>
+        {% endif %}
+    </form>
 {% endblock %}
