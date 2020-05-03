@@ -21,6 +21,8 @@ django-health-check = "*"
 django-import-export = "*"
 requests-oauthlib = "*"
 msal = "*"
+xlrd = "*"
+xlsxwriter = "*"
 
 [requires]
 python_version = "3.6"
