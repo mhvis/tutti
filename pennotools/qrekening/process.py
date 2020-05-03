@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from typing import Dict, List
 
 from members.models import Person
@@ -97,7 +98,7 @@ sepa_header = ['IBAN',
                ]
 
 
-def get_sepa_rows(p: DavilexPerson, description, split: float = 100) -> List[Dict]:
+def get_sepa_rows(p: DavilexPerson, description, split=Decimal('100.00')) -> List[Dict]:
     """Get SEPA rows for a person.
 
     Args:
@@ -147,5 +148,5 @@ def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_desc
             if p.get_total() < 0 or not p.get_iban() or not p.q_person.sepa_direct_debit:
                 pass
             else:
-                rows += get_sepa_rows(p, description)
+                rows += get_sepa_rows(p, description=description)
     return rows

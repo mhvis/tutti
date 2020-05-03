@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Dict, List
 
 from xlrd import Book, xldate_as_datetime
@@ -46,9 +47,15 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
                 current_person = None
             else:
                 # Person boekstuk row
+
+                # Amount is converted from float to Decimal where the Decimal
+                # takes over the float imprecision. Then the Decimal is rounded
+                # to 2 decimal places to get rid of the imprecision.
+                amount = Decimal(row['Openstaand']).quantize(Decimal('1.00'))
+
                 current_person.add_boekstuk(
                     debet,
-                    row['Openstaand'],
+                    amount,
                     xldate_as_datetime(row['Fac/Bet Datum'], 0),  # 1900-based datemode
                     row['Omschrijving'].strip(),
                     # Todo: Wessel ik heb deze strip toegevoegd voor de 4 spaties voorop, is dat okay?
@@ -72,6 +79,11 @@ def write_sheet(workbook: Workbook, sheet_name: str, header: List[str], rows: Li
     row_nr = 1
     for row in rows:
         for i in range(len(header)):
+            # Note, from the xlsxwriter docs:
+            #
+            # "When written to an Excel file numbers are converted to IEEE-754 64-bit double-precision floating point.
+            # This means that, in most cases, the maximum number of digits that can be stored in Excel without losing
+            # precision is 15."
             s.write(row_nr, i, row[header[i]])
         row_nr += 1
 
