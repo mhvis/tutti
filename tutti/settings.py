@@ -16,13 +16,20 @@ DEBUG = True
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
+    'ldapsync.apps.LdapSyncConfig',
+    'oidc.apps.OIDCConfig',
+    'pages.apps.PagesConfig',
+    'aadsync.apps.AADSyncConfig',
+
+    'django.contrib.admin',
 
     'phonenumber_field',
     'localflavor',
@@ -31,11 +38,6 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
-
-    'members.apps.MembersConfig',
-    'ldapsync.apps.LdapSyncConfig',
-    'oidc.apps.OIDCConfig',
-    'aadsync.apps.AADSyncConfig',
     'pennotools.apps.PennotoolsConfig',
 ]
 
@@ -54,7 +56,7 @@ ROOT_URLCONF = 'tutti.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,7 +114,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'frontend/dist'),
 ]
 
 MEDIA_URL = '/media/'

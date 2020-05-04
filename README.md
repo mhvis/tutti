@@ -35,11 +35,17 @@ Alternatively use `pipenv run <command>`.
 * Lint code: `flake8`
 
 
+## Build CSS+JS
+
+See `frontend/README.md`.
+
+
 ## App structure
 
 * `tutti`: project module, for project-wide settings.
 * `members`: membership management app, stores people, groups and the rest.
   Also includes a custom admin site for branding.
+* `pages`: homepage and base template.
 * `ldapsync`: synchronization of the members data with an LDAP server.
 * `aadsync`: synchronization of the member accounts and groups to Azure Active Directory.
 * `oidc`: handle user login via OpenID Connect.

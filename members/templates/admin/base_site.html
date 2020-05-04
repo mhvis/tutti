@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static "members/adminstyle.css" %}">
+{% endblock %}
+{% block extrahead %}
+    <link rel="shortcut icon" href="{% static "img/favicon32.png" %}">
+{% endblock %}
+
+{% block branding %}
+    <h1 class="site-name">
+        <a href="{% url 'admin:index' %}">
+            <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
+            {{ site_header|default:_('Django administration') }}
+        </a>
+    </h1>
+{% endblock %}
+
+{# We need to replace change password+logout because we have custom versions of those #}
+{% block usertools %}
+    {% if has_permission %}
+
+        <div id="user-tools">
+            {% block welcome-msg %}
+                Welcome, <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+            {% endblock %}
+            / <a href="{% url "pages:index" %}">Back to main site</a>
+        </div>
+    {% endif %}
+{% endblock %}

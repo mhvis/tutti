@@ -1,0 +1,66 @@
+{% load static i18n humanize %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:"en" }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <title>{% block title %}Tutti{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static "img/favicon32.png" %}">
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'pages:index' %}">
+        <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% block nav-home %}{% endblock %}">
+                <a class="nav-link" href="{% url "pages:index" %}">Home</a>
+            </li>
+            {% if perms.pennotools %}
+                <li class="nav-item {% block nav-qrekening %}{% endblock %}">
+                    <a class="nav-link" href="{% url "pennotools:qrekening" %}">Q rekening</a>
+                </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav">
+            {% if perms.members %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "admin:index" %}">Members administration</a>
+                </li>
+            {% endif %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container my-3">
+    {% block content %}{% endblock %}
+</div>
+
+<hr>
+
+<div class="container">
+    <small class="text-muted">
+        <a href="https://status.esmgquadrivium.nl">System status</a>
+        | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
+        {# Poor man's version info, see VERSION_* in settings.py. #}
+        |
+        {% if VERSION_DATE %}
+            Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
+        {% else %}
+            Development version
+        {% endif %}
+
+    </small>
+</div>
+
+<script src="{% static 'bundle.js' %}"></script>
+</body>
+</html>

@@ -15,7 +15,9 @@ from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount,
 
 
 class QAdmin(admin.AdminSite):
-    site_header = "ESMG Quadrivium"
+    site_header = "Members administration"
+    site_title = "Tutti"
+    index_title = "Members administration"
 
     def has_permission(self, request):
         # Allow everyone to access the admin site (normally the user needs to be staff)
@@ -198,7 +200,7 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
         # return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
-        # But do allow the rest
+        # But do allow the rest, so that we can create some cool queries in the address bar
         return not lookup.startswith('password')
 
     def get_urls(self):
