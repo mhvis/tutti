@@ -31,6 +31,14 @@ ADMINS = [('Maarten Visscher', 'sysop@esmgquadrivium.nl')]
 ALLOWED_HOSTS = ['{{ server_name }}']
 
 STATIC_ROOT = '{{ static_path }}'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# On ManifestStaticFilesStorage:
+#
+# We cache static files indefinitely! Therefore file names need to be changed
+# whenever the file contents have changed in order for client caches to be
+# updated with the new file. Otherwise they'll keep using the old cached
+# version.
+
 MEDIA_ROOT = '{{ media_path }}'
 
 # HTTPS

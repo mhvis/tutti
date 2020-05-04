@@ -6,96 +6,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <title>{% block title %}Tutti{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static "img/favicon32.png" %}">
 </head>
 
 <body>
 
-{% block header %}
-<div id="header">
-    <nav class="navbar navbar-expand-lg navbar-dark header">
-{% block branding %}
-<h1 id="site-name"><a href="{% url 'members:index' %}">
-    <img src="{% static 'admin/logo_white.svg' %}" height="60px"/>
-</a></h1>
-{% endblock %}
-{% block usertools %}
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'admin:index' %}">Go to admin site </a>
-      </li>
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle"
-               href="#"
-               id="navbarDropdown"
-               role="button"
-               data-toggle="dropdown"
-               aria-haspopup="true"
-               aria-expanded="false">
-                Secretaris
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item disabled" href="#">Quick search</a>
-                <a class="dropdown-item disabled" href="#">Scala app</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item disabled" href="#">Statistics</a>
-            </div>
-        </li>
-        {% if perms.pennotools %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle"
-           href="#"
-           id="navbarDropdown"
-           role="button"
-           data-toggle="dropdown"
-           aria-haspopup="true"
-           aria-expanded="false">
-          Penningmeester
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{% url 'pennotools:qrekening' %}">Q rekening</a>
-          <a class="dropdown-item disabled" href="#">Contributie</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item disabled" href="#">Statistics</a>
-        </div>
-      </li>
-        {% endif %}
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a>
-        </li>
-    </ul>
-  </div>
+<nav class="navbar navbar-expand-md navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'pages:index' %}">
+        <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% block nav-home %}{% endblock %}">
+                <a class="nav-link" href="{% url "pages:index" %}">Home</a>
+            </li>
+            {% if perms.pennotools %}
+                <li class="nav-item {% block nav-qrekening %}{% endblock %}">
+                    <a class="nav-link" href="{% url "pennotools:qrekening" %}">Q rekening</a>
+                </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav">
+            {% if perms.members %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "admin:index" %}">Members administration</a>
+                </li>
+            {% endif %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a></li>
+        </ul>
+    </div>
 </nav>
-    {% block customtools %}
-    {% endblock %}
-{% endblock %}
+
+<div class="container my-3">
+    {% block content %}{% endblock %}
 </div>
-{% endblock %}
-
-
-<div id="content">
-{% block content %}
-<p>Deze pagina wordt beter</p>
-{% endblock %}
-</div>
-
 
 <hr>
-<div id="footer">
-{% block footer %}
-<p>
-    <a href="https://status.esmgquadrivium.nl">System status</a>
-    | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
-    {# Poor man's version info, see VERSION_* in settings.py. #}
-    |
-    {% if VERSION_DATE %}
-        Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
-    {% else %}
-        Development version
-    {% endif %}
 
-</p>
-{% endblock %}
+<div class="container">
+    <small class="text-muted">
+        <a href="https://status.esmgquadrivium.nl">System status</a>
+        | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
+        {# Poor man's version info, see VERSION_* in settings.py. #}
+        |
+        {% if VERSION_DATE %}
+            Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
+        {% else %}
+            Development version
+        {% endif %}
+
+    </small>
 </div>
 
 <script src="{% static 'bundle.js' %}"></script>

@@ -31,11 +31,11 @@ body {
 }
 
 #header {
-    background: var(--primary-color);
+    background-color: var(--primary-color);
 }
 
-#content {
-    padding: 20px 40px;
+#header, #branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: #fff;
 }
 
 .module h2, .module caption, .inline-group h2 {

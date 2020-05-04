@@ -116,18 +116,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist'),
 ]
-STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-]
-# On ManifestStaticFilesStorage:
-#
-# We cache static files indefinitely! Therefore file names need to be changed
-# whenever the file contents have changed in order for client caches to be
-# updated with the new file. Otherwise they'll keep using the old cached
-# version.
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
-# STATIC_ROOT = 'static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'media'

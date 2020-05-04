@@ -82,6 +82,9 @@ class LogoutView(TemplateView):
 
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
+        if not oauth.keycloak.client_secret:
+            # We do Django logout if Keycloak client secret is not set, e.g. in development
+            return redirect('admin:logout')
         logout(request)
         # Redirect to OIDC provider, it will redirect back immediately
         redirect_uri = request.build_absolute_uri(reverse('oidc:loggedout'))
