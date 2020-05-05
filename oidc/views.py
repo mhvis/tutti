@@ -53,7 +53,7 @@ class AuthView(View):
             raise PermissionDenied
         # Log the user in
         login(request, user)
-        return redirect('index')
+        return redirect('pages:index')
         # return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
