@@ -86,6 +86,9 @@ class Person(User):
     class Meta:
         verbose_name = 'person'
         verbose_name_plural = 'people'
+        permissions = [
+            ('change_treasurer_fields', 'Can change treasurer related fields'),
+        ]
 
     initials = models.CharField(max_length=30, blank=True)
 

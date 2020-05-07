@@ -222,7 +222,7 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
             self.message_user(request, 'Person with ID “{}” doesn’t exist.'.format(person_id), messages.WARNING)
             return HttpResponseRedirect(reverse('admin:index'))
 
-        if not self.has_change_permission(request, person):
+        if not request.user.has_perm('members.change_person'):
             raise PermissionDenied
 
         groups_removed = person.groups.filter(qgroup__end_on_unsubscribe=True)
@@ -246,10 +246,26 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
         }
         return TemplateResponse(request, 'admin/members/person/unsubscribe.html', context)
 
+    # Treasurer can edit some fields
 
-# Viewing historic group memberships in the admin site has been disabled due to
-# bug #23. This is probably fine, this page was redundant anyway, this
-# information should be visible on person and group pages instead.
+    def get_readonly_fields(self, request, obj=None):
+        if not request.user.has_perm('members.change_person') and request.user.has_perm(
+                'members.change_treasurer_fields'):
+            # If has change_treasurer_fields permission, disable non-treasurer fields
+            treasurer_disable = (
+                'username', 'first_name', 'last_name', 'initials', 'email', 'groups',
+                'phone_number', 'street', 'postal_code', 'city', 'country',
+                'gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study',
+                # 'person_id', 'is_student', 'iban', 'sepa_direct_debit',
+                'bhv_certificate', 'gsuite_accounts', 'notes',
+                'tue_card_number', 'key_access', 'keywatcher_id', 'keywatcher_pin'
+            )
+            return treasurer_disable + super().get_readonly_fields(request, obj)
+        return super().get_readonly_fields(request, obj)
+
+    def has_change_permission(self, request, obj=None):
+        # Treasurer can change but has fields disabled using get_readonly_fields
+        return request.user.has_perm('members.change_treasurer_fields') or super().has_change_permission(request, obj)
 
 
 admin_site.register(Instrument)
