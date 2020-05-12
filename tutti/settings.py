@@ -1,3 +1,4 @@
+import json
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -8,10 +9,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5_gj%^ok#l6#rw@03qondoll)9@zw6jocnvi&x9@ktsvie$=yo'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', False)
+
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.').split(',')
 
 # Application definition
 
@@ -73,13 +76,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tutti.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.{}'.format(os.getenv('DATABASE_ENGINE', 'sqlite3')),
+        'NAME': os.getenv('DATABASE_NAME', os.path.join(BASE_DIR, 'db.sqlite3')),
+        'USER': os.getenv('DATABASE_USERNAME', ''),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
+        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_PORT', 5432),
+        'OPTIONS': json.loads(os.getenv('DATABASE_OPTIONS', '{}')),
     }
 }
 
@@ -145,9 +150,23 @@ AUTHLIB_OAUTH_CLIENTS = {
 # the login view.
 LOGIN_URL = 'oidc:login'
 
-
 # Poor man's version display.
 #
 # When set, will display in the footer something like: Last updated: today
 VERSION_DATE = None  # Set to date value
 VERSION_URL = ""  # Link to e.g. GitHub master branch
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('DJANGO_LOGLEVEL', 'info').upper(),
+    },
+}
