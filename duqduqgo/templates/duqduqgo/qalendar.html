@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Qalendar | {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1>Qalendar</h1>
+{% for person in week_birthdays %}
+<p>{{person.date_of_birth}}</p>
+{% endfor %}
+
+{% endblock %}

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'import_export',  # django-import-export
     'pennotools.apps.PennotoolsConfig',
+    'duqduqgo.apps.DuqduqgoConfig',
 ]
 
 MIDDLEWARE = [
