@@ -50,3 +50,10 @@ $primary: #661fa7;
 @import "~bootstrap/scss/spinners";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/print";
+
+
+// FullCalendar imports
+@import "~@fullcalendar/core/main";
+@import "~@fullcalendar/daygrid/main";
+@import "~@fullcalendar/list/main";
+@import "~@fullcalendar/bootstrap/main";
