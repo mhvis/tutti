@@ -11,11 +11,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (calendarEl) {
         let calendar = new Calendar(calendarEl, {
-            header: { center: 'dayGridMonth,dayGridWeek,listYear' }, // buttons for switching between views
+            header: {center: 'dayGridMonth,dayGridWeek,listYear'}, // buttons for switching between views
 
             plugins: [dayGridPlugin, listPlugin, bootstrapPlugin],
             themeSystem: 'bootstrap',
-            events: '/duqduqgo/birthday_events',
+            events: '/duqduqgo/birthday_events/',
         });
 
         calendar.render();

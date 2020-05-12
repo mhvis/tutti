@@ -2,11 +2,10 @@
 
 {% block title %}Qalendar | {{ block.super }}{% endblock %}
 
+{% block nav-qalendar %}active{% endblock %}
+
 {% block content %}
-<h1>Qalendar</h1>
-{% for person in week_birthdays %}
-<p>{{person.date_of_birth}}</p>
-{% endfor %}
+    <h1>Qalendar</h1>
 
     <div id="calendar"></div>
 

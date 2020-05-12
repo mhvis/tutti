@@ -31,6 +31,11 @@
                     <a class="nav-link" href="{% url "pennotools:qrekening" %}">Q rekening</a>
                 </li>
             {% endif %}
+            {% if perms.duqduqgo %}
+                <li class="nav-item {% block nav-qalendar %}{% endblock %}">
+                    <a class="nav-link" href="{% url "duqduqgo:qalendar" %}">Qalendar</a>
+                </li>
+            {% endif %}
         </ul>
         <ul class="navbar-nav">
             {% if perms.members %}

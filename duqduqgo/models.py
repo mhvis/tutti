@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Permissions(models.Model):
-    """Model that defines the app permissions, does not create a database."""
+    """Model that defines the app permissions, does not create a database table."""
 
     class Meta:
         managed = False  # No db
