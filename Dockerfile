@@ -10,14 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Install dependencies
-COPY Pipfile* /app/
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir pipenv \
-    && cd /app/ \
-    && pipenv lock --requirements > requirements.txt
-RUN apk add --no-cache postgresql-dev python3-dev musl-dev \
-    && pip install --no-cache-dir -r /app/requirements.txt \
-    && pip install --no-cache-dir psycopg2 gunicorn
+RUN apk add --no-cache gcc postgresql-dev python3-dev musl-dev libffi-dev \
+    && pip install --upgrade pip \
+    && pip install --no-cache-dir gunicorn psycopg2
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 ADD . /app/
 
