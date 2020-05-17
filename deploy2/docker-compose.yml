@@ -1,0 +1,45 @@
+# Docker compose for deployment
+version: '3.8'
+
+volumes:
+  postgres_data_prod:
+  app_static_prod:
+  app_media_prod:
+
+services:
+  app:
+    build: ..
+    command: gunicorn -w 3 tutti.wsgi --bind 0.0.0.0:8000
+    expose:
+      - 8000
+    environment:
+      - DATABASE_ENGINE=postgresql
+      - DATABASE_NAME=tutti
+      - DATABASE_USERNAME=tutti
+      - DATABASE_HOST=db
+      - DATABASE_PASSWORD=tutti
+      - DJANGO_SECRET_KEY=notsosecret
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - DJANGO_STATIC_MANIFEST=True  # Use ManifestStaticFilesStorage, for far future Expires headers
+    volumes:
+      - app_static_prod:/appstatic
+      - app_media_prod:/appmedia
+    depends_on:
+      - db
+  db:
+    image: postgres:12.2-alpine
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=tutti
+      - POSTGRES_PASSWORD=tutti
+      - POSTGRES_DB=tutti
+  nginx:
+    build: ./nginx
+    ports:
+      - 8000:80
+    depends_on:
+      - app
+    volumes:
+      - app_static_prod:/srv/static
+      - app_media_prod:/srv/media

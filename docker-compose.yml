@@ -1,0 +1,41 @@
+# Development compose file
+#
+# Uses Django's built-in server and PostgreSQL
+
+version: '3.4'
+
+volumes:
+  postgres_data:
+  app_media:
+
+services:
+  app:
+    build: .
+    # Remove image name!
+    image: quadrivium.azurecr.io/tutti:v1.2
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      #- .:/app/
+      - app_media:/appmedia
+    ports:
+      - 8000:8000
+    environment:
+      - DJANGO_SECRET_KEY=iamnotverysecure
+      - DJANGO_DEBUG=True
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - DATABASE_ENGINE=postgresql
+      - DATABASE_NAME=tutti
+      - DATABASE_USERNAME=tutti
+      - DATABASE_PASSWORD=tutti
+      - DATABASE_HOST=db
+      - DJANGO_STATIC_ROOT=  # We disable STATIC_ROOT so that collectstatic is skipped
+    depends_on:
+      - db
+  db:
+    image: postgres:12.2-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=tutti
+      - POSTGRES_PASSWORD=tutti
+      - POSTGRES_DB=tutti

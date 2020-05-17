@@ -1,0 +1,9 @@
+node_modules
+deploy
+deploy2
+__pycache__
+.git
+.idea
+.dockerignore
+*Dockerfile*
+*docker-compose*

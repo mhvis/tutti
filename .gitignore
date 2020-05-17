@@ -1,7 +1,6 @@
 /.idea/
 __pycache__/
 /db.sqlite3
-/.env
 
 # Django user media and collected static files
 /media/

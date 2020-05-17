@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', False)
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 # Application definition
 
@@ -85,6 +85,7 @@ DATABASES = {
         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
         'PORT': os.getenv('DATABASE_PORT', 5432),
         'OPTIONS': json.loads(os.getenv('DATABASE_OPTIONS', '{}')),
+        'CONN_MAX_AGE': 3600,
     }
 }
 
@@ -119,12 +120,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', None)
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist'),
 ]
+if os.getenv('DJANGO_STATIC_MANIFEST', False):
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', None)
 
 AUTH_USER_MODEL = 'members.User'
 
@@ -170,3 +174,33 @@ LOGGING = {
         'level': os.getenv('DJANGO_LOGLEVEL', 'info').upper(),
     },
 }
+
+#
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp-relay.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# SERVER_EMAIL = 'info@esmgquadrivium.nl'
+# DEFAULT_FROM_EMAIL = 'info@esmgquadrivium.nl'
+# ADMINS = [('Maarten Visscher', 'sysop@esmgquadrivium.nl')]
+#
+#
+# MEDIA_ROOT = '{{ media_path }}'
+#
+# # HTTPS
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+#
+# # Keycloak OpenID Connect client secret
+# AUTHLIB_OAUTH_CLIENTS['keycloak']['client_secret'] = '{{ keycloak_client_secret }}'
+#
+# # LDAP login configuration
+# LDAP['USER'] = 'cn=Tutti,ou=Special Users,dc=esmgquadrivium,dc=nl'
+# LDAP['PASSWORD'] = '{{ ldap_password }}'
+#
+# # Version info
+# from datetime import date
+# # noinspection PyTypeChecker,PyUnresolvedReferences
+# VERSION_DATE = date(int('{{ ansible_date_time.year }}'), int('{{ ansible_date_time.month }}'),
+#                     int('{{ ansible_date_time.day }}'))
+# VERSION_URL = 'https://github.com/mhvis/tutti/commits/{{ git_branch }}'
