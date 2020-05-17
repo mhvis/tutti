@@ -9,4 +9,5 @@ urlpatterns = [
     path('', include('pages.urls')),
     path('penno/', include('pennotools.urls')),
     path('duqduqgo/', include('duqduqgo.urls')),
+    path('facts/', include('faqts.urls')),
 ]

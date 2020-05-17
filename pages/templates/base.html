@@ -26,6 +26,9 @@
             <li class="nav-item {% block nav-home %}{% endblock %}">
                 <a class="nav-link" href="{% url "pages:index" %}">Home</a>
             </li>
+            <li class="nav-item {% block nav-faqts %}{% endblock %}">
+                <a class="nav-link" href="{% url "faqts:faqts" %}">FaQts</a>
+            </li>
             {% if perms.pennotools %}
                 <li class="nav-item {% block nav-qrekening %}{% endblock %}">
                     <a class="nav-link" href="{% url "pennotools:qrekening" %}">Q rekening</a>

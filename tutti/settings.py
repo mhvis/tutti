@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'oidc.apps.OIDCConfig',
     'pages.apps.PagesConfig',
     'aadsync.apps.AADSyncConfig',
+    'pennotools.apps.PennotoolsConfig',
+    'duqduqgo.apps.DuqduqgoConfig',
+    'faqts.apps.FaQtsConfig',
 
     'django.contrib.admin',
 
@@ -38,8 +41,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
-    'pennotools.apps.PennotoolsConfig',
-    'duqduqgo.apps.DuqduqgoConfig',
+
 ]
 
 MIDDLEWARE = [
