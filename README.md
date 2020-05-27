@@ -1,8 +1,8 @@
 # Tutti
 
-Leden management systeem van Q.
+Q members admin.
 
-## Installation
+## Quickstart
 
 Make sure that Pipenv is installed. Run the following commands:
 
@@ -10,34 +10,32 @@ Make sure that Pipenv is installed. Run the following commands:
 * `pipenv shell`
 * `python manage.py migrate`
 * `python manage.py createsuperuser`
+* `python manage.py runserver`
 
-You'll need a custom Django settings module for your local settings (e.g. LDAP
-connection credentials). An easy way is to use a `.env` file, it will be
-automatically picked up by Pipenv. See also:
-[Django settings](https://docs.djangoproject.com/en/3.0/topics/settings/) and
-[Pipenv `.env`](https://pipenv.pypa.io/en/latest/advanced/#automatic-loading-of-env).
-
-## Quickstart
-
-* To create an admin user run `python manage.py createsuperuser`. You can bypass
-  the OpenID Connect login flow by going to `http://127.0.0.1:8000/admin/login/`.
-* To load sample data run `python manage.py loaddata sampledata`.
-* For LDAP cloning and sync, see `python manage.py ldapclone -h` and `python
-  manage.py ldapsync -h` for details.
+You'll need to set the `DJANGO_SECRET_KEY` environment variable to some random
+value for running the server. See e.g. [Pipenv `.env`](https://pipenv-fork.readthedocs.io/en/latest/advanced.html#automatic-loading-of-env).
 
 ## Development commands
 
 Assumes that the environment is set correctly using `pipenv shell`.
-Alternatively use `pipenv run <command>`.
 
-* Run test server: `python manage.py runserver`
+* Run test server: `python manage.py runserver`. 
 * Run unit tests: `python manage.py test`
 * Lint code: `flake8`
+* Create admin user: `python manage.py createsuperuser`
+* Load sample fixtures: `python manage.py loaddata sampledata`.
+* LDAP commands: `python manage.py ldapclone -h` and `python
+  manage.py ldapsync -h`.
 
 
 ## Build CSS+JS
 
 See `frontend/README.md`.
+
+## On dependencies
+
+Whenever you add a dependency to Pipfile, generate `requirements.txt`
+afterwards: `pipenv lock -r > requirements.txt`.
 
 
 ## App structure

@@ -5,5 +5,4 @@ __pycache__
 .git
 .idea
 .dockerignore
-*Dockerfile*
-*docker-compose*
+Dockerfile

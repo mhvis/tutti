@@ -1,3 +1,4 @@
+import email.utils
 import json
 import os
 
@@ -47,6 +48,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # We're using WhiteNoise for the static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,7 +71,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'tutti.context_processors.version_info',
             ],
         },
     },
@@ -120,33 +122,35 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', None)
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist'),
 ]
-if os.getenv('DJANGO_STATIC_MANIFEST', False):
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# We're using WhiteNoise in production
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', None)
+if os.getenv('DJANGO_WHITENOISE', None):
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', None)
 
 AUTH_USER_MODEL = 'members.User'
 
+# LDAP settings
 LDAP = {
-    'HOST': 'ldap://ds.esmgquadrivium.nl',  # Can be in URI form
-    'USER': '',
-    'PASSWORD': '',
+    'HOST': os.getenv('DJANGO_LDAP_HOST', ''),  # Can be in URI form
+    'USER': os.getenv('DJANGO_LDAP_USER', ''),
+    'PASSWORD': os.getenv('DJANGO_LDAP_PASSWORD', ''),
     'START_TLS': True,
 }
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
-# OpenID Connect configuration
-
+# Keycloak OpenID Connect configuration
 AUTHLIB_OAUTH_CLIENTS = {
     'keycloak': {
         'client_id': 'tutti',
-        'client_secret': '',  # Needs to be set in deployment
+        # If unset, OIDC will not be used
+        'client_secret': os.getenv('DJANGO_KEYCLOAK_SECRET', ''),
     }
 }
 
@@ -154,13 +158,7 @@ AUTHLIB_OAUTH_CLIENTS = {
 # the login view.
 LOGIN_URL = 'oidc:login'
 
-# Poor man's version display.
-#
-# When set, will display in the footer something like: Last updated: today
-VERSION_DATE = None  # Set to date value
-VERSION_URL = ""  # Link to e.g. GitHub master branch
-
-
+# Logging to console as that's common for containers.
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -175,32 +173,22 @@ LOGGING = {
     },
 }
 
-#
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp-relay.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# SERVER_EMAIL = 'info@esmgquadrivium.nl'
-# DEFAULT_FROM_EMAIL = 'info@esmgquadrivium.nl'
-# ADMINS = [('Maarten Visscher', 'sysop@esmgquadrivium.nl')]
-#
-#
-# MEDIA_ROOT = '{{ media_path }}'
-#
-# # HTTPS
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-#
-# # Keycloak OpenID Connect client secret
-# AUTHLIB_OAUTH_CLIENTS['keycloak']['client_secret'] = '{{ keycloak_client_secret }}'
-#
-# # LDAP login configuration
-# LDAP['USER'] = 'cn=Tutti,ou=Special Users,dc=esmgquadrivium,dc=nl'
-# LDAP['PASSWORD'] = '{{ ldap_password }}'
-#
-# # Version info
-# from datetime import date
-# # noinspection PyTypeChecker,PyUnresolvedReferences
-# VERSION_DATE = date(int('{{ ansible_date_time.year }}'), int('{{ ansible_date_time.month }}'),
-#                     int('{{ ansible_date_time.day }}'))
-# VERSION_URL = 'https://github.com/mhvis/tutti/commits/{{ git_branch }}'
+# E-mail settings
+EMAIL_BACKEND = 'django.core.mail.backends.{}'.format(os.getenv('DJANGO_EMAIL_BACKEND', 'console.EmailBackend'))
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 25)
+EMAUL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', False)
+SERVER_EMAIL = os.getenv('DJANGO_SERVER_EMAIL', 'root@localhost')
+DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+# E-mail address string where 5xx errors are sent, e.g. 'Me <my@address.net>'
+admin_address = os.getenv('DJANGO_ADMIN_EMAIL', None)
+if admin_address:
+    ADMINS = [email.utils.parseaddr(admin_address)]
+
+# Ensure cookies over HTTPS
+if os.getenv('DJANGO_COOKIE_SECURE', False):
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+# Nginx proxy settings (only effective in production environment)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

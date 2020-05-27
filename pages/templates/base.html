@@ -1,4 +1,4 @@
-{% load static i18n humanize %}<!DOCTYPE html>
+{% load static i18n %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"en" }}">
 <head>
@@ -40,7 +40,7 @@
         <ul class="navbar-nav">
             {% if perms.members %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url "admin:index" %}">Members administration</a>
+                    <a class="nav-link" href="{% url "admin:index" %}">Members admin</a>
                 </li>
             {% endif %}
             <li class="nav-item"><a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a></li>
@@ -56,16 +56,18 @@
 
 <div class="container">
     <small class="text-muted">
-        <a href="https://status.esmgquadrivium.nl">System status</a>
-        | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
-        {# Poor man's version info, see VERSION_* in settings.py. #}
-        |
-        {% if VERSION_DATE %}
-            Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
-        {% else %}
-            Development version
-        {% endif %}
-
+        <a href="https://github.com/mhvis/tutti/commits/master" style="text-decoration: none;">
+            <img alt="Last change"
+                 src="https://badgen.net/github/last-commit/mhvis/tutti/master?style=flat-square&label=last change">
+        </a>
+        <a href="https://status.esmgquadrivium.nl" style="text-decoration: none;">
+            <img alt="Past week uptime"
+                 src="https://badgen.net/uptime-robot/week/m784657378-f36d9d3037b941f99c051d8f?style=flat-square&label=uptime">
+        </a>
+        <a href="https://github.com/mhvis/tutti/issues" style="text-decoration: none;">
+            <img alt="GitHub issues"
+                 src="https://badgen.net/github/open-issues/mhvis/tutti?style=flat-square&label=issues">
+        </a>
     </small>
 </div>
 

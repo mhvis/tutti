@@ -15,9 +15,9 @@ from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount,
 
 
 class QAdmin(admin.AdminSite):
-    site_header = "Members administration"
+    site_header = "Members admin"
     site_title = "Tutti"
-    index_title = "Members administration"
+    index_title = "Members admin"
 
     def has_permission(self, request):
         # Allow everyone to access the admin site (normally the user needs to be staff)
