@@ -4,16 +4,14 @@ Q members admin.
 
 ## Quickstart
 
-Make sure that Pipenv is installed. Run the following commands:
+Make sure that Pipenv is installed. Copy `.env.example` to `.env` and adjust if
+you want. Run the following commands:
 
 * `pipenv install --dev`
 * `pipenv shell`
 * `python manage.py migrate`
 * `python manage.py createsuperuser`
 * `python manage.py runserver`
-
-You'll need to set the `DJANGO_SECRET_KEY` environment variable to some random
-value for running the server. See e.g. [Pipenv `.env`](https://pipenv-fork.readthedocs.io/en/latest/advanced.html#automatic-loading-of-env).
 
 ## Development commands
 

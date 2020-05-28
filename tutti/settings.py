@@ -1,19 +1,16 @@
 import email.utils
-import json
 import os
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import environ
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
+env = environ.Env()
+environ.Env.read_env(env_file=str(os.path.join(BASE_DIR, ".env")))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', False)
+SECRET_KEY = env.str('DJANGO_SECRET_KEY')
+DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
@@ -79,17 +76,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'tutti.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.{}'.format(os.getenv('DATABASE_ENGINE', 'sqlite3')),
-        'NAME': os.getenv('DATABASE_NAME', os.path.join(BASE_DIR, 'db.sqlite3')),
-        'USER': os.getenv('DATABASE_USERNAME', ''),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
-        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DATABASE_PORT', 5432),
-        'OPTIONS': json.loads(os.getenv('DATABASE_OPTIONS', '{}')),
-        'CONN_MAX_AGE': 3600,
-    }
+    "default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
+DATABASES["default"]["CONN_MAX_AGE"] = 3600
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -174,16 +163,12 @@ LOGGING = {
 }
 
 # E-mail settings
-EMAIL_BACKEND = 'django.core.mail.backends.{}'.format(os.getenv('DJANGO_EMAIL_BACKEND', 'console.EmailBackend'))
-EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
-EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 25)
-EMAUL_USE_TLS = os.getenv('DJANGO_EMAIL_USE_TLS', False)
+EMAIL_CONFIG = env.email_url("EMAIL_URL", default="consolemail://")
+vars().update(EMAIL_CONFIG)
 SERVER_EMAIL = os.getenv('DJANGO_SERVER_EMAIL', 'root@localhost')
 DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'webmaster@localhost')
-# E-mail address string where 5xx errors are sent, e.g. 'Me <my@address.net>'
-admin_address = os.getenv('DJANGO_ADMIN_EMAIL', None)
-if admin_address:
-    ADMINS = [email.utils.parseaddr(admin_address)]
+# E-mail address string where 5xx errors are sent, e.g. 'Me <my@address.net>, Someone Else <his@address.com>'
+ADMINS = email.utils.getaddresses([env.str('DJANGO_ADMINS', default='')])
 
 # Ensure cookies over HTTPS
 if os.getenv('DJANGO_COOKIE_SECURE', False):

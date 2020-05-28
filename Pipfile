@@ -24,3 +24,4 @@ msal = "*"
 xlrd = "*"
 xlsxwriter = "*"
 whitenoise = {extras = ["brotli"],version = "*"}
+django-environ = "*"
