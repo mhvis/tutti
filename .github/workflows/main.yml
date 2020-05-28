@@ -39,5 +39,8 @@ jobs:
         
     - name: Run unit tests
       if: always()
+      env:
+        DJANGO_SECRET_KEY: hi
+        DJANGO_DEBUG: 1
       run: |
         pipenv run python manage.py test
