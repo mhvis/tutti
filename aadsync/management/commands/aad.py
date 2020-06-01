@@ -1,3 +1,4 @@
+import argparse
 import json
 from argparse import ArgumentParser
 from difflib import ndiff
@@ -11,11 +12,14 @@ from members.models import Person, QGroup
 
 class Command(BaseCommand):
     def add_arguments(self, parser: ArgumentParser):
-        pass
-        parser.add_argument('params', help='JSON file with secret and authority endpoint.')
+        parser.add_argument('params',
+                            type=argparse.FileType('r'),
+                            default='-',
+                            help='JSON file with secret and authority endpoint.')
 
     def handle(self, *args, **options):
-        config = json.load(open(options['params']))
+        config = json.load(options['params'])
+
         app = msal.ConfidentialClientApplication(config['client_id'],
                                                  authority=config['authority'],
                                                  client_credential=config['secret'])
