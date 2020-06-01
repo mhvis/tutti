@@ -16,8 +16,8 @@ jobs:
         # Separate image for the build stage for caching
         docker pull quadrivium.azurecr.io/tutti:latest
         docker pull quadrivium.azurecr.io/tutti:builder
-        docker build --target builder --cache-from quadrivium.azurecr.io/tutti:builder -t quadrivium.azurecr.io/tutti:builder .
-        docker build --cache-from quadrivium.azurecr.io/tutti:builder --cache-from quadrivium.azurecr.io/tutti:latest -t quadrivium.azurecr.io/tutti:latest .
+        docker build --target builder --cache-from quadrivium.azurecr.io/tutti:builder --build-arg BUILDKIT_INLINE_CACHE=1 -t quadrivium.azurecr.io/tutti:builder .
+        docker build --cache-from quadrivium.azurecr.io/tutti:builder --cache-from quadrivium.azurecr.io/tutti:latest --build-arg BUILDKIT_INLINE_CACHE=1 -t quadrivium.azurecr.io/tutti:latest .
         docker push quadrivium.azurecr.io/tutti:latest
         docker push quadrivium.azurecr.io/tutti:builder
       env:
