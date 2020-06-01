@@ -1,8 +1,7 @@
 node_modules
-deploy
-deploy2
 __pycache__
 .git
+.github
 .idea
 .dockerignore
 Dockerfile

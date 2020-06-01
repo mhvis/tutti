@@ -1,0 +1,24 @@
+name: CD
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    - name: docker build and push
+      run: |
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} quadrivium.azurecr.io
+        # Separate image for the build stage for caching
+        docker pull quadrivium.azurecr.io/tutti:latest
+        docker pull quadrivium.azurecr.io/tutti:builder
+        docker build --target builder --cache-from quadrivium.azurecr.io/tutti:builder -t quadrivium.azurecr.io/tutti:builder .
+        docker build --cache-from quadrivium.azurecr.io/tutti:builder --cache-from quadrivium.azurecr.io/tutti:latest -t quadrivium.azurecr.io/tutti:latest .
+        docker push quadrivium.azurecr.io/tutti:latest
+        docker push quadrivium.azurecr.io/tutti:builder
+      env:
+        DOCKER_BUILDKIT: 1
