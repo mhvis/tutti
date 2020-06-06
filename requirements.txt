@@ -1,4 +1,4 @@
--i https://pypi.org/simple
+-i https://pypi.org/simple/
 asgiref==3.2.7
 authlib==0.14.3
 babel==2.8.0
@@ -15,7 +15,7 @@ django-health-check==3.12.1
 django-import-export==2.1.0
 django-localflavor==3.0.1
 django-phonenumber-field==4.0.0
-django==3.0.6
+django==3.0.7
 et-xmlfile==1.0.1
 idna==2.9
 jdcal==1.4.1
