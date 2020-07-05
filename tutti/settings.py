@@ -10,6 +10,10 @@ env = environ.Env()
 environ.Env.read_env(env_file=str(os.path.join(BASE_DIR, ".env")))
 
 SECRET_KEY = env.str('DJANGO_SECRET_KEY')
+if env.str("DJANGO_SECRET_KEY_FILE", None):
+    with open(os.getenv("DJANGO_SECRET_KEY_FILE")) as f:
+        SECRET_KEY = f.read()
+
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
@@ -79,6 +83,9 @@ DATABASES = {
     "default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
 DATABASES["default"]["CONN_MAX_AGE"] = 3600
+if env.str("DATABASE_PASSWORD_FILE", None):
+    with open(env.str("DATABASE_PASSWORD_FILE")) as f:
+        DATABASES["default"]["PASSWORD"] = f.read()
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -131,6 +138,10 @@ LDAP = {
     'PASSWORD': os.getenv('DJANGO_LDAP_PASSWORD', ''),
     'START_TLS': True,
 }
+if os.getenv("DJANGO_LDAP_PASSWORD_FILE", None):
+    with open(os.getenv("DJANGO_LDAP_PASSWORD_FILE")) as f:
+        LDAP["PASSWORD"] = f.read()
+
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
@@ -142,6 +153,9 @@ AUTHLIB_OAUTH_CLIENTS = {
         'client_secret': os.getenv('DJANGO_KEYCLOAK_SECRET', ''),
     }
 }
+if os.getenv("DJANGO_KEYCLOAK_SECRET_FILE", None):
+    with open(os.getenv("DJANGO_KEYCLOAK_SECRET_FILE")) as f:
+        AUTHLIB_OAUTH_CLIENTS["keycloak"]["client_secret"] = f.read()
 
 # When users need to be logged in, the OpenID Connect flow will be started by
 # the login view.
