@@ -9,6 +9,8 @@ from django.views.generic import TemplateView
 from pennotools.qrekening.process import combine_persons
 from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
+from pennotools.contributie.process import write_contributie
+
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
     """Use this mixin to protect views from prying eyes."""
@@ -53,5 +55,33 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         )
         response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % (
             'SEPA' if 'sepa' in request.POST else ('qrekening' if 'qrekening' in request.POST else 'UNKNOWN')
+        )
+        return response
+
+
+class ContributieView(TreasurerAccessMixin, TemplateView):
+    template_name = 'pennotools/contributie.html'
+
+    def post(self, request, *args, **kwargs):
+        """Process the contributie form and download the Contributie files."""
+
+        # Write Excel workbook into memory
+        output = BytesIO()
+        wb = xlsxwriter.Workbook(output)
+
+        if 'contributie' in request.POST:
+            write_contributie(wb)
+        elif 'sepa' in request.POST:
+            write_sepa(wb)
+
+        # Write workbook
+        wb.close()
+        output.seek(0)
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % (
+            'SEPA' if 'sepa' in request.POST else ('Contributie' if 'contributie' in request.POST else 'UNKNOWN')
         )
         return response

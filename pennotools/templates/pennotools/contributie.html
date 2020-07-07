@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Contributie | {{ block.super }}{% endblock %}
+
+{% block nav-qrekening %}active{% endblock %}
+
+{% block content %}
+<h1>Contributie</h1>
+
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table class="table" id="contributie">
+        <tbody>
+        <tr>
+            <th scope="row"><label for="Student">Student</label></th>
+            <td><input id="Student" type="number" name="Student" onchange="change_number(this.id, this.value)"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="Burger">Burger</label></th>
+            <td><input id="Burger" type="number" name="Burger"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="Administration">Administration cost</label></th>
+            <td><input id="Administration" type="number" name="Administration" value="6"></td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-primary" onclick="add_filter()">Add filter</button>
+    <button type="submit" name="contributie" class="btn btn-secondary">Contributie file</button>
+    <button type="submit" name="sepa" class="btn btn-secondary">SEPA file</button>
+    {% if form_invalid %}
+    <div class="alert alert-danger mt-3">Both debit and credit files need to be provided.</div>
+    {% endif %}
+    {% if file_invalid %}
+    <div class="alert alert-danger mt-3">Input file has unexpected format: {{ file_invalid }}.</div>
+    {% endif %}
+</form>
+
+<script>
+    function change_number(id, value) {
+        console.log(id, value);
+        document.getElementById("Burger").value = value * 2;
+    }
+    function add_filter()
+    {
+        let contributie = document.getElementById("contributie").getElementsByTagName('tbody')[0];
+        let new_row = contributie.insertRow();
+        let th = document.createElement('th');
+        let td_number = document.createElement('td');
+        let td_dropdown = document.createElement('td');
+
+        th.innerHTML = "Filter";
+        td_number.innerHTML = "<input id='filter' type='number' name='filter'>";
+
+        new_row.appendChild(th);
+        new_row.appendChild(td_number);
+        new_row.appendChild(td_dropdown);
+
+    }
+</script>
+
+{% endblock %}
