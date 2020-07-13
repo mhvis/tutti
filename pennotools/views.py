@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 from pennotools.qrekening.process import combine_persons
 from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
-from pennotools.contributie.process import write_contributie
+from pennotools.contributie.process import write_contributie, write_contributie_sepa
 
 from members.models import QGroup
 
@@ -90,7 +90,7 @@ class ContributieView(TreasurerAccessMixin, TemplateView):
         if 'contributie' in request.POST:
             write_contributie(wb, int(request.POST['Student']), int(request.POST['Administration']), filters)
         elif 'sepa' in request.POST:
-            write_sepa(wb)
+            write_contributie_sepa(wb, int(request.POST['Student']), filters)
 
         # Write workbook
         wb.close()
