@@ -42,6 +42,10 @@
         console.log(id, value);
         document.getElementById("Burger").value = value * 2;
     }
+
+    let dropdown_counter = 0;
+    let dropdown_options = {{ groups | safe }};
+
     function add_filter()
     {
         let contributie = document.getElementById("contributie").getElementsByTagName('tbody')[0];
@@ -50,8 +54,24 @@
         let td_number = document.createElement('td');
         let td_dropdown = document.createElement('td');
 
-        th.innerHTML = "Filter";
-        td_number.innerHTML = "<input id='filter' type='number' name='filter'>";
+        let options = "";
+        for (let [key, value] of Object.entries(dropdown_options)) {
+            options += "<option value='" + key + "'>" + value + "</option>";
+        }
+
+        th.innerHTML = "Filter " + dropdown_counter;
+        td_number.innerHTML = "<input id='filter" +
+            dropdown_counter +
+            "' type='number' name='filter" +
+            dropdown_counter +
+            "'>";
+        td_dropdown.innerHTML = "<select class='custom-select' name='inputGroupSelect" +
+            dropdown_counter +
+            "'>" +
+            "<option selected>Choose...</option>" +
+            options +
+            "</select>";
+        dropdown_counter++;
 
         new_row.appendChild(th);
         new_row.appendChild(td_number);

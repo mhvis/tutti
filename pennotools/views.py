@@ -11,6 +11,8 @@ from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
 from pennotools.contributie.process import write_contributie
 
+from members.models import QGroup
+
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
     """Use this mixin to protect views from prying eyes."""
@@ -62,15 +64,31 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
 class ContributieView(TreasurerAccessMixin, TemplateView):
     template_name = 'pennotools/contributie.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['groups'] = {}
+        for group in QGroup.objects.all():
+            context['groups'][group.id] = group.name
+        return context
+
     def post(self, request, *args, **kwargs):
         """Process the contributie form and download the Contributie files."""
+
+        print(request.POST)
+        filters = {}
+        for value in range(len(QGroup.objects.all())):
+            try:
+                filters[request.POST['inputGroupSelect' + str(value)]] = request.POST['filter' + str(value)]
+            except KeyError:
+                break
+        print(filters)
 
         # Write Excel workbook into memory
         output = BytesIO()
         wb = xlsxwriter.Workbook(output)
 
         if 'contributie' in request.POST:
-            write_contributie(wb)
+            write_contributie(wb, int(request.POST['Student']), int(request.POST['Administration']), filters)
         elif 'sepa' in request.POST:
             write_sepa(wb)
 

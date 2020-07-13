@@ -1,6 +1,7 @@
-from members.models import Person
+from members.models import Person, GroupMembership
 from pennotools.qrekening.wb import write_sheet
 from typing import Dict
+from xlsxwriter import Workbook
 
 
 contributie_header = [
@@ -17,30 +18,33 @@ def get_contributie_row(p: Person, value: int) -> Dict:
     }
 
 
-def get_contributie():
+def get_contributie(base: int, admin: int, filters: Dict):
     """Get rows of contributie document.
 
     Returns:
-        4-tuple (creditors, debtors, debtors_self, external), where each tuple
+        tuple (debtors, debtors_self), where each tuple
         element is a list of rows. Each row is a dictionary of header->value.
     """
     debtors, debtors_self = [], []
     for person in Person.objects.all():
+        value = base
+        """"Compare person to group filters"""
+        for group, val in filters.items():
+            for membership in GroupMembership.objects.filter(user=person):
+                if int(group) == membership.group.id and int(val) < value:
+                    value = int(val)
+
+        """"Double value if person is not a student"""
+        value = value if person.is_student else value * 2
         if person.sepa_direct_debit:
-            if person.is_student:
-                debtors.append(get_contributie_row(person, 60))
-            else:
-                debtors.append(get_contributie_row(person, 120))
+            debtors.append(get_contributie_row(person, value))
         else:
-            if person.is_student:
-                debtors_self.append(get_contributie_row(person, 66))
-            else:
-                debtors_self.append(get_contributie_row(person, 126))
+            debtors_self.append(get_contributie_row(person, value + admin))
     return debtors, debtors_self
 
 
-def write_contributie(workbook):
-    debtors, debtors_self = get_contributie()
+def write_contributie(workbook: Workbook, base: int, admin: int, filters: Dict):
+    debtors, debtors_self = get_contributie(base, admin, filters)
     write_sheet(workbook, 'Debiteuren', contributie_header, debtors)
     write_sheet(workbook, 'DebiteurenZelf', contributie_header, debtors_self)
 
