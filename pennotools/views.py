@@ -73,15 +73,12 @@ class ContributieView(TreasurerAccessMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         """Process the contributie form and download the Contributie files."""
-
-        print(request.POST)
         filters = {}
         for value in range(len(QGroup.objects.all())):
             try:
                 filters[request.POST['inputGroupSelect' + str(value)]] = request.POST['filter' + str(value)]
             except KeyError:
                 break
-        print(filters)
 
         # Write Excel workbook into memory
         output = BytesIO()

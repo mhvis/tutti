@@ -12,6 +12,7 @@ contributie_header = [
     'Bankrekening'
 ]
 
+
 def get_contributie_row(p: Person, value: int) -> Dict:
     return {
         'cn': '{} {}'.format(p.first_name, p.last_name),
@@ -19,15 +20,16 @@ def get_contributie_row(p: Person, value: int) -> Dict:
         'Bankrekening': p.iban
     }
 
+
 def get_filtered_value(person: Person, base: int, filters: Dict) -> int:
-    """"Compare person to group filters"""
+    """Compare person to group filters"""
     value = base
     for group, val in filters.items():
         for membership in GroupMembership.objects.filter(user=person):
             if int(group) == membership.group.id and int(val) < value:
                 value = int(val)
 
-    """"Double value if person is not a student"""
+    # Double value if person is not a student
     value = value if person.is_student else value * 2
     return value
 
@@ -55,7 +57,9 @@ def write_contributie(workbook: Workbook, base: int, admin: int, filters: Dict):
     write_sheet(workbook, 'Debiteuren', contributie_header, debtors)
     write_sheet(workbook, 'DebiteurenZelf', contributie_header, debtors_self)
 
+
 # SEPA
+
 
 sepa_header = ['IBAN',
                'BIC',
@@ -109,7 +113,8 @@ def get_contributie_sepa(base: int, filters: Dict, description=sepa_default_desc
     """Get SEPA rows for Davilex people.
 
     Args:
-        dav_people: Davilex people.
+        base: int.
+        filters: Dict.
         description: Description used for the SEPA rows. Can be a string or a
             callable which returns a string.
     """
@@ -122,6 +127,7 @@ def get_contributie_sepa(base: int, filters: Dict, description=sepa_default_desc
         else:
             rows += get_sepa_rows(person, value, description=description)
     return rows
+
 
 def write_contributie_sepa(workbook: Workbook, base: int, filters: Dict):
     """Get SEPA rows and write in the workbook."""
