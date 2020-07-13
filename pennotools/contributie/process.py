@@ -19,13 +19,16 @@ def get_contributie_row(p: Person, value: int) -> Dict:
         'Bankrekening': p.iban
     }
 
-def get_filtered_value(person, base, filters):
+def get_filtered_value(person: Person, base: int, filters: Dict) -> int:
     """"Compare person to group filters"""
     value = base
     for group, val in filters.items():
         for membership in GroupMembership.objects.filter(user=person):
             if int(group) == membership.group.id and int(val) < value:
                 value = int(val)
+
+    """"Double value if person is not a student"""
+    value = value if person.is_student else value * 2
     return value
 
 
@@ -40,8 +43,6 @@ def get_contributie(base: int, admin: int, filters: Dict):
     for person in Person.objects.all():
         value = get_filtered_value(person, base, filters)
 
-        """"Double value if person is not a student"""
-        value = value if person.is_student else value * 2
         if person.sepa_direct_debit:
             debtors.append(get_contributie_row(person, value))
         else:
@@ -104,7 +105,7 @@ def sepa_default_description():
     return 'Contributie {}'.format(date.today().strftime('%Y'))
 
 
-def get_contributie_sepa(base: int, filters: int, description=sepa_default_description) -> List[Dict]:
+def get_contributie_sepa(base: int, filters: Dict, description=sepa_default_description) -> List[Dict]:
     """Get SEPA rows for Davilex people.
 
     Args:
@@ -116,15 +117,12 @@ def get_contributie_sepa(base: int, filters: int, description=sepa_default_descr
     for person in Person.objects.all():
         value = get_filtered_value(person, base, filters)
 
-        """"Double value if person is not a student"""
-        value = value if person.is_student else value * 2
         if not person.iban or not person.sepa_direct_debit:
             pass
         else:
             rows += get_sepa_rows(person, value, description=description)
-    print(rows)
     return rows
 
-def write_contributie_sepa(workbook: Workbook, base: int, filters: int):
+def write_contributie_sepa(workbook: Workbook, base: int, filters: Dict):
     """Get SEPA rows and write in the workbook."""
     write_sheet(workbook, 'Debiteuren', sepa_header, get_contributie_sepa(base, filters))
