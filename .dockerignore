@@ -5,3 +5,4 @@ __pycache__
 .idea
 .dockerignore
 Dockerfile
+db.sqlite3
