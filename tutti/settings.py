@@ -1,13 +1,16 @@
 import email.utils
 import os
+import os.path
 
 import environ
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Setup django-environ
 env = environ.Env()
-environ.Env.read_env(env_file=str(os.path.join(BASE_DIR, ".env")))
+env_file = str(os.path.join(BASE_DIR, ".env"))
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file=env_file)
 
 SECRET_KEY = env.str('DJANGO_SECRET_KEY')
 if env.str("DJANGO_SECRET_KEY_FILE", None):
@@ -141,7 +144,6 @@ LDAP = {
 if os.getenv("DJANGO_LDAP_PASSWORD_FILE", None):
     with open(os.getenv("DJANGO_LDAP_PASSWORD_FILE")) as f:
         LDAP["PASSWORD"] = f.read()
-
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 

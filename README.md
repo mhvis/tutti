@@ -4,18 +4,14 @@ Q members admin.
 
 ## Quickstart
 
-Make sure that Pipenv is installed. Copy `.env.example` to `.env` and adjust if
-you want. Run the following commands:
-
-* `pipenv install --dev`
-* `pipenv shell`
+* Create and activate a virtual environment (`python3 -m venv venv`)
+* Copy `.env.example` to `.env` and adjust as necessary
+* `pip install -r requirements.txt -r dev-requirements.txt`
 * `python manage.py migrate`
 * `python manage.py createsuperuser`
 * `python manage.py runserver`
 
-## Development commands
-
-Assumes that the environment is set correctly using `pipenv shell`.
+## Useful commands
 
 * Run test server: `python manage.py runserver`. 
 * Run unit tests: `python manage.py test`
@@ -32,9 +28,11 @@ See `frontend/README.md`.
 
 ## On dependencies
 
-Whenever you add a dependency to Pipfile, generate `requirements.txt`
-afterwards: `pipenv lock -r > requirements.txt`.
-
+To add a new dependency, append it to `requirements.in`, install `pip-tools`
+inside the virtual environment
+and run `pip-compile requirements.in`.
+See [pip-tools documentation](https://github.com/jazzband/pip-tools)
+for details.
 
 ## App structure
 

@@ -3,11 +3,15 @@
 //$enable-shadows: true;
 //$enable-gradients: true;
 
+// Q-purple supposedly
 $primary: #661fa7;
 
-// Q-purple maybe: #661fa7
 // Bootstrap purple: #6f42c1
 // Purple used in favicon: #42296b
+
+// Lighter purple
+//$primary: #7952b3;
+
 
 // Bootstrap import
 // Required
@@ -57,3 +61,19 @@ $primary: #661fa7;
 @import "~@fullcalendar/daygrid/main";
 @import "~@fullcalendar/list/main";
 @import "~@fullcalendar/bootstrap/main";
+
+
+// Don't look at getbootstrap.com
+.bd-navbar {
+    min-height: 4rem;
+    background-color: #7952b3;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.05), inset 0 -1px 0 rgba(0,0,0,.1);
+}
+.bd-navbar .navbar-nav .nav-link {
+    padding-right: .5rem;
+    padding-left: .5rem;
+    color: rgba(255,255,255,.85);
+}
+.bd-navbar .navbar-nav .nav-link.active {
+    font-weight: 600;
+}
