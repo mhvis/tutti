@@ -12,7 +12,7 @@
 
 
 # Builder image for creating venv
-FROM python:3.8.2-alpine3.11 as builder
+FROM python:3.8-alpine as builder
 
 # Install build requirements, create virtualenv
 RUN apk update \
@@ -21,14 +21,14 @@ RUN apk update \
 ENV PATH="/app/venv/bin:$PATH"
 
 # Build+install app dependencies
-RUN pip install --upgrade pip \
+RUN pip install --upgrade pip setuptools wheel \
     && pip install gunicorn psycopg2
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 
 # Compiled image
-FROM python:3.8.2-alpine3.11
+FROM python:3.8-alpine
 
 # Create app user+group
 RUN addgroup -S app && adduser -S app -G app
@@ -43,6 +43,9 @@ ENV PATH="/app/venv/bin:$PATH"
 COPY . /app/src
 WORKDIR /app/src
 
+# Some Python settings
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
 # Setup static and media folders
 # A secret key needs to be set otherwise collectstatic fails
 ENV DJANGO_STATIC_ROOT=/app/static DJANGO_MEDIA_ROOT=/app/media DJANGO_SECRET_KEY=dummy DJANGO_WHITENOISE=1
@@ -52,10 +55,10 @@ RUN mkdir /app/static /app/media \
 # Unset secret key
 ENV DJANGO_SECRET_KEY=
 
-USER app
+# Bake build date into src directory, will be read by the app
+RUN date -I > builddate.txt
 
-# Some Python settings
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+USER app
 
 # By default launch gunicorn on :8000
 CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "tutti.wsgi"]
