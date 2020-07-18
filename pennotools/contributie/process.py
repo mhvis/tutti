@@ -22,7 +22,7 @@ def get_contributie_row(p: Person, value: int) -> Dict:
 
 
 def get_filtered_value(person: Person, base: int, filters: Dict) -> int:
-    """Compare person to group filters"""
+    """Compare person to group filters."""
     value = base
     for group, val in filters.items():
         for membership in GroupMembership.objects.filter(user=person):
