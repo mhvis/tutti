@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from ldapsync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
-from ldapsync.sync import sync
+from sync.ldapoperations import AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
+from sync.sync import sync
 
 
 class SyncTestCase(TestCase):

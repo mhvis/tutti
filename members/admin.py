@@ -9,6 +9,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, path
 from import_export.admin import ImportExportMixin
 
+from members.adminjobqueue import register_job_queue_admin
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
     ExternalCardLoan, GroupMembership
@@ -26,6 +27,7 @@ class QAdmin(admin.AdminSite):
 
 
 admin_site = QAdmin()
+register_job_queue_admin(admin_site)
 admin_site.register(User, UserAdmin)
 
 
