@@ -1,5 +1,5 @@
 """Use Django signals to automatically run sync on object changes."""
-
+from django.conf import settings
 from django.db.models.signals import post_save, post_delete, post_migrate
 from django.dispatch import receiver
 from django_q.models import Schedule
@@ -14,7 +14,8 @@ from members.models import Person, QGroup
 @receiver(post_delete, sender=QGroup)
 def queue_sync(sender, **kwargs):
     """Queues a sync task to be run immediately."""
-    async_task('sync.ldapsync.ldap_sync')
+    if settings.LDAP_SYNC_ON_SAVE:
+        async_task('sync.ldapsync.ldap_sync')
 
 
 @receiver(post_migrate)

@@ -155,6 +155,8 @@ LDAP_HOST = os.getenv('DJANGO_LDAP_HOST')  # Can be in URI form
 LDAP_USER = os.getenv('DJANGO_LDAP_USER')
 LDAP_PASSWORD = getenv_with_file('DJANGO_LDAP_PASSWORD')
 LDAP_START_TLS = env.bool("DJANGO_LDAP_START_TLS", default=False)
+# When True, an LDAP sync will be triggered after saving a person or group.
+LDAP_SYNC_ON_SAVE = env.bool("DJANGO_LDAP_SYNC_ON_SAVE", default=False)
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 

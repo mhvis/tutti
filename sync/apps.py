@@ -6,4 +6,4 @@ class SyncConfig(AppConfig):
 
     def ready(self):
         # noinspection PyUnresolvedReferences
-        import sync.signals
+        import sync.signals  # noqa: F401

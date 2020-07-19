@@ -49,7 +49,7 @@ class LDAPEntity:
     @classmethod
     def from_queryset(cls, qs: QuerySet) -> List:
         """Returns a list of LDAPEntity instances from a queryset."""
-        return [cls.model(i) for i in qs]
+        return [cls(i) for i in qs]
 
 
 class LDAPGroup(LDAPEntity):
