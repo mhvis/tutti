@@ -100,7 +100,7 @@ WSGI_APPLICATION = 'tutti.wsgi.application'
 DATABASES = {
     "default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
-DATABASES["default"]["CONN_MAX_AGE"] = 3600
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DATABASE_CONN_MAX_AGE", default=0)
 # Allow overriding database password using separate environment variable
 database_password = getenv_with_file("DATABASE_PASSWORD")
 if database_password:
