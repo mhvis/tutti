@@ -1,21 +1,36 @@
-import email.utils
 import os
 import os.path
+from email.utils import getaddresses
 
 import environ
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Setup django-environ
+
+def getenv_with_file(key: str, default: str = None) -> str:
+    """Returns the value of the environment variable or from a file.
+
+    If the environment variable is not set, this function will check if an
+    environment variable with _FILE appended exists and return the contents of
+    that file.
+    """
+    value = os.getenv(key)
+    if value:
+        return value
+    filename = os.getenv("{}_FILE".format(key))
+    if filename:
+        with open(filename) as f:
+            return f.read()
+    return default
+
+
+# Import .env file
 env = environ.Env()
 env_file = str(os.path.join(BASE_DIR, ".env"))
 if os.path.exists(env_file):
     environ.Env.read_env(env_file=env_file)
 
-SECRET_KEY = env.str('DJANGO_SECRET_KEY')
-if env.str("DJANGO_SECRET_KEY_FILE", None):
-    with open(os.getenv("DJANGO_SECRET_KEY_FILE")) as f:
-        SECRET_KEY = f.read()
+SECRET_KEY = getenv_with_file('DJANGO_SECRET_KEY')
 
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
 
@@ -32,10 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
 
     'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
-    'ldapsync.apps.LdapSyncConfig',
+    'sync.apps.SyncConfig',
     'oidc.apps.OIDCConfig',
     'pages.apps.PagesConfig',
-    'aadsync.apps.AADSyncConfig',
+    'pennotools.apps.PennotoolsConfig',
+    'duqduqgo.apps.DuqduqgoConfig',
 
     'django.contrib.admin',
 
@@ -46,8 +62,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
-    'pennotools.apps.PennotoolsConfig',
-    'duqduqgo.apps.DuqduqgoConfig',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -86,9 +101,10 @@ DATABASES = {
     "default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
 DATABASES["default"]["CONN_MAX_AGE"] = 3600
-if env.str("DATABASE_PASSWORD_FILE", None):
-    with open(env.str("DATABASE_PASSWORD_FILE")) as f:
-        DATABASES["default"]["PASSWORD"] = f.read()
+# Allow overriding database password using separate environment variable
+database_password = getenv_with_file("DATABASE_PASSWORD")
+if database_password:
+    DATABASES["default"]["PASSWORD"] = database_password
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -135,15 +151,10 @@ MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', None)
 AUTH_USER_MODEL = 'members.User'
 
 # LDAP settings
-LDAP = {
-    'HOST': os.getenv('DJANGO_LDAP_HOST', ''),  # Can be in URI form
-    'USER': os.getenv('DJANGO_LDAP_USER', ''),
-    'PASSWORD': os.getenv('DJANGO_LDAP_PASSWORD', ''),
-    'START_TLS': True,
-}
-if os.getenv("DJANGO_LDAP_PASSWORD_FILE", None):
-    with open(os.getenv("DJANGO_LDAP_PASSWORD_FILE")) as f:
-        LDAP["PASSWORD"] = f.read()
+LDAP_HOST = os.getenv('DJANGO_LDAP_HOST')  # Can be in URI form
+LDAP_USER = os.getenv('DJANGO_LDAP_USER')
+LDAP_PASSWORD = getenv_with_file('DJANGO_LDAP_PASSWORD')
+LDAP_START_TLS = env.bool("DJANGO_LDAP_START_TLS", default=False)
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
@@ -152,12 +163,9 @@ AUTHLIB_OAUTH_CLIENTS = {
     'keycloak': {
         'client_id': 'tutti',
         # If unset, OIDC will not be used
-        'client_secret': os.getenv('DJANGO_KEYCLOAK_SECRET', ''),
+        'client_secret': getenv_with_file('DJANGO_KEYCLOAK_SECRET'),
     }
 }
-if os.getenv("DJANGO_KEYCLOAK_SECRET_FILE", None):
-    with open(os.getenv("DJANGO_KEYCLOAK_SECRET_FILE")) as f:
-        AUTHLIB_OAUTH_CLIENTS["keycloak"]["client_secret"] = f.read()
 
 # When users need to be logged in, the OpenID Connect flow will be started by
 # the login view.
@@ -184,12 +192,23 @@ vars().update(EMAIL_CONFIG)
 SERVER_EMAIL = os.getenv('DJANGO_SERVER_EMAIL', 'root@localhost')
 DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'webmaster@localhost')
 # E-mail address string where 5xx errors are sent, e.g. 'Me <my@address.net>, Someone Else <his@address.com>'
-ADMINS = email.utils.getaddresses([env.str('DJANGO_ADMINS', default='')])
+ADMINS = getaddresses([os.getenv('DJANGO_ADMINS', default='')])
 
 # Ensure cookies over HTTPS
-if os.getenv('DJANGO_COOKIE_SECURE', False):
+if env.bool('DJANGO_COOKIE_SECURE', default=False):
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
 
-# Nginx proxy settings (only effective in production environment)
+# We assume to be running behind a reverse proxy (only effective in production environment)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Setup task queue
+Q_CLUSTER = {
+    'workers': 1,
+    'timeout': 90,
+    'retry': 120,
+    'catch_up': False,
+    'orm': 'default',
+    'poll': 30,
+    'ack_failures': True,  # Do not retry failed tasks
+}

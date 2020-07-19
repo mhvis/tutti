@@ -16,6 +16,9 @@ class User(AbstractUser):
 
 
 class Instrument(models.Model):
+    class Meta:
+        ordering = ['name']
+
     name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):

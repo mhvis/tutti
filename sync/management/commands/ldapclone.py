@@ -4,8 +4,8 @@ from argparse import ArgumentParser
 from django.core.management import BaseCommand
 from ldap3.utils.log import set_library_log_detail_level, BASIC
 
-from ldapsync.clone import CLONE_SEARCH, clone, check_for_issues
-from ldapsync.ldap import get_ldap_entries, get_connection
+from sync.clone import CLONE_SEARCH, clone, check_for_issues
+from sync.ldap import get_ldap_entries, get_connection
 from members.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, GroupMembership, ExternalCardLoan
 
 

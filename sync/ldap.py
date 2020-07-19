@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Dict, Union, Iterable
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from ldap3 import Server, Connection, LEVEL
 
 LDAPAttributeType = Union[str, int, datetime, bool]
@@ -12,12 +13,15 @@ LDAPAttributeType = Union[str, int, datetime, bool]
 
 def get_connection():
     """Opens a new LDAP connection, use as context manager."""
-    server = Server(settings.LDAP['HOST'])
+    # Need to have a host setup
+    if not settings.LDAP_HOST:
+        raise ImproperlyConfigured("LDAP host not setup.")
+    server = Server(settings.LDAP_HOST)
     conn = Connection(server=server,
-                      user=settings.LDAP['USER'],
-                      password=settings.LDAP['PASSWORD'],
+                      user=settings.LDAP_USER,
+                      password=settings.LDAP_PASSWORD,
                       raise_exceptions=True)
-    if settings.LDAP['START_TLS']:
+    if settings.LDAP_START_TLS:
         conn.start_tls(read_server_info=False)
     return conn
 
@@ -53,8 +57,8 @@ def get_ldap_entries(conn: Connection,
 
     Returns:
         A dictionary with all retrieved entries from LDAP. The format of the
-        dictionary is {DN -> {attribute -> [values]}}. The entries are
-        normalized, i.e. DNs are all lowercase.
+            dictionary is {DN -> {attribute -> [values]}}. The entries are
+            normalized, i.e. DNs are all lowercase.
     """
     entries = {}
     for s in search:

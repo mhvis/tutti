@@ -36,10 +36,16 @@ for details.
 
 ## App structure
 
-* `tutti`: project module, for project-wide settings.
-* `members`: membership management app, stores people, groups and the rest.
+* `tutti`: Project module, for project-wide settings.
+* `members`: Membership management app, stores people, groups and the rest.
   Also includes a custom admin site for branding.
-* `pages`: homepage and base template.
-* `ldapsync`: synchronization of the members data with an LDAP server.
-* `aadsync`: synchronization of the member accounts and groups to Azure Active Directory.
-* `oidc`: handle user login via OpenID Connect.
+* `pages`: Homepage and base template.
+* `sync`: Synchronization of the member accounts with LDAP and Azure Active Directory.
+* `oidc`: Handle user login via OpenID Connect.
+* `pennotools`: Treasurer tools.
+
+## Task runner
+
+For deployment, run the task worker next to the server process.
+The task worker can be started using `python manage.py qcluster`.
+It will run things like LDAP sync periodically.
