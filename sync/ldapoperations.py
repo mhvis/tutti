@@ -1,5 +1,5 @@
 """LDAP add, delete and modify operations."""
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 from ldap3 import Connection, MODIFY_REPLACE
 
@@ -113,4 +113,21 @@ class ModifyDNOperation(LDAPOperation):
         return False
 
     def apply(self, conn: Connection):
-        conn.modify_dn(self.dn, self.new_dn)
+        dn, relative_dn, new_superior = self._get_modify_dn_args()
+        conn.modify_dn(dn, relative_dn, new_superior=new_superior)
+
+    def _get_modify_dn_args(self) -> Tuple[str, str, Optional[str]]:
+        """Returns DNs in the correct format for the modify_dn function.
+
+        See https://ldap3.readthedocs.io/en/latest/modifydn.html.
+
+        Returns:
+            A 3 tuple with (old DN | first component of new DN | rest of new DN
+            if different else None).
+        """
+        old_dn_parts = self.dn.partition(",")
+        new_dn_parts = self.new_dn.partition(",")
+        new_superior = None
+        if old_dn_parts[2].lower() != new_dn_parts[2].lower():
+            new_superior = new_dn_parts[2]
+        return self.dn, new_dn_parts[0], new_superior

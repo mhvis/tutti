@@ -1,8 +1,8 @@
 """Module for one-way sync between two datasets."""
 from typing import List, Dict, Tuple
 
-from ldapsync.ldap import LDAPAttributeType
-from ldapsync.ldapoperations import LDAPOperation, AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
+from sync.ldap import LDAPAttributeType
+from sync.ldapoperations import LDAPOperation, AddOperation, DeleteOperation, ModifyDNOperation, ModifyOperation
 
 
 def remap(entries: Dict[str, Dict[str, List[LDAPAttributeType]]],

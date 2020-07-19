@@ -4,8 +4,8 @@ from django.db.models import Q
 from django.test import TestCase
 from django.utils import timezone
 
-from ldapsync.clone import clone, CloneError
-from ldapsync.ldapoperations import ModifyOperation
+from sync.clone import clone, CloneError
+from sync.ldapoperations import ModifyOperation
 from members.models import Person, QGroup, GroupMembership, Instrument, ExternalCard, ExternalCardLoan, GSuiteAccount, \
     Key
 

@@ -8,8 +8,8 @@ from django.db import transaction
 from localflavor.generic.validators import IBANValidator
 from phonenumber_field.validators import validate_international_phonenumber
 
-from ldapsync.ldap import LDAPSearch, LDAPAttributeType
-from ldapsync.ldapoperations import LDAPOperation, ModifyOperation
+from sync.ldap import LDAPSearch, LDAPAttributeType
+from sync.ldapoperations import LDAPOperation, ModifyOperation
 from members.models import QGroup, Person, GSuiteAccount, Instrument, Key, ExternalCard, ExternalCardLoan, \
     GroupMembership
 
