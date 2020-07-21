@@ -21,7 +21,7 @@ class ContributionForm(forms.Form):
 class ContributionExceptionForm(forms.Form):
     group = forms.ModelChoiceField(queryset=QGroup.objects.all())
     student = forms.DecimalField(decimal_places=2,
-                                 min_value=0, )
+                                 min_value=0)
     non_student = forms.DecimalField(decimal_places=2,
                                      min_value=0,
                                      label="Burger")

@@ -63,11 +63,9 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
     template_name = "pennotools/contribution.html"
 
     def get(self, request, *args, **kwargs):
-        form = ContributionForm()
-        exceptions_formset = ContributionExceptionFormSet()
         context = {
-            "form": form,
-            "exceptions_formset": exceptions_formset,
+            "form": ContributionForm(),
+            "exceptions_formset": ContributionExceptionFormSet(),
         }
         return self.render_to_response(context)
 

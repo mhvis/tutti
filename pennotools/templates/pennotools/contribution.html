@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% load bootstrap4 static formset_tags %}
+{% load bootstrap4 static %}
 
 {% block title %}Contributie | {{ block.super }}{% endblock %}
 
 {% block nav-penno %}active{% endblock %}
 {% block nav-contribution %}active{% endblock %}
-
 
 {% block content %}
     <h1>Contributie tool</h1>
@@ -22,7 +21,6 @@
 
         {# Dynamic formset is based on https://stackoverflow.com/a/8097617 #}
         {{ exceptions_formset.management_form }}
-        {#        {% bootstrap_form exceptions_formset.management_form %}#}
         {% bootstrap_formset_errors exceptions_formset %}
         <div id="exceptionsFormSet">
             {% for form in exceptions_formset %}
@@ -48,14 +46,9 @@
             <button type="submit" name="sepa_file" class="btn btn-primary">SEPA</button>
         </p>
     </form>
-
-
-
-
 {% endblock %}
 
 {% block extra_script %}
-
     <script>
         $('#exceptionsFormAdd').click(function () {
             let idx = $('#id_form-TOTAL_FORMS').val();
@@ -63,5 +56,4 @@
             $('#id_form-TOTAL_FORMS').val(parseInt(idx) + 1);
         });
     </script>
-
 {% endblock %}
