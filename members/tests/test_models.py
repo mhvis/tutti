@@ -1,3 +1,5 @@
+"""Test cases for models.py."""
+from django.conf import settings
 from django.test import TestCase
 
 from members.models import QGroup, Person, GroupMembership
@@ -20,3 +22,19 @@ class GroupMembershipTestCase(TestCase):
         p.groups.remove(g)
         membership.refresh_from_db()
         self.assertIsNotNone(membership.end)
+
+
+class PersonQuerySetTestCase(TestCase):
+    def test_filter_members(self):
+        """Tests filter_members()."""
+        # Create group + member + non_member
+        members_group = QGroup.objects.create(name="Members")
+        member = Person.objects.create(username="a_member", first_name="A Member")
+        member.groups.add(members_group)
+        Person.objects.create(username="not_a_member", first_name="Not A Member")
+        # Set members group
+        settings.MEMBERS_GROUP = members_group.id
+        # Test filter
+        qs = Person.objects.filter_members()
+        self.assertEqual(member, qs.first())
+        self.assertEqual(1, qs.count())

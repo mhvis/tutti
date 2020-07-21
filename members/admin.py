@@ -150,7 +150,7 @@ class QGroupAdmin(GroupAdmin):
 # Person
 
 class GroupListFilter(RelatedFieldListFilter):
-    """Filter that orders on the `name` field."""
+    """Filter that orders the groups on the `name` field."""
 
     def field_admin_ordering(self, field, request, model_admin):
         return ('name',)

@@ -1,6 +1,7 @@
 // Import all Bootstrap JavaScript
 import 'bootstrap';
 
+// Probably best to move this calendar code into the calendar HTML template.
 import {Calendar} from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
@@ -21,3 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.render();
     }
 });
+
+// Ugly, should just use a vendor JS file or CDN.
+global.jQuery = global.$ = require('jquery');

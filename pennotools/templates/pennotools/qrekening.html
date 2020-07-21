@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Q rekening | {{ block.super }}{% endblock %}
+{% block title %}Q-rekening | {{ block.super }}{% endblock %}
 
+{% block nav-penno %}active{% endblock %}
 {% block nav-qrekening %}active{% endblock %}
 
 {% block content %}
-    <h1>Q rekening</h1>
+    <h1>Q-rekening</h1>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -21,7 +22,7 @@
             </tr>
             </tbody>
         </table>
-        <button type="submit" name="qrekening" class="btn btn-primary">Q rekening</button>
+        <button type="submit" name="qrekening" class="btn btn-primary">Q-rekening</button>
         <button type="submit" name="sepa" class="btn btn-secondary">SEPA file</button>
         {% if form_invalid %}
             <div class="alert alert-danger mt-3">Both debit and credit files need to be provided.</div>
