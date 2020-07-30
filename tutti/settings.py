@@ -214,3 +214,8 @@ Q_CLUSTER = {
     'poll': 30,
     'ack_failures': True,  # Do not retry failed tasks
 }
+
+# Authentication settings for Microsoft Graph API
+GRAPH_TENANT = os.getenv("GRAPH_TENANT")
+GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID")
+GRAPH_CLIENT_SECRET = os.getenv("GRAPH_CLIENT_SECRET")
