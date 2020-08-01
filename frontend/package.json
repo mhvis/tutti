@@ -11,24 +11,24 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "autoprefixer": "^9.7.6",
-    "css-loader": "^3.5.3",
+    "autoprefixer": "^9.8.6",
+    "css-loader": "^3.6.0",
     "mini-css-extract-plugin": "^0.9.0",
     "postcss-loader": "^3.0.0",
     "precss": "^4.0.0",
-    "sass": "^1.26.5",
+    "sass": "^1.26.10",
     "sass-loader": "^8.0.2",
     "style-loader": "^1.2.1",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   },
   "private": true,
   "dependencies": {
-    "@fullcalendar/bootstrap": "^4.4.0",
-    "@fullcalendar/core": "^4.4.0",
-    "@fullcalendar/daygrid": "^4.4.0",
-    "@fullcalendar/list": "^4.4.0",
-    "bootstrap": "^4.4.1",
+    "@fullcalendar/bootstrap": "^5",
+    "@fullcalendar/core": "^5",
+    "@fullcalendar/daygrid": "^5",
+    "@fullcalendar/list": "^5",
+    "bootstrap": "^4.5.0",
     "jquery": "^3.5.1",
     "popper.js": "^1.16.1"
   }

@@ -1,27 +1,21 @@
-// Import all Bootstrap JavaScript
+// It's ugly but we just expose the libraries as globals, because that's easy.
+
+// Bootstrap JavaScript
 import 'bootstrap';
 
-// Probably best to move this calendar code into the calendar HTML template.
-import {Calendar} from '@fullcalendar/core';
+// jQuery
+import jquery from "jquery";
+window["$"] = window["jQuery"] = jquery;
+
+// FullCalendar
+import {Calendar} from "@fullcalendar/core";
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
+window["Calendar"] = Calendar
+window["dayGridPlugin"] = dayGridPlugin
+window["listPlugin"] = listPlugin
+window["bootstrapPlugin"] = bootstrapPlugin
 
-document.addEventListener('DOMContentLoaded', function () {
-    let calendarEl = document.getElementById('calendar');
-
-    if (calendarEl) {
-        let calendar = new Calendar(calendarEl, {
-            header: {center: 'dayGridMonth,dayGridWeek,listYear'}, // buttons for switching between views
-
-            plugins: [dayGridPlugin, listPlugin, bootstrapPlugin],
-            themeSystem: 'bootstrap',
-            events: '/duqduqgo/birthday_events/',
-        });
-
-        calendar.render();
-    }
-});
-
-// Ugly, should just use a vendor JS file or CDN.
-global.jQuery = global.$ = require('jquery');
+// Import styles
+import './style.scss';

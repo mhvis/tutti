@@ -57,10 +57,10 @@ $primary: #661fa7;
 
 
 // FullCalendar imports
-@import "~@fullcalendar/core/main";
-@import "~@fullcalendar/daygrid/main";
-@import "~@fullcalendar/list/main";
-@import "~@fullcalendar/bootstrap/main";
+//@import "~@fullcalendar/core/main";
+//@import "~@fullcalendar/daygrid/main";
+//@import "~@fullcalendar/list/main";
+//@import "~@fullcalendar/bootstrap/main";
 
 
 // Don't look at getbootstrap.com
@@ -76,4 +76,9 @@ $primary: #661fa7;
 }
 .bd-navbar .navbar-nav .nav-link.active {
     font-weight: 600;
+}
+
+// Fix for FullCalendar event title wrap
+.fc-daygrid-event {
+    white-space: normal;
 }

@@ -1,12 +1,49 @@
 {% extends "base.html" %}
 
-{% block title %}Qalendar | {{ block.super }}{% endblock %}
+{% block title %}Calendar | {{ block.super }}{% endblock %}
 
 {% block nav-qalendar %}active{% endblock %}
 
 {% block content %}
-    <h1>Qalendar</h1>
+    <h1>Calendar</h1>
+    <p>
+        Only shows birthdays of current Quadrivium members.
+    </p>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="showAge">
+        <label class="form-check-label" for="showAge">Show age</label>
+    </div>
+    <div id="calendar" class="mt-3"></div>
+{% endblock %}
 
-    <div id="calendar"></div>
+{% block extra_script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let calendarEl = document.getElementById('calendar');
+            let calendar = new Calendar(calendarEl, {
+                headerToolbar: {center: 'dayGridMonth,listYear'}, // buttons for switching between views
 
+                plugins: [dayGridPlugin, listPlugin, bootstrapPlugin],
+                themeSystem: 'bootstrap',
+                events: '{% url "duqduqgo:birthdays" %}',
+                firstDay: 1,  // Set Monday as first day of the week
+                // Render age besides title
+                eventContent: function (eventInfo) {
+                    if (showAge) {
+                        return eventInfo.event.title + " (" + eventInfo.event.extendedProps.age + ")";
+                    } else {
+                        return eventInfo.event.title;
+                    }
+                },
+            });
+            calendar.render();
+
+            // Flag variable for showAge
+            let showAge = false;
+            document.getElementById('showAge').addEventListener('change', (event) => {
+                showAge = event.target.checked;
+                calendar.render();  // Re-render calendar
+            });
+        });
+    </script>
 {% endblock %}
