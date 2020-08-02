@@ -16,7 +16,7 @@ def aad_sync_objects(graph: Graph) -> List[SyncOperation]:
     """
     operations = []
     # Sync users
-    local_users = [convert_local_person(p) for p in Person.objects.filter(groups=51)]  # Todo: remove hardcoded filter
+    local_users = [convert_local_person(p) for p in Person.objects.filter_members()]
     aad_users = graph.get_users()
     operations.extend(sync_users(local_users, aad_users))
     # Sync groups
