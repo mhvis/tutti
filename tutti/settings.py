@@ -227,6 +227,6 @@ BOOTSTRAP4 = {
 # Authentication settings for Microsoft Graph API
 GRAPH_TENANT = os.getenv("GRAPH_TENANT")
 GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID")
-GRAPH_CLIENT_SECRET = os.getenv("GRAPH_CLIENT_SECRET")
+GRAPH_CLIENT_SECRET = getenv_with_file("GRAPH_CLIENT_SECRET")
 # Sync with Azure when a user or group is saved
 GRAPH_SYNC_ON_SAVE = env.bool("GRAPH_SYNC_ON_SAVE", default=False)
