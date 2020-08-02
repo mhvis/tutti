@@ -27,7 +27,8 @@
             <li class="nav-item">
                 <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
             </li>
-            <span class="navbar-text">
+            {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
+            <span class="navbar-text d-none d-md-inline-block">
                 |
             </span>
             {% if perms.pennotools %}
