@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'health_check.storage',
     'import_export',  # django-import-export
     'django_q',
+    'bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -213,6 +214,14 @@ Q_CLUSTER = {
     'catch_up': False,
     'orm': 'default',
     'poll': 30,  # Poll the database every 30 seconds for tasks
+}
+
+# ID of the group in the database that holds the current Quadrivium members.
+MEMBERS_GROUP = env.int("MEMBERS_GROUP", default=-1)
+
+# Bootstrap layout settings
+BOOTSTRAP4 = {
+    # "set_placeholder": False,
 }
 
 # Authentication settings for Microsoft Graph API

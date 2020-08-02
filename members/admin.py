@@ -135,6 +135,9 @@ class QGroupModelForm(forms.ModelForm):
     class Meta:
         fields = ('group_members',)
         model = QGroup
+        help_texts = {
+            "name": "Can't be changed after creation. To change a group name, create a new group."
+        }
 
 
 @admin.register(QGroup, site=admin_site)
@@ -146,11 +149,22 @@ class QGroupAdmin(GroupAdmin):
 
     inlines = (CurrentGroupMembershipInline,)
 
+    def get_readonly_fields(self, request, obj=None):
+        """Makes name field readonly.
+
+        This is because name changes do not propagate correctly to SharePoint.
+        Instead it is better to recreate a group to change the name.
+        """
+        if obj:
+            return ["name"]
+        else:
+            return []
+
 
 # Person
 
 class GroupListFilter(RelatedFieldListFilter):
-    """Filter that orders on the `name` field."""
+    """Filter that orders the groups on the `name` field."""
 
     def field_admin_ordering(self, field, request, model_admin):
         return ('name',)
