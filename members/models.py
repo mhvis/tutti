@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
@@ -94,7 +94,14 @@ class Key(models.Model):
 class PersonQuerySet(QuerySet):
     def filter_members(self):
         """Filters people that are currently a member."""
+        if settings.MEMBERS_GROUP == -1:
+            # Members group ID not set, do nothing
+            return self
         return self.filter(groups=settings.MEMBERS_GROUP)
+
+
+class PersonManager(UserManager.from_queryset(PersonQuerySet)):
+    pass
 
 
 class Person(User):
@@ -113,7 +120,7 @@ class Person(User):
             ('change_treasurer_fields', 'Can change treasurer related fields'),
         ]
 
-    objects = PersonQuerySet.as_manager()
+    objects = PersonManager()
 
     initials = models.CharField(max_length=30, blank=True)
 
