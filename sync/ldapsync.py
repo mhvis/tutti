@@ -24,8 +24,14 @@ def get_ldap_sync_operations(conn: Connection) -> List[LDAPOperation]:
     return operations
 
 
-def ldap_sync():
-    """Do a full LDAP sync."""
+def ldap_sync() -> List[LDAPOperation]:
+    """Do a full LDAP sync.
+
+    Returns:
+        The sync operations that have been applied.
+    """
     with get_connection() as conn:
-        for operation in get_ldap_sync_operations(conn):
+        operations = get_ldap_sync_operations(conn)
+        for operation in operations:
             operation.apply(conn)
+    return operations
