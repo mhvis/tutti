@@ -1,3 +1,5 @@
+"""API for interacting with Microsoft Graph REST API."""
+
 from time import time
 from typing import List, Dict
 

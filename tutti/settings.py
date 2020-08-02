@@ -206,16 +206,18 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Setup task queue
 Q_CLUSTER = {
-    'workers': 1,
-    'timeout': 90,
-    'retry': 120,
+    'workers': 1,  # We need 1 worker because we don't want parallel task runs
+    'timeout': 600,  # Tasks are terminated after 10 minutes
+    'ack_failures': True,  # Do not retry failed tasks
+    'retry': 3600,  # (Retries are disabled so this doesn't do anything)
     'catch_up': False,
     'orm': 'default',
-    'poll': 30,
-    'ack_failures': True,  # Do not retry failed tasks
+    'poll': 30,  # Poll the database every 30 seconds for tasks
 }
 
 # Authentication settings for Microsoft Graph API
 GRAPH_TENANT = os.getenv("GRAPH_TENANT")
 GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID")
 GRAPH_CLIENT_SECRET = os.getenv("GRAPH_CLIENT_SECRET")
+# Sync with Azure when a user or group is saved
+GRAPH_SYNC_ON_SAVE = env.bool("GRAPH_SYNC_ON_SAVE", default=False)

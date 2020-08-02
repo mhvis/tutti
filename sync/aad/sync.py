@@ -1,3 +1,4 @@
+"""AAD sync methods using the graph and operations modules."""
 from typing import Dict, List, Tuple
 
 from members.models import QGroup, Person
