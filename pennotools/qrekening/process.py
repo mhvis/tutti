@@ -76,7 +76,7 @@ def get_qrekening(dav_people: Dict[str, DavilexPerson]):
         if p.q_person:
             if p.get_total() < 0:
                 creditors.append(row)
-            elif not p.get_iban():
+            elif not p.get_iban() or not p.q_person.sepa_direct_debit:
                 debtors_self.append(row)
             else:
                 debtors.append(row)

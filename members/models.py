@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -25,6 +27,16 @@ class Instrument(models.Model):
         return self.name
 
 
+class QGroupManager(models.Manager):
+    pass
+    # def get_members_group(self):
+    #     """Returns the current members group.
+    #
+    #     If you just need the ID for filtering, use settings.MEMBERS_GROUP.
+    #     """
+    #     return self.get(id=settings.MEMBERS_GROUP)
+
+
 class QGroup(Group):
     """Extension of the Group model for Quadrivium fields."""
     description = models.TextField(blank=True)
@@ -36,6 +48,8 @@ class QGroup(Group):
                               null=True,
                               blank=True,
                               help_text='E.g. the commissioner.')
+
+    objects = QGroupManager()
 
     class Meta:
         verbose_name = 'group'
@@ -77,6 +91,12 @@ class Key(models.Model):
         return '{} {}'.format(self.number, self.room_name).strip()
 
 
+class PersonQuerySet(QuerySet):
+    def filter_members(self):
+        """Filters people that are currently a member."""
+        return self.filter(groups=settings.MEMBERS_GROUP)
+
+
 class Person(User):
     """Extends a user with Quadrivium related fields.
 
@@ -92,6 +112,8 @@ class Person(User):
         permissions = [
             ('change_treasurer_fields', 'Can change treasurer related fields'),
         ]
+
+    objects = PersonQuerySet.as_manager()
 
     initials = models.CharField(max_length=30, blank=True)
 
@@ -148,6 +170,10 @@ class Person(User):
     def current_external_card_loans(self):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
+
+    # def is_member(self):
+    #     """Returns whether this person is currently a member."""
+    #     return
 
 
 class GroupMembership(models.Model):
