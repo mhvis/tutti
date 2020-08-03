@@ -6,8 +6,8 @@ from localflavor.generic.models import IBANField
 
 class Donor(models.Model):
     first_name = models.CharField(max_length=150, blank=True)
-    last_name = models.CharField(max_length=150)
-    email = models.EmailField(blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    email = models.EmailField("email address", blank=True)
     salutation = models.CharField(max_length=30,
                                   choices=(('heer', 'Heer'), ('mevrouw', 'Mevrouw')),
                                   blank=True,
