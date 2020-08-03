@@ -1,7 +1,9 @@
 {% extends "admin/change_form.html" %}
 {% block object-tools-items %}
-    <li>
-        <a href="{% url 'admin:members_person_unsubscribe' original.pk %}">Unsubscribe this person</a>
-    </li>
+    {% if has_change_permission %}
+        <li>
+            <a href="{% url 'admin:members_person_unsubscribe' original.pk %}">Unsubscribe this person</a>
+        </li>
+    {% endif %}
     {{ block.super }}
 {% endblock %}

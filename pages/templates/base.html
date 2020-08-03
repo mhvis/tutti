@@ -63,6 +63,8 @@
                     <i class="fas fa-user"></i>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item {% block nav-change-password %}{% endblock %}"
+                       href="{% url 'members:password_change' %}">Change password</a>
                     <a class="dropdown-item" href="{% url 'oidc:logout' %}">Log out</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item {% block nav-about %}{% endblock %}"
