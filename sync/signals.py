@@ -5,11 +5,13 @@ from django.dispatch import receiver
 from django_q.models import Schedule
 from django_q.tasks import schedule, async_task
 
-from members.models import Person, QGroup
+from members.models import Person, QGroup, User
 
 
+@receiver(post_save, sender=User)
 @receiver(post_save, sender=Person)
 @receiver(post_save, sender=QGroup)
+@receiver(post_delete, sender=User)
 @receiver(post_delete, sender=Person)
 @receiver(post_delete, sender=QGroup)
 def queue_sync(sender, **kwargs):
