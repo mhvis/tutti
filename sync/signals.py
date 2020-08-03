@@ -43,10 +43,9 @@ def migrate_schedule(func, name, version: int, *args, **kwargs):
 @receiver(post_migrate)
 def setup_sync_tasks(sender, **kwargs):
     """Sets up the sync tasks which will be run using Django Q."""
-    # No-op, todo: remove after it has been applied
-    Schedule.objects.filter(name='ldapsync').delete()
     # Because syncs will also run after each modification in the database, I
-    #  use a daily schedule instead of something shorter.
+    #  use a daily schedule instead of something shorter. The daily task is
+    #  just to catch some missed object changes.
 
     # Schedule for LDAP
     migrate_schedule(func="sync.ldapsync.ldap_sync",
