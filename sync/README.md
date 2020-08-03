@@ -8,6 +8,12 @@ Package layout:
 * There are a couple of management commands that will run synchronization manually.
     They are not meant for use with cron.
 
+## Passwords
+
+We sync the passwords between LDAP and Django. The `members` app stores an
+additional password hash in the `ldap_password` field which is in a format
+that can be synchronized with the LDAP database.
+
 ## Random AAD notes
 
 * > Federated users created using this API will be forced to sign-in every 12 hours by default. For more information on

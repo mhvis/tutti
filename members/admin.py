@@ -3,8 +3,9 @@ from django.contrib import admin, messages
 from django.contrib.admin import RelatedFieldListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.forms import UserChangeForm, AdminPasswordChangeForm
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
 from import_export.admin import ImportExportMixin
@@ -12,7 +13,7 @@ from import_export.admin import ImportExportMixin
 from members.adminjobqueue import register_job_queue_admin
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
-    ExternalCardLoan, GroupMembership
+    ExternalCardLoan, GroupMembership, PersonTreasurerFields
 
 
 class QAdmin(admin.AdminSite):
@@ -170,16 +171,18 @@ class GroupListFilter(RelatedFieldListFilter):
         return ('name',)
 
 
-@admin.register(Person, site=admin_site)
-class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
+class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
-            'fields': ('username', ('first_name', 'last_name'), 'initials', 'email', 'groups')
+            'fields': ('username', "password")
+        }),
+        ("Personal info", {
+            "fields": (('first_name', 'last_name'), 'initials', 'email', 'groups')
         }),
         ('Contact details', {
             'fields': ('phone_number', 'street', 'postal_code', 'city', 'country')
         }),
-        ('Personal details', {
+        ('Personal info', {
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
         ('Quadrivium', {
@@ -204,14 +207,11 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
     inlines = (ExternalCardLoanInline, GroupMembershipInline)
     save_on_top = True
 
-    resource_class = PersonResource  # Import/export settings
+    form = UserChangeForm  # Needed for the username and password fields/widgets
 
-    def has_import_permission(self, request):
-        # Only allow import if user has change+add+delete permission
-        return request.user.has_perms(['members.add_person', 'members.change_person', 'members.delete_person'])
-
-    def has_export_permission(self, request):
-        return request.user.has_perm('members.view_person')
+    # Needed for UserAdmin.user_change_password
+    change_password_form = AdminPasswordChangeForm
+    change_user_password_template = None
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
@@ -221,25 +221,24 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
 
     def get_urls(self):
         # Add unsubscribe URL
-        urls = super().get_urls()
-        custom_url = [
-            path('<int:person_id>/unsubscribe/',
-                 self.admin_site.admin_view(self.unsubscribe_view),
-                 name='members_person_unsubscribe',
-                 ),
+        return [path('<id>/unsubscribe/',
+                     self.admin_site.admin_view(self.unsubscribe_view),
+                     name='members_person_unsubscribe',
+                     ),
+                path('<id>/password/',
+                     # Trick from here: https://stackoverflow.com/a/1015405
+                     self.admin_site.admin_view(UserAdmin.user_change_password.__get__(self, PersonAdmin)),
+                     name='members_person_password_change',
+                     ),
+                ] + super().get_urls()
 
-        ]
-        return custom_url + urls
-
-    def unsubscribe_view(self, request, person_id, *args, **kwargs):
+    def unsubscribe_view(self, request, id, *args, **kwargs):
         """View for person unsubscribed, removes the person from groups on POST."""
-        person = self.get_object(request, person_id)  # type: Person
-        if person is None:
-            self.message_user(request, 'Person with ID “{}” doesn’t exist.'.format(person_id), messages.WARNING)
-            return HttpResponseRedirect(reverse('admin:index'))
-
-        if not request.user.has_perm('members.change_person'):
+        person = self.get_object(request, id)  # type: Person
+        if not self.has_change_permission(request, person):
             raise PermissionDenied
+        if person is None:
+            raise Http404
 
         groups_removed = person.groups.filter(qgroup__end_on_unsubscribe=True)
         groups_kept = person.groups.difference(groups_removed)
@@ -262,26 +261,41 @@ class PersonAdmin(ImportExportMixin, admin.ModelAdmin):
         }
         return TemplateResponse(request, 'admin/members/person/unsubscribe.html', context)
 
-    # Treasurer can edit some fields
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        # Password can only be set after creation.
+        # Kinda ugly but we need to always change the object because we change the original instance variable
+        fieldsets[0][1]["fields"] = ("username",) if not obj else ("username", "password")
+        return fieldsets
 
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.has_perm('members.change_person') and request.user.has_perm(
-                'members.change_treasurer_fields'):
-            # If has change_treasurer_fields permission, disable non-treasurer fields
-            treasurer_disable = (
-                'username', 'first_name', 'last_name', 'initials', 'email', 'groups',
-                'phone_number', 'street', 'postal_code', 'city', 'country',
-                'gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study',
-                # 'person_id', 'is_student', 'iban', 'sepa_direct_debit',
-                'bhv_certificate', 'gsuite_accounts', 'notes',
-                'tue_card_number', 'key_access', 'keywatcher_id', 'keywatcher_pin'
-            )
-            return treasurer_disable + super().get_readonly_fields(request, obj)
-        return super().get_readonly_fields(request, obj)
 
-    def has_change_permission(self, request, obj=None):
-        # Treasurer can change but has fields disabled using get_readonly_fields
-        return request.user.has_perm('members.change_treasurer_fields') or super().has_change_permission(request, obj)
+@admin.register(Person, site=admin_site)
+class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
+    """PersonAdmin extended with import/export capabilities."""
+    resource_class = PersonResource  # Import/export settings
+
+    def has_import_permission(self, request):
+        # Only allow import if user has change+add+delete permission
+        return request.user.has_perms(['members.add_person', 'members.change_person', 'members.delete_person'])
+
+    def has_export_permission(self, request):
+        return request.user.has_perm('members.view_person')
+
+
+@admin.register(PersonTreasurerFields, site=admin_site)
+class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
+    """Separate admin for specific treasurer fields only."""
+    fields = ("username", 'person_id', 'is_student', 'iban', 'sepa_direct_debit',)
+    readonly_fields = ("username",)
+    list_display = ('username', 'first_name', 'last_name', 'email')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('username',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 admin_site.register(Instrument)

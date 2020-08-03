@@ -1,4 +1,8 @@
-"""All about cloning LDAP to Django."""
+"""All about cloning LDAP to Django.
+
+This module is deprecated now that cloning has already occurred. It can be
+removed altogether.
+"""
 import itertools
 from datetime import date
 from typing import Dict, List, Iterable, Tuple, Optional
