@@ -17,7 +17,7 @@ docstring-convention = google
 
 # import order
 import-order-style = pycharm
-application-import-names =
-    members
-    tutti
-    ldapsync
+# application-import-names =
+#     members
+#     tutti
+#     sync
