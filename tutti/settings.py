@@ -39,6 +39,18 @@ ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    # Own apps
+    'members.apps.MembersConfig',  # members should be above the admin site so that it can override admin templates
+    'sync.apps.SyncConfig',
+    'oidc.apps.OIDCConfig',
+    'pages.apps.PagesConfig',
+    'pennotools.apps.PennotoolsConfig',
+    'duqduqgo.apps.DuqduqgoConfig',
+    'donors.apps.DonorsConfig',
+    # Admin site
+    'tutti.apps.TuttiAdminConfig',
+
+    # Django apps
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -46,15 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
-    'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
-    'sync.apps.SyncConfig',
-    'oidc.apps.OIDCConfig',
-    'pages.apps.PagesConfig',
-    'pennotools.apps.PennotoolsConfig',
-    'duqduqgo.apps.DuqduqgoConfig',
-
-    'django.contrib.admin',
-
+    # Library apps
     'phonenumber_field',
     'localflavor',
     'django_countries',

@@ -1,4 +1,5 @@
-"""Extra admin models for Django Q job scheduler."""
+"""Sets up Django Q (job scheduler) models in the admin site."""
+from django.contrib import admin
 from django_q.admin import ScheduleAdmin, TaskAdmin, FailAdmin, QueueAdmin
 from django_q.models import Schedule, Success, Failure, OrmQ
 
@@ -30,10 +31,11 @@ class MyQueueAdmin(NoPermissionsMixin, QueueAdmin):
     pass
 
 
-def register_job_queue_admin(admin_site):
-    """Register admin models for the job queue."""
-    # Set up Django Q admin integration
-    admin_site.register(Schedule, MyScheduleAdmin)
-    admin_site.register(Success, MyTaskAdmin)
-    admin_site.register(Failure, MyFailAdmin)
-    admin_site.register(OrmQ, MyQueueAdmin)
+admin.site.unregister(Schedule)
+admin.site.unregister(Success)
+admin.site.unregister(Failure)
+admin.site.unregister(OrmQ)
+admin.site.register(Schedule, MyScheduleAdmin)
+admin.site.register(Success, MyTaskAdmin)
+admin.site.register(Failure, MyFailAdmin)
+admin.site.register(OrmQ, MyQueueAdmin)
