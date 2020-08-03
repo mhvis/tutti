@@ -35,7 +35,7 @@ RUN addgroup -S app && adduser -S app -G app
 
 # Copy virtualenv and apply
 RUN apk update \
-    && apk add libpq
+    && apk add libpq tzdata
 COPY --from=builder /app/venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
