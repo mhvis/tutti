@@ -1,5 +1,72 @@
 {% extends "base.html" %}
-{% block nav-home %}active{% endblock %}
+{% block nav_home %}active{% endblock %}
 {% block content %}
-    <h1><i class="fas fa-home"></i></h1>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Your info</h5>
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>SharePoint username</strong></div>
+                <div class="col-sm-9">{{ user.username }}@esmgquadrivium.nl</div>
+            </div>
+            {% if user.person.keywatcher_id and user.person.keywatcher_pin %}
+                <div class="row mb-2">
+                    <div class="col-sm-3"><strong>KeyWatcher</strong></div>
+                    <div class="col-sm-9">
+                        ID: <span class="text-monospace">{{ user.person.keywatcher_id }}</span>
+                        PIN: <span class="text-monospace">
+                            <span id="actualPin" class="d-none">{{ user.person.keywatcher_pin }}</span>
+                            <span id="maskedPin">****</span>
+                            <i id="togglePin" class="fas fa-fw fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Keys that you can access</strong></div>
+                    <div class="col-sm-9">{{ user.person.key_access.all|join:", " }}</div>
+                </div>
+            {% else %}
+                <div class="mb-2"><strong>You don't (yet) have a KeyWatcher ID</strong></div>
+            {% endif %}
+            <a href="{% url "members:profile" %}">View all info</a>
+        </div>
+    </div>
+
+    <div class="card-deck mt-3">
+        {% include "pages/home_card.html" with icon="info" link="https://esmgquadrivium.sharepoint.com/SitePages/Home.aspx" text="Members info (SharePoint)" newtab=True %}
+        {% include "pages/home_card.html" with icon="camera" link="https://esmgquadrivium.sharepoint.com/Pictures/Forms/Thumbnails.aspx" text="Pictures (SharePoint)" newtab=True %}
+        {% include "pages/home_card.html" with icon="file" link="https://esmgquadrivium.sharepoint.com/DoQumenten/Forms/AllItems.aspx" text="Presstos, audio recordings, GMM documents (SharePoint)" newtab=True %}
+    </div>
+    <div class="card-deck mt-3">
+        {% include "pages/home_card.html" with icon="utensils" link="https://dining.studentencultuur.nl/" text="Scala Dining" newtab=True %}
+        {% include "pages/home_card.html" with icon="calendar" link="https://deplint.nu/" text="Rehearsal room bookings" newtab=True %}
+        <div class="card invisible"></div>
+    </div>
+
+
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let actualPin = document.getElementById("actualPin");
+            let maskedPin = document.getElementById("maskedPin");
+            let togglePin = document.getElementById("togglePin");
+            togglePin.addEventListener('click', function(e) {
+                if (actualPin.className === "") {
+                    actualPin.className = "d-none";
+                    maskedPin.className = "";
+                    togglePin.className = "fas fa-fw fa-eye";
+                } else {
+                    actualPin.className = "";
+                    maskedPin.className = "d-none";
+                    togglePin.className = "fas fa-fw fa-eye-slash";
+                }
+            });
+            // Prevent selection when double-clicking
+            togglePin.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+            });
+        });
+    </script>
 {% endblock %}

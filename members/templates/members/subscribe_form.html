@@ -1,0 +1,27 @@
+{% extends "base_public.html" %}
+{% load bootstrap4 %}
+
+{% block content %}
+    <h2>Become a member</h2>
+    <p>
+        Great that you're interested in becoming a member of Quadrivium, the student music association!
+        You can fill out this form to request a membership.
+        After submission, we will reach out to you for completing the membership application.
+    </p>
+    <p>
+        There is a yearly contribution fee for membership of around 60 euros.
+    </p>
+    <p>
+        The reason for why we need to gather this information is explained in the privacy document that can be found on the
+        main Quadrivium website (in Dutch).
+    </p>
+
+    <form method="post" action="{% url 'members:subscribe' %}">
+        {% csrf_token %}
+        {% bootstrap_form form layout='horizontal' %}
+    {% buttons %}
+        <button type="submit" class="btn btn-primary">Request membership</button>
+    {% endbuttons %}
+    </form>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "body.html" %}
+{% load static %}
+
+{% block body %}
+    <div class="navbar navbar-dark bd-navbar bg-primary">
+        <div class="navbar-brand mx-auto">
+            <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
+        </div>
+    </div>
+    <div class="container" style="max-width: 720px;">
+        {% block content %}{% endblock %}
+    </div>
+{% endblock %}

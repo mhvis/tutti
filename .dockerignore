@@ -6,3 +6,6 @@ __pycache__
 .dockerignore
 Dockerfile
 db.sqlite3
+venv
+.env
+docker-compose.override.yml
