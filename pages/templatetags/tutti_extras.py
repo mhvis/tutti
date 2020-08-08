@@ -1,5 +1,4 @@
 from django import template
-from localflavor.generic.forms import IBANFormField
 
 register = template.Library()
 
