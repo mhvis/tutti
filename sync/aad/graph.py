@@ -1,7 +1,7 @@
 """API for interacting with Microsoft Graph REST API."""
-
 from time import time
 from typing import List, Dict
+from uuid import uuid4
 
 import requests
 from django.conf import settings
@@ -31,7 +31,15 @@ class GraphObject:
         return cls(obj["id"], extension)
 
     def as_object(self) -> Dict:
-        """Returns a dictionary representation that Graph understands.
+        """Returns a dictionary representation with object properties.
+
+        Can be used to compare instances for synchronization and update
+        objects. Does not include the extension and directory ID.
+        """
+        raise NotImplementedError
+
+    def create_body(self) -> Dict:
+        """Returns a dictionary representation used to create a new instance.
 
         Includes all properties needed to create a new object on the API. Does
         not include the extension and object ID.
@@ -70,16 +78,37 @@ class GraphUser(GraphObject):
 
     def as_object(self) -> Dict:
         return {
-            "accountEnabled": True,
-            "displayName": self.display_name,
-            "givenName": self.given_name,
-            "mailNickname": self.mail_nickname,
-            # "passwordProfile": {},
-            # "usageLocation": "NL",
-            "preferredLanguage": self.preferred_language,
-            "surname": self.surname,
-            "userPrincipalName": self.user_principal_name,
+            'displayName': self.display_name,
+            'givenName': self.given_name,
+            'mailNickname': self.mail_nickname,
+            'preferredLanguage': self.preferred_language,
+            'surname': self.surname,
+            'userPrincipalName': self.user_principal_name,
         }
+
+    def create_body(self) -> Dict:
+        # Generate random password and immutable ID
+        # We don't use these but they need to be provided when creating a new user
+        password = str(uuid4())
+        immutable_id = str(uuid4())
+        o = self.as_object()
+        o.update({
+            'accountEnabled': True,
+            'passwordProfile': {
+                'password': password,
+                "forceChangePasswordNextSignIn": False,
+            },
+            'onPremisesImmutableId': immutable_id,
+            'usageLocation': 'NL',
+            # "identities": [
+            #     {
+            #         "signInType": "userPrincipalName",
+            #         "issuer": "esmgquadrivium.onmicrosoft.com",
+            #         "issuerAssignedId": self.user_principal_name,
+            #     },
+            # ],
+        })
+        return o
 
     def __str__(self) -> str:
         return super().__str__()
@@ -95,20 +124,26 @@ class GraphGroup(GraphObject):
     @classmethod
     def from_object(cls, obj: Dict):
         directory_instance = GraphObject.from_object(obj)
-        return cls(obj["description"],
-                   obj["displayName"],
-                   obj["mailNickname"],
+        return cls(obj['description'],
+                   obj['displayName'],
+                   obj['mailNickname'],
                    directory_id=directory_instance.directory_id,
                    extension=directory_instance.extension)
 
     def as_object(self) -> Dict:
         return {
-            "displayName": self.display_name,
-            "description": self.description,
-            "mailEnabled": False,
-            "securityEnabled": True,
-            "mailNickname": self.mail_nickname,
+            'displayName': self.display_name,
+            'description': self.description,
+            'mailNickname': self.mail_nickname,
         }
+
+    def create_body(self) -> Dict:
+        o = self.as_object()
+        o.update({
+            'mailEnabled': False,
+            'securityEnabled': True,
+        })
+        return o
 
 
 class Graph:
@@ -286,7 +321,10 @@ class Graph:
             sku_id: License SKU unique identifier.
             disabled_plans: List of identifiers of plans to disable.
         """
-        data = {"addLicenses": [{"skuId": sku_id, "disabledPlans": disabled_plans}]}
+        data = {
+            "addLicenses": [{"skuId": sku_id, "disabledPlans": disabled_plans}],
+            "removeLicenses": [],
+        }
         self.call_resource(resource="users/{}/assignLicense".format(user_id),
                            method="POST",
                            json=data)
@@ -297,11 +335,11 @@ class Graph:
         Returns:
             The object ID of the created user.
         """
-        response = self.call_resource(resource="users", method="POST", json=user.as_object())
+        response = self.call_resource(resource="users", method="POST", json=user.create_body())
         return response.json()["id"]
 
     def create_group(self, group: GraphGroup) -> str:
-        response = self.call_resource(resource="groups", method="POST", json=group.as_object())
+        response = self.call_resource(resource="groups", method="POST", json=group.create_body())
         return response.json()["id"]
 
     def add_group_member(self, group_id: str, user_id: str):
