@@ -19,6 +19,13 @@
 </p>
 
 <p>
+<b>Doppelgängers:</b><br>
+{% for double_name_count in double_name_counts %}
+    {{double_name_count.0}}: {{double_name_count.1}}x<br>
+{% endfor %}
+</p>
+
+<p>
     <b>Groepen:</b><br>
    {% for group in groups %}
     {{group}}():

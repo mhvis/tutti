@@ -15,6 +15,9 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         double_names = list(Person.objects.values('first_name').annotate(
                                 name_count=Count('first_name')).filter(
                                 name_count__gt=1).values_list('first_name', flat=True))
+        double_name_counts = list(Person.objects.values('first_name').annotate(
+                                name_count=Count('first_name')).filter(
+                                name_count__gt=1).values_list('first_name','name_count'))
         persongroupvalues = list(Person.objects.all().values('first_name', 'last_name', 'groups').values_list(
                                 'first_name', 'last_name','groups'))
         instruments = Instrument.objects.all()
@@ -23,6 +26,7 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         context = {'groups':groups,
                    'persons':persons,
                    'double_names': double_names,
+                   'double_name_counts': double_name_counts,
                    'instruments':instruments,
                    'persongroupvalues':persongroupvalues}
         return context
