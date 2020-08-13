@@ -18,7 +18,7 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         persongroupvalues = list(Person.objects.all().values('first_name', 'last_name', 'groups').values_list(
                                 'first_name', 'last_name','groups'))
         instruments = Instrument.objects.all()
-
+ 
 
         context = {'groups':groups,
                    'persons':persons,
