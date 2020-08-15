@@ -1,8 +1,12 @@
-from django.contrib.auth.models import AbstractUser, Group
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from ldap3 import HASHED_SALTED_SHA512
+from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -10,16 +14,41 @@ from phonenumber_field.modelfields import PhoneNumberField
 class User(AbstractUser):
     """A user for authentication and groups, optionally linked to a Person."""
 
+    ldap_password = models.CharField(max_length=256, default="")
+    """Stores the password hashed in a format that LDAP understands.
+
+    A bit invasive, but an easy solution.
+    """
+
     def __str__(self):
         # Default implementation returns username
         return self.get_full_name()
 
+    def set_password(self, raw_password):
+        # Hook into the password system for creating an additional hash for use
+        # with LDAP.
+        super().set_password(raw_password)
+        self.ldap_password = hashed(HASHED_SALTED_SHA512, raw_password)
+
 
 class Instrument(models.Model):
+    class Meta:
+        ordering = ['name']
+
     name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.name
+
+
+class QGroupManager(models.Manager):
+    pass
+    # def get_members_group(self):
+    #     """Returns the current members group.
+    #
+    #     If you just need the ID for filtering, use settings.MEMBERS_GROUP.
+    #     """
+    #     return self.get(id=settings.MEMBERS_GROUP)
 
 
 class QGroup(Group):
@@ -27,12 +56,15 @@ class QGroup(Group):
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True, verbose_name='e-mail')
     end_on_unsubscribe = models.BooleanField(default=True,
-                                             help_text='If set, when a person is unsubscribed she is removed from this group.')
+                                             help_text=('If set, when a person is unsubscribed they are removed '
+                                                        'from this group.'))
     owner = models.ForeignKey('Person',
                               on_delete=models.PROTECT,
                               null=True,
                               blank=True,
                               help_text='E.g. the commissioner.')
+
+    objects = QGroupManager()
 
     class Meta:
         verbose_name = 'group'
@@ -74,6 +106,19 @@ class Key(models.Model):
         return '{} {}'.format(self.number, self.room_name).strip()
 
 
+class PersonQuerySet(QuerySet):
+    def filter_members(self):
+        """Filters people that are currently a member."""
+        if settings.MEMBERS_GROUP == -1:
+            # Members group ID not set, do nothing
+            return self
+        return self.filter(groups=settings.MEMBERS_GROUP)
+
+
+class PersonManager(UserManager.from_queryset(PersonQuerySet)):
+    pass
+
+
 class Person(User):
     """Extends a user with Quadrivium related fields.
 
@@ -89,6 +134,8 @@ class Person(User):
         permissions = [
             ('change_treasurer_fields', 'Can change treasurer related fields'),
         ]
+
+    objects = PersonManager()
 
     initials = models.CharField(max_length=30, blank=True)
 
@@ -145,6 +192,18 @@ class Person(User):
     def current_external_card_loans(self):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
+
+    # def is_member(self):
+    #     """Returns whether this person is currently a member."""
+    #     return
+
+
+class PersonTreasurerFields(Person):
+    """Person proxy for use in admin for treasurer fields, see admin.py."""
+
+    class Meta:
+        proxy = True
+        verbose_name_plural = "people treasurer fields"
 
 
 class GroupMembership(models.Model):

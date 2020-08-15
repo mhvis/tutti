@@ -1,17 +1,40 @@
 import os
+import os.path
+from email.utils import getaddresses
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import environ
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5_gj%^ok#l6#rw@03qondoll)9@zw6jocnvi&x9@ktsvie$=yo'
+def getenv_with_file(key: str, default: str = None) -> str:
+    """Returns the value of the environment variable or from a file.
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+    If the environment variable is not set, this function will check if an
+    environment variable with _FILE appended exists and return the contents of
+    that file.
+    """
+    value = os.getenv(key)
+    if value:
+        return value
+    filename = os.getenv("{}_FILE".format(key))
+    if filename:
+        with open(filename) as f:
+            return f.read()
+    return default
+
+
+# Import .env file
+env = environ.Env()
+env_file = str(os.path.join(BASE_DIR, ".env"))
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file=env_file)
+
+SECRET_KEY = getenv_with_file('DJANGO_SECRET_KEY')
+
+DEBUG = env.bool('DJANGO_DEBUG', default=False)
+
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 # Application definition
 
@@ -24,10 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
 
     'members.apps.MembersConfig',  # members should be above contrib.admin so that it can override admin templates
-    'ldapsync.apps.LdapSyncConfig',
+    'sync.apps.SyncConfig',
     'oidc.apps.OIDCConfig',
     'pages.apps.PagesConfig',
-    'aadsync.apps.AADSyncConfig',
     'pennotools.apps.PennotoolsConfig',
     'duqduqgo.apps.DuqduqgoConfig',
     'faqts.apps.FaQtsConfig',
@@ -41,11 +63,14 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.storage',
     'import_export',  # django-import-export
-
+    'django_q',
+    'bootstrap4',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # We're using WhiteNoise for the static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,7 +92,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'tutti.context_processors.version_info',
             ],
         },
     },
@@ -75,15 +99,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tutti.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    "default": env.db("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DATABASE_CONN_MAX_AGE", default=0)
+# Allow overriding database password using separate environment variable
+database_password = getenv_with_file("DATABASE_PASSWORD")
+if database_password:
+    DATABASES["default"]["PASSWORD"] = database_password
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -119,27 +142,32 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist'),
 ]
+# We're using WhiteNoise in production
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', None)
+if os.getenv('DJANGO_WHITENOISE', None):
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', None)
 
 AUTH_USER_MODEL = 'members.User'
 
-LDAP = {
-    'HOST': 'ldap://ds.esmgquadrivium.nl',  # Can be in URI form
-    'USER': '',
-    'PASSWORD': '',
-    'START_TLS': True,
-}
+# LDAP settings
+LDAP_HOST = os.getenv('DJANGO_LDAP_HOST')  # Can be in URI form
+LDAP_USER = os.getenv('DJANGO_LDAP_USER')
+LDAP_PASSWORD = getenv_with_file('DJANGO_LDAP_PASSWORD')
+LDAP_START_TLS = env.bool("DJANGO_LDAP_START_TLS", default=False)
+# When True, an LDAP sync will be triggered after saving a person or group.
+LDAP_SYNC_ON_SAVE = env.bool("DJANGO_LDAP_SYNC_ON_SAVE", default=False)
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
-# OpenID Connect configuration
-
+# Keycloak OpenID Connect configuration
 AUTHLIB_OAUTH_CLIENTS = {
     'keycloak': {
         'client_id': 'tutti',
-        'client_secret': '',  # Needs to be set in deployment
+        # If unset, OIDC will not be used
+        'client_secret': getenv_with_file('DJANGO_KEYCLOAK_SECRET'),
     }
 }
 
@@ -147,9 +175,59 @@ AUTHLIB_OAUTH_CLIENTS = {
 # the login view.
 LOGIN_URL = 'oidc:login'
 
+# Logging to console as that's common for containers.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.getenv('DJANGO_LOGLEVEL', 'info').upper(),
+    },
+}
 
-# Poor man's version display.
-#
-# When set, will display in the footer something like: Last updated: today
-VERSION_DATE = None  # Set to date value
-VERSION_URL = ""  # Link to e.g. GitHub master branch
+# E-mail settings
+EMAIL_CONFIG = env.email_url("EMAIL_URL", default="consolemail://")
+vars().update(EMAIL_CONFIG)
+SERVER_EMAIL = os.getenv('DJANGO_SERVER_EMAIL', 'root@localhost')
+DEFAULT_FROM_EMAIL = os.getenv('DJANGO_DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+# E-mail address string where 5xx errors are sent, e.g. 'Me <my@address.net>, Someone Else <his@address.com>'
+ADMINS = getaddresses([os.getenv('DJANGO_ADMINS', default='')])
+
+# Ensure cookies over HTTPS
+if env.bool('DJANGO_COOKIE_SECURE', default=False):
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+# We assume to be running behind a reverse proxy (only effective in production environment)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Setup task queue
+Q_CLUSTER = {
+    'workers': 1,  # We need 1 worker because we don't want parallel task runs
+    'timeout': 600,  # Tasks are terminated after 10 minutes
+    'ack_failures': True,  # Do not retry failed tasks
+    'retry': 3600,  # (Retries are disabled so this doesn't do anything)
+    'catch_up': False,
+    'orm': 'default',
+    'poll': 30,  # Poll the database every 30 seconds for tasks
+}
+
+# ID of the group in the database that holds the current Quadrivium members.
+MEMBERS_GROUP = env.int("MEMBERS_GROUP", default=-1)
+
+# Bootstrap layout settings
+BOOTSTRAP4 = {
+    # "set_placeholder": False,
+}
+
+# Authentication settings for Microsoft Graph API
+GRAPH_TENANT = os.getenv("GRAPH_TENANT")
+GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID")
+GRAPH_CLIENT_SECRET = getenv_with_file("GRAPH_CLIENT_SECRET")
+# Sync with Azure when a user or group is saved
+GRAPH_SYNC_ON_SAVE = env.bool("GRAPH_SYNC_ON_SAVE", default=False)

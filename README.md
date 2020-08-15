@@ -1,51 +1,51 @@
 # Tutti
 
-Leden management systeem van Q.
-
-## Installation
-
-Make sure that Pipenv is installed. Run the following commands:
-
-* `pipenv install --dev`
-* `pipenv shell`
-* `python manage.py migrate`
-* `python manage.py createsuperuser`
-
-You'll need a custom Django settings module for your local settings (e.g. LDAP
-connection credentials). An easy way is to use a `.env` file, it will be
-automatically picked up by Pipenv. See also:
-[Django settings](https://docs.djangoproject.com/en/3.0/topics/settings/) and
-[Pipenv `.env`](https://pipenv.pypa.io/en/latest/advanced/#automatic-loading-of-env).
+Q members admin.
 
 ## Quickstart
 
-* To create an admin user run `python manage.py createsuperuser`. You can bypass
-  the OpenID Connect login flow by going to `http://127.0.0.1:8000/admin/login/`.
-* To load sample data run `python manage.py loaddata sampledata`.
-* For LDAP cloning and sync, see `python manage.py ldapclone -h` and `python
-  manage.py ldapsync -h` for details.
+* Create and activate a virtual environment (`python3 -m venv venv`)
+* Copy `.env.example` to `.env` and adjust as necessary
+* `pip install -r requirements.txt -r dev-requirements.txt`
+* `python manage.py migrate`
+* `python manage.py createsuperuser`
+* `python manage.py runserver`
 
-## Development commands
+## Useful commands
 
-Assumes that the environment is set correctly using `pipenv shell`.
-Alternatively use `pipenv run <command>`.
-
-* Run test server: `python manage.py runserver`
+* Run test server: `python manage.py runserver`. 
 * Run unit tests: `python manage.py test`
 * Lint code: `flake8`
+* Create admin user: `python manage.py createsuperuser`
+* Load sample fixtures: `python manage.py loaddata sampledata`.
+* LDAP commands: `python manage.py ldapclone -h` and `python
+  manage.py ldapsync -h`.
 
 
 ## Build CSS+JS
 
 See `frontend/README.md`.
 
+## On dependencies
+
+To add a new dependency, append it to `requirements.in`, install `pip-tools`
+inside the virtual environment
+and run `pip-compile requirements.in`.
+See [pip-tools documentation](https://github.com/jazzband/pip-tools)
+for details.
 
 ## App structure
 
-* `tutti`: project module, for project-wide settings.
-* `members`: membership management app, stores people, groups and the rest.
+* `tutti`: Project module, for project-wide settings.
+* `members`: Membership management app, stores people, groups and the rest.
   Also includes a custom admin site for branding.
-* `pages`: homepage and base template.
-* `ldapsync`: synchronization of the members data with an LDAP server.
-* `aadsync`: synchronization of the member accounts and groups to Azure Active Directory.
-* `oidc`: handle user login via OpenID Connect.
+* `pages`: Homepage and base template.
+* `sync`: Synchronization of the member accounts with LDAP and Azure Active Directory.
+* `oidc`: Handle user login via OpenID Connect.
+* `pennotools`: Treasurer tools.
+
+## Task runner
+
+For deployment, run the task worker next to the server process.
+The task worker can be started using `python manage.py qcluster`.
+It will run things like LDAP sync periodically.

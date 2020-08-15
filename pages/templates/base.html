@@ -1,4 +1,4 @@
-{% load static i18n humanize %}<!DOCTYPE html>
+{% load static i18n %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE|default:"en" }}">
 <head>
@@ -8,13 +8,14 @@
     <title>{% block title %}Tutti{% endblock %}</title>
     <link rel="shortcut icon" href="{% static "img/favicon32.png" %}">
     {# For now we can't install Font Awesome using NPM so we'll do it like this. #}
-    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
-          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+          integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+          crossorigin="anonymous"/>
 </head>
 
 <body>
 
-<nav class="navbar navbar-expand-md navbar-dark bg-primary">
+<nav class="navbar navbar-expand-md navbar-dark bd-navbar">
     <a class="navbar-brand" href="{% url 'pages:index' %}">
         <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
     </a>
@@ -23,30 +24,57 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item {% block nav-home %}{% endblock %}">
-                <a class="nav-link" href="{% url "pages:index" %}">Home</a>
+            <li class="nav-item">
+                <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
             </li>
             <li class="nav-item {% block nav-faqts %}{% endblock %}">
                 <a class="nav-link" href="{% url "faqts:faqts" %}">FaQts</a>
             </li>
+            {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
+            <span class="navbar-text d-none d-md-inline-block">
+                |
+            </span>
             {% if perms.pennotools %}
-                <li class="nav-item {% block nav-qrekening %}{% endblock %}">
-                    <a class="nav-link" href="{% url "pennotools:qrekening" %}">Q rekening</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% block nav-penno %}{% endblock %}"
+                       href="#" data-toggle="dropdown">
+                        Pennotools
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item {% block nav-qrekening %}{% endblock %}"
+                           href="{% url 'pennotools:qrekening' %}">Q-rekening</a>
+                        <a class="dropdown-item {% block nav-contribution %}{% endblock %}"
+                           href="{% url "pennotools:contribution" %}">Contributie</a>
+                    </div>
                 </li>
             {% endif %}
             {% if perms.duqduqgo %}
-                <li class="nav-item {% block nav-qalendar %}{% endblock %}">
-                    <a class="nav-link" href="{% url "duqduqgo:qalendar" %}">Qalendar</a>
+                <li class="nav-item">
+                    <a class="nav-link {% block nav-qalendar %}{% endblock %}" href="{% url "duqduqgo:qalendar" %}">Calendar</a>
+                </li>
+            {% endif %}
+            {% if perms.members %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url "admin:index" %}">Members admin</a>
                 </li>
             {% endif %}
         </ul>
+
         <ul class="navbar-nav">
-            {% if perms.members %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url "admin:index" %}">Members administration</a>
-                </li>
-            {% endif %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'oidc:logout' %}">Log out</a></li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+                    <i class="fas fa-user"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item {% block nav-change-password %}{% endblock %}"
+                       href="{% url 'members:password_change' %}">Change password</a>
+                    <a class="dropdown-item" href="{% url 'oidc:logout' %}">Log out</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item {% block nav-about %}{% endblock %}"
+                       href="{% url "pages:about" %}">About</a>
+                </div>
+
+            </li>
         </ul>
     </div>
 </nav>
@@ -55,23 +83,7 @@
     {% block content %}{% endblock %}
 </div>
 
-<hr>
-
-<div class="container">
-    <small class="text-muted">
-        <a href="https://status.esmgquadrivium.nl">System status</a>
-        | <a href="https://github.com/mhvis/tutti">Issue tracker</a>
-        {# Poor man's version info, see VERSION_* in settings.py. #}
-        |
-        {% if VERSION_DATE %}
-            Last updated: <a href="{{ VERSION_URL }}">{{ VERSION_DATE|naturalday }}</a>
-        {% else %}
-            Development version
-        {% endif %}
-
-    </small>
-</div>
-
 <script src="{% static 'bundle.js' %}"></script>
+{% block extra_script %}{% endblock %}
 </body>
 </html>

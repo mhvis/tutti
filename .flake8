@@ -8,7 +8,7 @@ exclude =
     .git,
     __pycache__,
     */migrations,
-    old_not_used
+    venv
 max-complexity = 10
 max-line-length = 127
 

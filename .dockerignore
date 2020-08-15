@@ -1,0 +1,8 @@
+node_modules
+__pycache__
+.git
+.github
+.idea
+.dockerignore
+Dockerfile
+db.sqlite3

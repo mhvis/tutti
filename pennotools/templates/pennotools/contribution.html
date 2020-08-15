@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load bootstrap4 static %}
+
+{% block title %}Contributie | {{ block.super }}{% endblock %}
+
+{% block nav-penno %}active{% endblock %}
+{% block nav-contribution %}active{% endblock %}
+
+{% block content %}
+    <h1>Contributie tool</h1>
+
+    <form method="post" action="{% url "pennotools:contribution" %}">
+        <p>Maakt contributie SEPA-bestanden.</p>
+        {% csrf_token %}
+        {% bootstrap_form form layout="horizontal" %}
+        <h2>Uitzonderingen</h2>
+        <p>
+            Aparte bedragen voor bepaalde groepen. Als er meerdere uitzonderingen voor een persoon gelden
+            wordt het laagste bedrag toegepast.
+        </p>
+
+        {# Dynamic formset is based on https://stackoverflow.com/a/8097617 #}
+        {{ exceptions_formset.management_form }}
+        {% bootstrap_formset_errors exceptions_formset %}
+        <div id="exceptionsFormSet">
+            {% for form in exceptions_formset %}
+                {% include "pennotools/contribution_exception_form.html" %}
+            {% endfor %}
+        </div>
+
+        <p>
+            <button type="button" id="exceptionsFormAdd" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i>
+                <span class="sr-only">Add</span>
+            </button>
+        </p>
+
+        <div id="exceptionsFormEmpty" style="display: none;">
+            {% include "pennotools/contribution_exception_form.html" with form=exceptions_formset.empty_form %}
+        </div>
+        <div class="alert alert-warning">
+            Check de gegenereerde bestanden, er kunnen fouten in zitten.
+        </div>
+        <p>
+            <button type="submit" name="contribution_file" class="btn btn-primary">Contributielijst</button>
+            <button type="submit" name="sepa_file" class="btn btn-primary">SEPA</button>
+        </p>
+    </form>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        $('#exceptionsFormAdd').click(function () {
+            let idx = $('#id_form-TOTAL_FORMS').val();
+            $('#exceptionsFormSet').append($('#exceptionsFormEmpty').html().replace(/__prefix__/g, idx));
+            $('#id_form-TOTAL_FORMS').val(parseInt(idx) + 1);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block nav-about %}active{% endblock %}
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            Tutti
+            {% if build_date %}
+                · Build date {{ build_date|date:"c" }}
+            {% else %}
+                · Development version
+            {% endif %}
+            · <a href="https://github.com/mhvis/tutti"><i class="fab fa-github"></i> Issue tracker</a>
+            · <a href="https://status.esmgquadrivium.nl">System status</a>
+        </div>
+    </div>
+{% endblock %}
