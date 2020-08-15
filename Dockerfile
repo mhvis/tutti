@@ -9,39 +9,16 @@
 # --noinput`.
 #
 # For environment variables that need to be set, see settings.py.
+FROM python:3.8-buster
 
-
-# Builder image for creating venv
-FROM python:3.8-alpine as builder
-
-# Install build requirements, create virtualenv
-RUN apk update \
-    && apk add --no-cache gcc g++ postgresql-dev python3-dev musl-dev libffi-dev \
-    && python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-
-# Build+install app dependencies
-RUN pip install --upgrade pip setuptools wheel \
-    && pip install gunicorn psycopg2
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-
-# Compiled image
-FROM python:3.8-alpine
-
-# Create app user+group
-RUN addgroup -S app && adduser -S app -G app
-
-# Copy virtualenv and apply
-RUN apk update \
-    && apk add libpq tzdata
-COPY --from=builder /app/venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-
-# Copy the app
-COPY . /app/src
+# Install dependencies
 WORKDIR /app/src
+RUN pip install --no-cache-dir gunicorn psycopg2
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy app
+COPY . .
 
 # Some Python settings
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
@@ -49,16 +26,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 # Setup static and media folders
 # A secret key needs to be set otherwise collectstatic fails
 ENV DJANGO_STATIC_ROOT=/app/static DJANGO_MEDIA_ROOT=/app/media DJANGO_SECRET_KEY=dummy DJANGO_WHITENOISE=1
-RUN mkdir /app/static /app/media \
-    && chown app:app /app/media \
-    && python manage.py collectstatic --noinput
+RUN mkdir /app/static /app/media && python manage.py collectstatic --noinput
 # Unset secret key
 ENV DJANGO_SECRET_KEY=
 
 # Bake build date into src directory, will be read by the app
 RUN date -I > builddate.txt
 
-USER app
+# Create user
+RUN useradd -u 1001 appuser && chown appuser /app/media
+USER appuser
 
 # By default launch gunicorn on :8000
 CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "tutti.wsgi"]

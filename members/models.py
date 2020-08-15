@@ -42,13 +42,12 @@ class Instrument(models.Model):
 
 
 class QGroupManager(models.Manager):
-    pass
-    # def get_members_group(self):
-    #     """Returns the current members group.
-    #
-    #     If you just need the ID for filtering, use settings.MEMBERS_GROUP.
-    #     """
-    #     return self.get(id=settings.MEMBERS_GROUP)
+    def get_members_group(self):
+        """Returns the current members group.
+
+        If you just need the ID for filtering, use settings.MEMBERS_GROUP.
+        """
+        return self.get(id=settings.MEMBERS_GROUP)
 
 
 class QGroup(Group):
