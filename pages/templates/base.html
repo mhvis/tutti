@@ -27,8 +27,8 @@
             <li class="nav-item">
                 <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
             </li>
-            <li class="nav-item {% block nav-faqts %}{% endblock %}">
-                <a class="nav-link" href="{% url "faqts:faqts" %}">FaQts</a>
+            <li class="nav-item">
+                <a class="nav-link {% block nav-faqts %}{% endblock %}" href="{% url "faqts:faqts" %}">FaQts</a>
             </li>
             {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
             <span class="navbar-text d-none d-md-inline-block">

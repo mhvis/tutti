@@ -37,19 +37,19 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         members_plot = date_plot(dates[idx], count[idx])
 
         dates, count = group_membership_counts(QGroup.objects.get(name="Ensuite"))
-        idx = dates > datetime(2020, 4, 2, tzinfo=timezone.utc)
+        idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         ensuite_plot = date_plot(dates[idx], count[idx])
 
         dates, count = group_membership_counts(QGroup.objects.get(name="Bestuur"))
-        idx = dates > datetime(2020, 4, 2, tzinfo=timezone.utc)
+        idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         board_plot = date_plot(dates[idx], count[idx])
 
         dates, count = group_membership_counts(QGroup.objects.get(name="Vokollage"))
-        idx = dates > datetime(2020, 4, 2, tzinfo=timezone.utc)
+        idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         vokollage_plot = date_plot(dates[idx], count[idx])
 
         dates, count = group_membership_counts(QGroup.objects.get(name="Auletes"))
-        idx = dates > datetime(2020, 4, 2, tzinfo=timezone.utc)
+        idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         auletes_plot = date_plot(dates[idx], count[idx])
 
 
