@@ -217,6 +217,14 @@ class GroupMembership(models.Model):
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
 
+    def __str__(self):
+        return 'GroupMembership(id={}, group={}, user={}, start={}, end={})'.format(
+            self.id,
+            self.group,
+            self.user,
+            self.start,
+            self.end)
+
 
 class ExternalCardLoan(models.Model):
     """For when someone borrows an external card from Q."""
