@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Groups | {{ block.super }}{% endblock %}
+
+{% block nav-faqts %}active{% endblock %}
+{% block nav-groups %}active{% endblock %}
+
+{% block content %}
+    <h1>Groups overview</h1>
+{#    <div class="table-responsive-lg">#}
+    <table class="table table-sm table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Group</th>
+            <th scope="col">People</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+            <tr>
+                <td>
+                    {{ group.name }}
+                    {% if group.description %}
+                        <span class="fas fa-info-circle"
+                              data-toggle="tooltip"
+                              data-html="true"
+                              title="{{ group.description|linebreaksbr }}"></span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% for user in group.user_set.all %}
+                        {{ user.first_name }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{#    </div>#}
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        // Enable tooltips on this page
+        // Could also put this in index.js
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+{% endblock %}

@@ -25,10 +25,19 @@
     <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
+                <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url "pages:index" %}">Portal</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {% block nav-faqts %}{% endblock %}" href="{% url "faqts:faqts" %}">FaQts</a>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% block nav-faqts %}{% endblock %}"
+                   href="#" data-toggle="dropdown">
+                    Association composition
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item {% block nav-groups %}{% endblock %}"
+                       href="{% url 'faqts:groups' %}">Groups</a>
+                    <a class="dropdown-item {% block nav-graphs %}{% endblock %}"
+                       href="{% url "faqts:faqts" %}">Graphs</a>
+                </div>
             </li>
             {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
             <span class="navbar-text d-none d-md-inline-block">
