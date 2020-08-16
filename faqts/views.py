@@ -19,9 +19,9 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         double_names = list(Person.objects.values('first_name').annotate(
             name_count=Count('first_name')).filter(
             name_count__gt=1).values_list('first_name', flat=True))
-        double_name_counts = list(Person.objects.values('first_name').annotate(
+        double_name_counts = list(Person.objects.filter_members().values('first_name').annotate(
             name_count=Count('first_name')).filter(
-            name_count__gt=1).values_list('first_name', 'name_count'))
+            name_count__gt=2).values_list('first_name', 'name_count'))
         persongroupvalues = list(Person.objects.all().values('first_name', 'last_name', 'groups').values_list(
             'first_name', 'last_name', 'groups'))
         instruments = Instrument.objects.all()
@@ -40,7 +40,7 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
         idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         ensuite_plot = date_plot(dates[idx], count[idx])
 
-        dates, count = group_membership_counts(QGroup.objects.get(name="Bestuur"))
+        dates, count = group_membership_counts(QGroup.objects.get(name="Pianisten"))
         idx = dates > datetime(2019, 7, 1, tzinfo=timezone.utc)
         board_plot = date_plot(dates[idx], count[idx])
 
