@@ -6,6 +6,7 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
+  BUILDKIT_PROGRESS: plain  # Show all build output
   IMAGE_NAME: quadrivium.azurecr.io/tutti
 
 jobs:
@@ -14,27 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to the registry
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} quadrivium.azurecr.io
-      - name: Build builder image
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} quadrivium.azurecr.io
+      - name: Build image
         run: |
           docker build \
-            --target builder \
-            --cache-from $IMAGE_NAME:builder \
-            --tag $IMAGE_NAME:builder \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            "."
-      - name: Build final image
-        run: |
-          docker build \
-            --cache-from $IMAGE_NAME:builder \
             --cache-from $IMAGE_NAME:latest \
             --tag $IMAGE_NAME:latest \
             --tag $IMAGE_NAME:${{ github.event.release.tag_name }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             "."
-      - name: Push builder image to registry
-        run: docker push $IMAGE_NAME:builder
-      - name: Push final image to registry
+      - name: Push image to registry
         run: |
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:${{ github.event.release.tag_name }}

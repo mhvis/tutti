@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}FaQts{% endblock %}
+
+{% block nav-faqts %}active{% endblock %}
+
+{% block content %}
+
+<p>
+    <b>Aantal leden ({{persons|length}}):</b><br>
+{#        {% for person in persons %}#}
+{#            <!--check for double names, if name is double then also add first letter of last name-->#}
+{#            {% if person.first_name in double_names %}#}
+{#                {{person.first_name}} {{person.last_name|make_list|first}}.{% if forloop.last %} {% else %}, {% endif %}<!--not a comma (,) after last name-->#}
+{#            {% else %}#}
+{#                {{person.first_name}}{% if forloop.last %} {% else %}, {% endif %}<!--not a comma (,) after last name-->#}
+{#            {% endif %}#}
+{#        {% endfor %}#}
+</p>
+
+{#<p>#}
+{#<b>Doppelgängers:</b><br>#}
+{#{% for double_name_count in double_name_counts %}#}
+{#    {{double_name_count.0}}: {{double_name_count.1}}x<br>#}
+{#{% endfor %}#}
+{#</p>#}
+
+<p>
+{#    <b>Groepen:</b><br>#}
+{#   {% for group in groups %}#}
+{#    {{group}}():#}
+{#        {% for personingroup in persongroupvalues %}#}
+{#            {% if personingroup.2 == group.id %}#}
+{#                {% if personingroup.0 in double_names %}#}
+{#                    {{personingroup.0}} {{personingroup.1|first}}.,#}
+{#                {% else %}#}
+{#                    {{personingroup.0}},#}
+{#                {% endif %}#}
+{#            {% endif %}#}
+{#        {% endfor %}<br>#}
+{#    {% endfor %}#}
+
+
+{#    <br><br>#}
+{#    <b>Dit is een andere manier om bovenstaand ook te krijgen, ik weet niet welke beter is:</b><br>#}
+{#    {% for group in groups %} <!--iterate over all groups-->#}
+{#        {{group}} ({{group.persons}}):#}
+{#            {% for person in persons %} <!-- iterate over the persons -->#}
+{#                {% for personingroup in person.groups.all %} <!-- check in which groups the person is -->#}
+{#                    {% if personingroup|stringformat:"s" == group|stringformat:"s" %} <!--check if the person is in group, if so, display name-->#}
+{##}
+{#                        <!--check for double names, if name is double then also add first letter of last name-->#}
+{#                        {% if person.first_name in double_names %}#}
+{#                            {{person.first_name}} {{person.last_name|make_list|first}}.,#}
+{#                        {% else %}#}
+{#                            {{person.first_name}},#}
+{#                        {% endif %}#}
+{##}
+{#                    {% endif %}#}
+{#                {% endfor %}#}
+{#            {% endfor %}#}
+{#    <br>#}
+{#    {% endfor %}#}
+
+</p>
+
+    <p>
+        <b>Instrumenten, man/vrouw, taal, studenten, geboortejaar:</b><br>
+        <i style="color:red;">dit wordt een taartdiagram/histogram</i> <br>
+    </p>
+
+    <div class="card-deck">
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ student_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Student plot.</figcaption>
+            </figure>
+        </div>
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ members_count_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Members count plot.</figcaption>
+            </figure>
+        </div>
+    </div>
+
+    <div class="card-deck">
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ ensuite_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Ensuite plot.</figcaption>
+            </figure>
+        </div>
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ vokollage_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Vokollage plot.</figcaption>
+            </figure>
+        </div>
+    </div>
+
+
+    <div class="card-deck">
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ auletes_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Auletes plot.</figcaption>
+            </figure>
+        </div>
+        <div class="card">
+            <figure class="figure">
+                <img src="data:image/png;base64,{{ board_plot }}" class="figure-img img-fluid">
+                <figcaption class="figure-caption text-center">Board plot.</figcaption>
+            </figure>
+        </div>
+    </div>
+
+
+{% endblock %}
