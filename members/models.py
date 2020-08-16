@@ -193,9 +193,11 @@ class Person(User):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
 
-    # def is_member(self):
-    #     """Returns whether this person is currently a member."""
-    #     return
+    def is_member(self):
+        """Returns whether this person is currently a member."""
+        return self.groups.filter(id=settings.MEMBERS_GROUP).exists()
+
+    is_member.boolean = True  # This attribute enables a pretty on/off icon in Django admin
 
 
 class PersonTreasurerFields(Person):
