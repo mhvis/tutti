@@ -1,10 +1,15 @@
 """Utility functions for graphing using matplotlib."""
 
 from base64 import b64encode
+from collections import Counter
 from io import BytesIO
+from typing import Iterable
 
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+
+import numpy as np
+from matplotlib.ticker import MaxNLocator
 
 
 def render_data_url(fig: Figure, format='svg') -> str:
@@ -64,6 +69,7 @@ def hist(x, bins=None, range=None, title=None):
 
 
 def bar(labels, values, title=None):
+    """Bar plot, see matplotlib.pyplot.bar."""
     fig = Figure()
     ax = fig.subplots()  # type: Axes
     # x_pos = np.arange(len(labels))
@@ -71,6 +77,23 @@ def bar(labels, values, title=None):
     # ax.set_xticks(x_pos)
     # ax.set_xticklabels(labels)
     ax.set_yticks(range(max(values) + 1))
+    if title:
+        ax.set_title(title)
+    return render_data_url(fig)
+
+
+def count_bar(values: Iterable[int], title=None):
+    """Bar plot where each bar is a count of the occurrence in a list.
+
+    The list must be of integers.
+    """
+    fig = Figure()
+    ax = fig.subplots()  # type: Axes
+    counter = Counter(values)
+    x_arr = np.arange(min(values), max(values) + 1)
+    y_arr = np.array([counter[x] for x in x_arr])
+    ax.bar(x_arr, y_arr)
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))  # Force integer ticks
     if title:
         ax.set_title(title)
     return render_data_url(fig)

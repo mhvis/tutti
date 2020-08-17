@@ -145,8 +145,11 @@ class QGroupModelForm(forms.ModelForm):
 class QGroupAdmin(GroupAdmin):
     form = QGroupModelForm
 
-    fields = ('name', 'description', 'email', 'end_on_unsubscribe', 'owner', 'group_members', 'permissions')
+    fields = ('name', 'description', 'group_members', 'email', 'owner', 'end_on_unsubscribe', 'show_in_overview',
+              'category', 'permissions')
     autocomplete_fields = ('owner',)
+    list_display = ('name', 'description', 'category')
+    list_filter = ('category',)
 
     inlines = (CurrentGroupMembershipInline,)
 

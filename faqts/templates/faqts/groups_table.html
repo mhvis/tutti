@@ -1,0 +1,26 @@
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th scope="col">Group</th>
+        <th scope="col">People</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for group in groups %}
+        <tr>
+            <td>
+                {{ group.name }}
+                {% if group.description %}
+                    <span class="fas fa-info-circle"
+                          data-toggle="tooltip"
+                          data-html="true"
+                          title="{{ group.description|linebreaksbr }}"></span>
+                {% endif %}
+            </td>
+            <td>
+                {% for p in group.people %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

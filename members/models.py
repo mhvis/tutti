@@ -55,13 +55,23 @@ class QGroup(Group):
     description = models.TextField(blank=True)
     email = models.EmailField(blank=True, verbose_name='e-mail')
     end_on_unsubscribe = models.BooleanField(default=True,
-                                             help_text=('If set, when a person is unsubscribed they are removed '
-                                                        'from this group.'))
+                                             help_text=("If set, when a person is unsubscribed they are removed "
+                                                        "from this group."))
     owner = models.ForeignKey('Person',
                               on_delete=models.PROTECT,
                               null=True,
                               blank=True,
-                              help_text='E.g. the commissioner.')
+                              help_text="E.g. the commissioner. Currently not used for anything.")
+    show_in_overview = models.BooleanField(default=True,
+                                           help_text=("Whether the group is visible in the groups overview, "
+                                                      "with group members."))
+    category = models.CharField(max_length=30,
+                                blank=True,
+                                choices=[('committee', 'Committee'),
+                                         ('ensemble', 'Ensemble'),
+                                         ('subassociation', 'Sub-association')],
+                                help_text="Leave empty when there's no applicable option.",
+                                db_index=True)
 
     objects = QGroupManager()
 

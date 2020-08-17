@@ -1,42 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Groups | {{ block.super }}{% endblock %}
-
 {% block nav-faqts %}active{% endblock %}
 {% block nav-groups %}active{% endblock %}
 
 {% block content %}
-    <h1>Groups overview</h1>
-{#    <div class="table-responsive-lg">#}
-    <table class="table table-sm table-striped">
-        <thead>
-        <tr>
-            <th scope="col">Group</th>
-            <th scope="col">People</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for group in groups %}
-            <tr>
-                <td>
-                    {{ group.name }}
-                    {% if group.description %}
-                        <span class="fas fa-info-circle"
-                              data-toggle="tooltip"
-                              data-html="true"
-                              title="{{ group.description|linebreaksbr }}"></span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% for user in group.user_set.all %}
-                        {{ user.first_name }}{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-{#    </div>#}
+    <h1>Q groups</h1>
+
+    <h3>Sub-associations</h3>
+    {% include 'faqts/groups_table.html' with groups=groups.subassociation %}
+
+    <h3>Committees</h3>
+    {% include 'faqts/groups_table.html' with groups=groups.committee %}
+
+    <h3>Ensembles</h3>
+    {% include 'faqts/groups_table.html' with groups=groups.ensemble %}
+
+    <h3>Other</h3>
+    {% include 'faqts/groups_table.html' with groups=groups.other %}
+
 {% endblock %}
 
 {% block extra_script %}

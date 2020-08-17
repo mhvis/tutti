@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import List
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -6,7 +7,7 @@ from django.db.models import Count
 from django.views.generic import TemplateView
 
 from faqts.facts import instrument_counts, group_size_curve
-from faqts.graphing import pie, date_plot, hist, bar
+from faqts.graphing import pie, date_plot, bar, count_bar
 from members.models import QGroup, Person, GroupMembership
 
 
@@ -16,23 +17,7 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        groups = QGroup.objects.all()
         members = Person.objects.filter_members()  # Filter members
-
-        # double_names = list(Person.objects.values('first_name').annotate(
-        #     name_count=Count('first_name')).filter(
-        #     name_count__gt=1).values_list('first_name', flat=True))
-
-        # persongroupvalues = list(Person.objects.all().values('first_name', 'last_name', 'groups').values_list(
-        #     'first_name', 'last_name', 'groups'))
-
-        context.update({
-            'groups': groups,
-            'persons': members,
-            # 'double_names': double_names,
-            # 'instruments': instruments,
-            # 'persongroupvalues': persongroupvalues,
-        })
 
         # Members plot
         dates, count = group_size_curve(QGroup.objects.get_members_group())
@@ -71,16 +56,13 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
                                     title="Gender distribution")
 
         # Birth year histogram
-        birth_years = members.filter(date_of_birth__isnull=False).values_list('date_of_birth__year', flat=True)
-        context['birth_year_histogram'] = hist(birth_years,
-                                               bins=range(min(birth_years), max(birth_years)),
-                                               title="Birth years")
+        birth_years = list(members.filter(date_of_birth__isnull=False).values_list('date_of_birth__year', flat=True))
+        context['birth_year_plot'] = count_bar(birth_years, title="Birth years")
 
         # Length of Q membership
-        membership_starts = GroupMembership.objects.filter(group=settings.MEMBERS_GROUP,
-                                                           end=None).values_list('start__year', flat=True)
-        context['membership_start_histogram'] = hist(membership_starts,
-                                                     bins=range(min(membership_starts), max(membership_starts)),
+        membership_starts = list(GroupMembership.objects.filter(group=settings.MEMBERS_GROUP,
+                                                                end=None).values_list('start__year', flat=True))
+        context['membership_start_plot'] = count_bar(membership_starts,
                                                      title="Membership start years")
 
         # Triplegänger
@@ -95,59 +77,88 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
 class GroupsView(TemplateView):
     template_name = 'faqts/groups.html'
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs):  # noqa: C901
+        """Ugly monster method for computing last name abbreviations."""
         context = super().get_context_data(**kwargs)
 
-        # def actual_last_name(last_name: str) -> str:
-        #     """Gets rid of 'van'/'de'/... by searching the first capital."""
-        #     first_capital_idx = 0
-        #     for i in range(len(last_name)):
-        #         if last_name[i].isupper():
-        #             first_capital_idx = i
-        #             break
-        #     return last_name[first_capital_idx:]
-        #
-        # def name_abbr(names: List[str]) -> List[str]:
-        #     """Computes shortest possible abbreviations for a list of (last) names.
-        #
-        #     If some names start with the same letter(s), the abbreviation will be
-        #     longer, to be able to differentiate between those.
-        #     """
-        #     # Todo: this doesn't actually work, it just returns the first letter always
-        #     return ["{}.".format(n[0]) for n in names]
-        #
-        #
-        # # Compute double names
-        #
-        # # Django ORM turned out to be a bit annoying (https://stackoverflow.com/q/8989221) so I changed it by fetching
-        # #  all data and doing it in-memory
-        #
-        # members = Person.objects.filter_members()
-        #
-        # # Construct dictionary with first_name -> List[Tuple[last_name, id]]
-        # names = {}
-        # for p in members:
-        #     names.setdefault(p, [])
-        #     names[p.first_name].append((actual_last_name(p.last_name), p.id))
-        #
-        # # Compute last name abbreviations
-        # for v in names.values():
-        #
-        #
-        #
-        # # Construct dictionary with id -> name with optional letter
-        # by_id = {}
-        # for p in members:
-        #     last_names = names[p.first_name]
-        #     if len(last_names) >= 2:
-        #
-        # by_first_name = {name[0]: () for id, name in names.items()}
-        # double_names = Person.objects.filter_members().values('first_name').annotate(
-        #     name_count=Count('first_name')).values('first_name').order_by().filter(name_count__gt=1)
-        # double_name_people = Person.objects.filter(first_name__in=double_names)
-        #
-        # double_names = Person.objects
+        def actual_last_name(last_name: str) -> str:
+            """Gets rid of 'van'/'de'/... by cutting until the first capital."""
+            first_capital_idx = 0
+            for i in range(len(last_name)):
+                if last_name[i].isupper():
+                    first_capital_idx = i
+                    break
+            return last_name[first_capital_idx:]
+
+        def abbreviate(names: List[str]) -> List[str]:
+            """Computes abbreviations for a list of (last) names.
+
+            The list must have a least 2 names.
+
+            If some names start with the same letter(s), the abbreviation will
+            be made longer, to be able to differentiate between those.
+            """
+            if len(names) < 2:
+                raise ValueError
+            result = []
+            for name in names:
+                abbreviation = None
+                # Increase the number of characters until no clashes are found
+                for i in range(len(name)):
+                    clashes = sum([s.lower().startswith(name.lower()[:i + 1]) for s in names])
+                    # There will always be at least 1 clash, namely with itself
+                    if clashes == 1:
+                        abbreviation = "{}.".format(name[:i + 1])
+                        break
+                result.append(abbreviation or name)  # If abbreviation was None, use the full name
+            return result
+
+        # Compute double name abbreviations
+
+        # Django ORM turned out to be a bit annoying (https://stackoverflow.com/q/8989221) so I changed it by fetching
+        #  all data and doing it in-memory.
+
+        # Construct dictionary with first_name -> List[Tuple[last_name, id]]
+        names = {}
+        for p in Person.objects.filter_members():
+            names.setdefault(p.first_name, [])
+            names[p.first_name].append((actual_last_name(p.last_name), p.id))
+
+        # Construct dictionary with id -> display name, where display name has a last name abbreviation if necessary
+        display_name = {}
+        for first_name, v in names.items():
+            if len(v) == 1:
+                # No abbreviation necessary
+                display_name[v[0][1]] = first_name
+            else:
+                # Abbreviate the last names and update the display name dictionary
+                last_names, ids = zip(*v)  # Unzip
+                abbr = abbreviate(last_names)
+                display_names = ["{} {}".format(first_name, a) for a in abbr]
+                display_name.update({t[0]: t[1] for t in zip(ids, display_names)})
+
+        # Gather groups by category
+        a = QGroup.objects.filter(show_in_overview=True).order_by('name')
+        b = {
+            'committee': a.filter(category='committee'),
+            'ensemble': a.filter(category='ensemble'),
+            'subassociation': a.filter(category='subassociation'),
+            # If a new category is added it will not automatically display on this page
+            'other': a.filter(category=''),
+        }
+
+        # Create dictionary with category -> list of groups
+        groups = {}
+        for cat, group_qs in b.items():
+            groups[cat] = [{
+                'name': g.name,
+                'description': g.description,
+                # The display name dictionary only includes Q members while some groups might also have non-members.
+                # Just use first name in those cases.
+                'people': sorted([display_name.get(u.id, u.first_name) for u in g.user_set.all()])
+            } for g in group_qs]
+
         context.update({
-            'groups': QGroup.objects.order_by('name'),
+            'groups': groups,
         })
         return context

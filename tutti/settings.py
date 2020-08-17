@@ -231,3 +231,6 @@ GRAPH_CLIENT_ID = os.getenv("GRAPH_CLIENT_ID")
 GRAPH_CLIENT_SECRET = getenv_with_file("GRAPH_CLIENT_SECRET")
 # Sync with Azure when a user or group is saved
 GRAPH_SYNC_ON_SAVE = env.bool("GRAPH_SYNC_ON_SAVE", default=False)
+
+# Set Matplotlib config+cache directory
+os.environ['MPLCONFIGDIR'] = '/tmp/matplotlib'
