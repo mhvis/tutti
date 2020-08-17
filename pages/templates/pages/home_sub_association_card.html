@@ -1,0 +1,9 @@
+{% load static %}
+<div class="card">
+    <img src="{{ card.img }}" class="card-img-top" alt="{{ card.text }}">
+    <div class="card-body text-center">
+        <a href="{{ card.link }}" class="stretched-link"{% if card.new_tab %} target="_blank"{% endif %}>
+            {{ card.text }}
+        </a>
+    </div>
+</div>

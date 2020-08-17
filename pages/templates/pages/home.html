@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+
 {% block nav_home %}active{% endblock %}
+
 {% block content %}
 
     <div class="card mt-3">
@@ -33,17 +35,25 @@
     </div>
 
     <div class="card-deck mt-3">
-        {% include "pages/home_card.html" with icon="info" link="https://esmgquadrivium.sharepoint.com/SitePages/Home.aspx" text="Members info (SharePoint)" newtab=True %}
-        {% include "pages/home_card.html" with icon="camera" link="https://esmgquadrivium.sharepoint.com/Pictures/Forms/Thumbnails.aspx" text="Pictures (SharePoint)" newtab=True %}
-        {% include "pages/home_card.html" with icon="file" link="https://esmgquadrivium.sharepoint.com/DoQumenten/Forms/AllItems.aspx" text="Presstos, audio recordings, GMM documents (SharePoint)" newtab=True %}
-    </div>
-    <div class="card-deck mt-3">
-        {% include "pages/home_card.html" with icon="utensils" link="https://dining.studentencultuur.nl/" text="Scala Dining" newtab=True %}
-        {% include "pages/home_card.html" with icon="calendar" link="https://deplint.nu/" text="Rehearsal room bookings" newtab=True %}
-        <div class="card invisible"></div>
-    </div>
+        {% for c in link_cards %}
+            {# Start a new card deck every 3 cards #}
+            {% if forloop.counter0 != 0 and forloop.counter0|divisibleby:3 %}
+                </div>
+                <div class="card-deck mt-3">
+            {% endif %}
+            {% include 'pages/home_card.html' with card=c %}
+        {% endfor %}
+        </div>
 
-
+    <h3 class="mt-3">Sub-association sites (SharePoint)</h3>
+    <div class="alert alert-info">
+        Mainly used for sheet music.
+    </div>
+    <div class="card-deck">
+        {% for c in sub_association_cards %}
+            {% include 'pages/home_sub_association_card.html' with card=c %}
+        {% endfor %}
+    </div>
 {% endblock %}
 
 {% block extra_script %}
@@ -52,7 +62,7 @@
             let actualPin = document.getElementById("actualPin");
             let maskedPin = document.getElementById("maskedPin");
             let togglePin = document.getElementById("togglePin");
-            togglePin.addEventListener('click', function(e) {
+            togglePin.addEventListener('click', function (e) {
                 if (actualPin.className === "") {
                     actualPin.className = "d-none";
                     maskedPin.className = "";

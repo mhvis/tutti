@@ -1,6 +1,12 @@
-<div class="card text-center">
-    <div class="card-body">
-        <h3 class="card-title"><i class="fas fa-{{ icon }}"></i></h3>
-        <a href="{{ link }}" class="stretched-link"{% if newtab %} target="_blank"{% endif %}>{{ text }}</a>
+{% if not card %}
+    <div class="card invisible"></div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <h3 class="card-title"><i class="fas fa-{{ card.icon }}"></i></h3>
+            <a href="{{ card.link }}" class="stretched-link"{% if card.new_tab %} target="_blank"{% endif %}>
+                {{ card.text }}
+            </a>
+        </div>
     </div>
-</div>
+{% endif %}
