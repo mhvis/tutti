@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult
 
-from members.models import Person
+from members.models import Person, MembershipRequest
 from sync.ldap import get_connection
 
 
@@ -54,23 +54,11 @@ class MyPasswordChangeForm(PasswordChangeForm):
 
 
 class SubscribeForm(forms.ModelForm):
-    instrument = forms.CharField(label="Instrument(s)", max_length=150)
-    subassociation = forms.MultipleChoiceField(
-        choices=[
-            ("ensuite", "Ensuite - symphony orchestra"),
-            ("vokollage", "Vokollage - choir"),
-            ("auletes", "Auletes - wind orchestra"),
-            ("piano", "Piano member - use our rehearsal rooms and join association-wide activities")],
-        help_text="Which sub-associations are you interested in? If you are not interested in the orchestra and choir, "
-                  "select piano member.",
-        widget=forms.CheckboxSelectMultiple)
-    remarks = forms.CharField(widget=forms.Textarea)
-
     class Meta:
-        model = Person
+        model = MembershipRequest
         fields = ['first_name', 'last_name', 'initials', 'email', 'phone_number', 'street', 'postal_code', 'city',
                   'country', 'gender', 'date_of_birth', 'preferred_language', 'field_of_study', 'is_student', 'iban',
-                  'tue_card_number']
+                  'tue_card_number', 'remarks', 'sub_association', 'instruments']
         help_texts = {
             'initials': "Voorletters.",
             'tue_card_number': "If you have a TU/e campus card, fill in the number that is printed sideways "
@@ -79,7 +67,7 @@ class SubscribeForm(forms.ModelForm):
                                "day however the entrance is usually always open to anyone.",
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for key, field in self.fields.items():
-            field.required = True
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     for key, field in self.fields.items():
+    #         field.required = True

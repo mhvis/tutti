@@ -13,7 +13,7 @@ from import_export.admin import ImportExportMixin
 from members.adminjobqueue import register_job_queue_admin
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
-    ExternalCardLoan, GroupMembership, PersonTreasurerFields
+    ExternalCardLoan, GroupMembership, PersonTreasurerFields, MembershipRequest
 
 
 class QAdmin(admin.AdminSite):
@@ -301,3 +301,4 @@ class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
 admin_site.register(Instrument)
 admin_site.register(Key)
 admin_site.register(GSuiteAccount)
+admin_site.register(MembershipRequest)

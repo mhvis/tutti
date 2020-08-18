@@ -1,0 +1,10 @@
+{% extends "base_public.html" %}
+
+{% block title %}Become a Quadrivium member{% endblock %}
+
+{% block content %}
+    <h1>Thank you for your submission!</h1>
+    <p>We'll get back to you.</p>
+
+    <p><a href="{% url "members:subscribe" %}">Fill in another member request</a></p>
+{% endblock %}

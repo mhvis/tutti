@@ -7,7 +7,13 @@
             <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
         </div>
     </div>
-    <div class="container" style="max-width: 720px;">
+    <div class="container py-3" style="max-width: 720px;">
         {% block content %}{% endblock %}
     </div>
+
+    <footer class="footer py-3">
+        <div class="container" style="max-width: 720px;">
+            <span class="text-muted">Made by Qomputer Qlub—Quadrivium ICT Committee</span>
+        </div>
+    </footer>
 {% endblock %}

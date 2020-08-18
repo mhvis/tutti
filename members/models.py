@@ -8,6 +8,7 @@ from django_countries.fields import CountryField
 from ldap3 import HASHED_SALTED_SHA512
 from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
+from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -238,3 +239,53 @@ class ExternalCardLoan(models.Model):
                                     choices=DEPOSIT_CHOICES,
                                     blank=True,
                                     help_text='Money deposit for the card.')
+
+
+class MembershipRequest(models.Model):
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=150)
+    phone_number = PhoneNumberField()
+    instruments = models.CharField(max_length=150, verbose_name="instrument(s)")
+
+    initials = models.CharField(max_length=30, blank=True)
+
+    # Address
+    street = models.CharField(max_length=150, blank=True)
+    postal_code = models.CharField(max_length=30, blank=True)
+    city = models.CharField(max_length=150, blank=True)
+    country = CountryField(blank=True, default='NL')
+
+    PREFERRED_LANGUAGES = (
+        ('en-us', 'English'),
+        ('nl-nl', 'Dutch'),
+    )
+    preferred_language = models.CharField(max_length=30,
+                                          blank=True,
+                                          choices=PREFERRED_LANGUAGES)
+    tue_card_number = models.IntegerField(null=True,
+                                          blank=True,
+                                          verbose_name='TU/e card number')
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=30,
+                              blank=True,
+                              choices=(('male', 'Male'), ('female', 'Female')))
+    is_student = models.BooleanField(null=True, blank=True)
+
+    sub_association = MultiSelectField(
+        choices=[
+            ("ensuite", "Ensuite - symphony orchestra"),
+            ("vokollage", "Vokollage - choir"),
+            ("auletes", "Auletes - wind orchestra"),
+            ("piano", "Piano member - use our rehearsal rooms and join association-wide activities")],
+        help_text="Which sub-associations are you interested in? If you are not interested in the orchestra and choir, "
+                  "select piano member.",
+        verbose_name="sub-association",
+        blank=True)
+
+    field_of_study = models.CharField(max_length=150,
+                                      blank=True)
+
+    iban = IBANField(blank=True, verbose_name='IBAN')
+
+    remarks = models.TextField(blank=True)

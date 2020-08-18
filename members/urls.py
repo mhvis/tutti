@@ -1,6 +1,7 @@
 from django.urls import path
 
-from members.views import MyPasswordChangeDoneView, MyPasswordChangeView, ProfileView, ProfileFormView, SubscribeView
+from members.views import MyPasswordChangeDoneView, MyPasswordChangeView, ProfileView, ProfileFormView, SubscribeView, \
+    SubscribeDoneView
 
 app_name = "members"
 
@@ -10,4 +11,5 @@ urlpatterns = [
     path('info/', ProfileView.as_view(), name="profile"),
     path('info/change/', ProfileFormView.as_view(), name="profile_form"),
     path('subscribe/', SubscribeView.as_view(), name="subscribe"),
+    path('subscribe/done/', SubscribeDoneView.as_view(), name="subscribe_done"),
 ]

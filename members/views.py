@@ -55,3 +55,12 @@ class MyPasswordChangeDoneView(PasswordChangeDoneView):
 class SubscribeView(FormView):
     template_name = "members/subscribe_form.html"
     form_class = SubscribeForm
+    success_url = reverse_lazy('members:subscribe_done')
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
+class SubscribeDoneView(TemplateView):
+    template_name = "members/subscribe_form_done.html"
