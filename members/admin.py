@@ -300,5 +300,22 @@ class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
 
 admin_site.register(Instrument)
 admin_site.register(Key)
-admin_site.register(GSuiteAccount)
+
 admin_site.register(MembershipRequest)
+
+
+class GSuiteAccountInline(admin.TabularInline):
+    model = Person.gsuite_accounts.through
+    extra = 0
+    autocomplete_fields = ('person',)
+    verbose_name = 'authorized person'
+    verbose_name_plural = 'authorized people'
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(GSuiteAccount, site=admin_site)
+class GSuiteAccountAdmin(admin.ModelAdmin):
+    fields = ('email',)
+    inlines = (GSuiteAccountInline,)

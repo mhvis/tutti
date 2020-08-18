@@ -24,12 +24,13 @@ class CreateUserOperation(SyncOperation):
         self.user = user
 
     def apply(self, graph: Graph):
+        """Creates the user with extension data and assigns the license."""
         # Create user
         user_id = graph.create_user(self.user)
         # Add extension data (Tutti database ID)
         graph.add_user_extension(user_id, self.user.extension)
         # Assign Office 365 license (without Exchange)
-        graph.assign_license(user_id=self.user.directory_id,
+        graph.assign_license(user_id=user_id,
                              sku_id="6634e0ce-1a9f-428c-a498-f84ec7b8aa2e",
                              disabled_plans=["9aaf7827-d63c-4b61-89c3-182f06f82e5c"])
 
