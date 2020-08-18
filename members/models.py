@@ -294,6 +294,10 @@ class MembershipRequest(models.Model):
     field_of_study = models.CharField(max_length=150,
                                       blank=True)
 
-    iban = IBANField(blank=True, verbose_name='IBAN')
+    iban = IBANField(blank=True,
+                     verbose_name='IBAN')
 
     remarks = models.TextField(blank=True)
+
+    date = models.DateTimeField(default=timezone.now,
+                                help_text="When the form was submitted.")
