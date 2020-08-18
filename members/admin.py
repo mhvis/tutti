@@ -301,7 +301,12 @@ class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
 admin_site.register(Instrument)
 admin_site.register(Key)
 
-admin_site.register(MembershipRequest)
+
+@admin.register(MembershipRequest, site=admin_site)
+class MembershipRequestAdmin(admin.ModelAdmin):
+    readonly_fields = ('date',)
+    list_display = ('last_name', 'first_name', 'email', 'phone_number', 'instruments', 'date')
+    ordering = ('-date',)
 
 
 class GSuiteAccountInline(admin.TabularInline):

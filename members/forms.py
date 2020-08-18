@@ -54,17 +54,27 @@ class MyPasswordChangeForm(PasswordChangeForm):
 
 
 class SubscribeForm(forms.ModelForm):
+    date_of_birth = forms.DateField(input_formats=('%d-%m-%Y',), help_text="dd-mm-yyyy")
+
     class Meta:
         model = MembershipRequest
         fields = ['first_name', 'last_name', 'initials', 'email', 'phone_number', 'street', 'postal_code', 'city',
                   'country', 'gender', 'date_of_birth', 'preferred_language', 'field_of_study', 'is_student', 'iban',
                   'tue_card_number', 'remarks', 'sub_association', 'instruments']
         help_texts = {
-            'initials': "Voorletters.",
-            'tue_card_number': "If you have a TU/e campus card, fill in the number that is printed sideways "
-                               "(not your student number or s-number). We will then make it possible for you to enter "
-                               "the cultural section in Luna, using your campus card, during off-hours. During the "
+            'initials': "Initials of your first name(s) if you have multiple. In Dutch: voorletters.",
+            'tue_card_number': "If you have a TU/e campus card, fill in the number that is printed sideways, "
+                               "which is different from your student number or s-number. "
+                               "We will then make it possible for you to enter "
+                               "the cultural section in Luna using your campus card, during off-hours. During the "
                                "day however the entrance is usually always open to anyone.",
+            'field_of_study': "Leave empty if not applicable.",
+            'iban': "Providing your IBAN bank account number helps our administration for arranging the "
+                    "contribution fee. This does not authorize us to do a bank charge.",
+            'is_student': "At any university or high school.",
+            'sub_association': "Which sub-associations are you interested in? "
+                               "If you are not interested in the orchestra and choir, select piano member. "
+                               "Leave empty if you are not (yet) sure.",
         }
 
     # def __init__(self, *args, **kwargs):

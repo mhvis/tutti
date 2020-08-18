@@ -252,14 +252,14 @@ class ExternalCardLoan(models.Model):
 class MembershipRequest(models.Model):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    email = models.EmailField(max_length=150)
+    email = models.EmailField(max_length=150, verbose_name="email address")
     phone_number = PhoneNumberField()
-    instruments = models.CharField(max_length=150, verbose_name="instrument(s)")
+    instruments = models.CharField(max_length=150, verbose_name="instrument(s) or voice")
 
     initials = models.CharField(max_length=30, blank=True)
 
     # Address
-    street = models.CharField(max_length=150, blank=True)
+    street = models.CharField(max_length=150, blank=True, verbose_name="street and house number")
     postal_code = models.CharField(max_length=30, blank=True)
     city = models.CharField(max_length=150, blank=True)
     country = CountryField(blank=True, default='NL')
@@ -278,16 +278,14 @@ class MembershipRequest(models.Model):
     gender = models.CharField(max_length=30,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
-    is_student = models.BooleanField(null=True, blank=True)
+    is_student = models.BooleanField(null=True, blank=True, verbose_name='student')
 
     sub_association = MultiSelectField(
         choices=[
-            ("ensuite", "Ensuite - symphony orchestra"),
-            ("vokollage", "Vokollage - choir"),
-            ("auletes", "Auletes - wind orchestra"),
-            ("piano", "Piano member - use our rehearsal rooms and join association-wide activities")],
-        help_text="Which sub-associations are you interested in? If you are not interested in the orchestra and choir, "
-                  "select piano member.",
+            ("vokollage", "Vokollage – choir"),
+            ("ensuite", "Ensuite – symphony orchestra"),
+            ("auletes", "Auletes – wind orchestra"),
+            ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
         verbose_name="sub-association",
         blank=True)
 
@@ -301,3 +299,6 @@ class MembershipRequest(models.Model):
 
     date = models.DateTimeField(default=timezone.now,
                                 help_text="When the form was submitted.")
+
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name).strip()
