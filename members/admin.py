@@ -362,9 +362,16 @@ admin_site.register(Key)
 
 @admin.register(MembershipRequest, site=admin_site)
 class MembershipRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ('date',)
-    list_display = ('last_name', 'first_name', 'email', 'phone_number', 'instruments', 'date')
+    form_fields = (
+        'first_name', 'last_name', 'email', 'phone_number', 'instruments', 'initials', 'street', 'postal_code',
+        'city', 'country', 'gender', 'date_of_birth', 'preferred_language', 'is_student', 'field_of_study', 'iban',
+        'tue_card_number', 'sub_association', 'remarks')
+    other_fields = ('date', 'seen')
+    fieldsets = ((None, {'fields': form_fields}), ("Meta", {'fields': other_fields}))
+    readonly_fields = form_fields + ('date',)
+    list_display = ('last_name', 'first_name', 'email', 'instruments', 'date', 'seen')
     ordering = ('-date',)
+    list_filter = ('seen',)
 
 
 class GSuiteAccountInline(admin.TabularInline):

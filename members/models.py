@@ -264,7 +264,9 @@ class MembershipRequest(models.Model):
     phone_number = PhoneNumberField()
     instruments = models.CharField(max_length=150, verbose_name="instrument(s) or voice")
 
-    initials = models.CharField(max_length=30, blank=True)
+    initials = models.CharField(max_length=30,
+                                blank=True,
+                                help_text="Initials of your first name(s) if you have multiple. In Dutch: voorletters.")
 
     # Address
     street = models.CharField(max_length=150, blank=True, verbose_name="street and house number")
@@ -279,14 +281,23 @@ class MembershipRequest(models.Model):
     preferred_language = models.CharField(max_length=30,
                                           blank=True,
                                           choices=PREFERRED_LANGUAGES)
-    tue_card_number = models.IntegerField(null=True,
-                                          blank=True,
-                                          verbose_name='TU/e card number')
-    date_of_birth = models.DateField(null=True, blank=True)
+    tue_card_number = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='TU/e card number',
+        help_text="If you have a TU/e campus card, fill in the number that is printed sideways, "
+                  "which is different from your student number or s-number. "
+                  "We will then make it possible for you to enter "
+                  "the cultural section in Luna using your campus card, during off-hours. During the "
+                  "day however the entrance is usually always open to anyone.")
+    date_of_birth = models.DateField(null=True, blank=True, help_text="dd-mm-yyyy")
     gender = models.CharField(max_length=30,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
-    is_student = models.BooleanField(null=True, blank=True, verbose_name='student')
+    is_student = models.BooleanField(null=True,
+                                     blank=True,
+                                     verbose_name='student',
+                                     help_text="At any university or high school.")
 
     sub_association = MultiSelectField(
         choices=[
@@ -295,18 +306,27 @@ class MembershipRequest(models.Model):
             ("auletes", "Auletes – wind orchestra"),
             ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
         verbose_name="sub-association",
-        blank=True)
+        blank=True,
+        help_text="Which sub-associations are you interested in? "
+                  "If you are not interested in the orchestra and choir, select piano member. "
+                  "Leave empty if you are not (yet) sure.")
 
     field_of_study = models.CharField(max_length=150,
-                                      blank=True)
+                                      blank=True,
+                                      help_text="Leave empty if not applicable.")
 
     iban = IBANField(blank=True,
-                     verbose_name='IBAN')
+                     verbose_name='IBAN',
+                     help_text="Providing your IBAN bank account number helps our administration for arranging the "
+                               "contribution fee at a later moment. "
+                               "This form does not authorize us to do a bank charge.")
 
     remarks = models.TextField(blank=True)
 
     date = models.DateTimeField(default=timezone.now,
                                 help_text="When the form was submitted.")
+
+    seen = models.BooleanField(default=False)
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name).strip()
