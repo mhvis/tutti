@@ -11,13 +11,15 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Person
-        fields = ["email", "phone_number", "street", "postal_code", "city", "country",
-                  "preferred_language"]
+        fields = ['email', 'phone_number', 'street', 'postal_code', 'city', 'country', 'preferred_language']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields[
-            "email"].help_text = "If you change your email address, members mail will be sent to the new address."
+        self.fields['email'].help_text = ("If you change your email address, "
+                                          "members mail will be sent to the new address.")
+        # Set fields as required
+        for f in ('email', 'phone_number', 'street', 'postal_code', 'city', 'country', 'preferred_language'):
+            self.fields[f].required = True
 
 
 def try_ldap_bind(user, password):
