@@ -1,10 +1,12 @@
 from django import forms
+from django.conf import settings
 from django.contrib import admin, messages
-from django.contrib.admin import RelatedFieldListFilter
+from django.contrib.admin import RelatedFieldListFilter, SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.forms import UserChangeForm, AdminPasswordChangeForm
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
@@ -171,6 +173,43 @@ class GroupListFilter(RelatedFieldListFilter):
         return ('name',)
 
 
+class MemberListFilter(SimpleListFilter):
+    """Filter for Quadrivium memberships.
+
+    By default filters people that are a member.
+    """
+
+    # Text shown in the right panel
+    title = "membership"
+
+    # Name used for the URL query parameter
+    parameter_name = 'is_member'
+
+    def lookups(self, request, model_admin):
+        # Returns the available options
+        return (
+            (None, "Is a member"),
+            ('no', "Is not a member"),
+            ('all', "All"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'no':
+            # Subtract members from the queryset
+            return queryset.filter(~Q(groups=settings.MEMBERS_GROUP))
+        elif self.value() is None:
+            # Only include members
+            return queryset.filter_members()
+
+    def choices(self, changelist):
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == lookup,
+                'query_string': changelist.get_query_string({self.parameter_name: lookup}),
+                'display': title,
+            }
+
+
 class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
@@ -195,8 +234,11 @@ class PersonAdmin(admin.ModelAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     readonly_fields = ('last_login', 'date_joined')
-    list_display = ('username', 'first_name', 'last_name', 'email')
-    list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
+    list_display = ('username', 'first_name', 'last_name', 'email', 'is_member')
+    list_filter = (MemberListFilter,
+                   ('groups', GroupListFilter),  # Custom group filter that applies ordering
+                   'instruments')
+    list_max_show_all = 1000
     search_fields = ('username', 'first_name', 'last_name', 'email',
                      'initials', 'phone_number',
                      'street', 'postal_code', 'city',
@@ -212,6 +254,22 @@ class PersonAdmin(admin.ModelAdmin):
     # Needed for UserAdmin.user_change_password
     change_password_form = AdminPasswordChangeForm
     change_user_password_template = None
+
+    # def member_start(self, obj: Person):
+    #     """List filter that displays the start date of membership."""
+    #     try:
+    #         m = GroupMembership.objects.get(group=settings.MEMBERS_GROUP, user=obj)
+    #         return m.start
+    #     except GroupMembership.DoesNotExist:
+    #         return None
+    #
+    # def member_end(self, obj: Person):
+    #     """List filter that displays the end date of membership."""
+    #     try:
+    #         m = GroupMembership.objects.get(group=settings.MEMBERS_GROUP, user=obj)
+    #         return m.end
+    #     except GroupMembership.DoesNotExist:
+    #         return None
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
