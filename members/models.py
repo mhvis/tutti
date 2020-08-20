@@ -8,6 +8,7 @@ from django_countries.fields import CountryField
 from ldap3 import HASHED_SALTED_SHA512
 from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
+from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -111,8 +112,14 @@ class Key(models.Model):
     number = models.IntegerField(primary_key=True)
     room_name = models.CharField(max_length=150, blank=True)
 
+    class Meta:
+        ordering = ('number',)
+
     def __str__(self):
-        return '{} {}'.format(self.number, self.room_name).strip()
+        if self.room_name:
+            return "{} ({})".format(self.number, self.room_name)
+        else:
+            return str(self.number)
 
 
 class PersonQuerySet(QuerySet):
@@ -255,3 +262,58 @@ class ExternalCardLoan(models.Model):
                                     choices=DEPOSIT_CHOICES,
                                     blank=True,
                                     help_text='Money deposit for the card.')
+
+
+class MembershipRequest(models.Model):
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=150, verbose_name="email address")
+    phone_number = PhoneNumberField()
+    instruments = models.CharField(max_length=150, verbose_name="instrument(s) or voice")
+
+    initials = models.CharField(max_length=30, blank=True)
+
+    # Address
+    street = models.CharField(max_length=150, blank=True, verbose_name="street and house number")
+    postal_code = models.CharField(max_length=30, blank=True)
+    city = models.CharField(max_length=150, blank=True)
+    country = CountryField(blank=True, default='NL')
+
+    PREFERRED_LANGUAGES = (
+        ('en-us', 'English'),
+        ('nl-nl', 'Dutch'),
+    )
+    preferred_language = models.CharField(max_length=30,
+                                          blank=True,
+                                          choices=PREFERRED_LANGUAGES)
+    tue_card_number = models.IntegerField(null=True,
+                                          blank=True,
+                                          verbose_name='TU/e card number')
+    date_of_birth = models.DateField(null=True, blank=True)
+    gender = models.CharField(max_length=30,
+                              blank=True,
+                              choices=(('male', 'Male'), ('female', 'Female')))
+    is_student = models.BooleanField(null=True, blank=True, verbose_name='student')
+
+    sub_association = MultiSelectField(
+        choices=[
+            ("vokollage", "Vokollage – choir"),
+            ("ensuite", "Ensuite – symphony orchestra"),
+            ("auletes", "Auletes – wind orchestra"),
+            ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
+        verbose_name="sub-association",
+        blank=True)
+
+    field_of_study = models.CharField(max_length=150,
+                                      blank=True)
+
+    iban = IBANField(blank=True,
+                     verbose_name='IBAN')
+
+    remarks = models.TextField(blank=True)
+
+    date = models.DateTimeField(default=timezone.now,
+                                help_text="When the form was submitted.")
+
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name).strip()

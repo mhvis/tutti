@@ -2,7 +2,22 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from ldap3.core.exceptions import LDAPInvalidCredentialsResult
 
+from members.models import Person, MembershipRequest
 from sync.ldap import get_connection
+
+
+class ProfileForm(forms.ModelForm):
+    """Allows the user to change some of his profile data."""
+
+    class Meta:
+        model = Person
+        fields = ["email", "phone_number", "street", "postal_code", "city", "country",
+                  "preferred_language"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields[
+            "email"].help_text = "If you change your email address, members mail will be sent to the new address."
 
 
 def try_ldap_bind(user, password):
@@ -36,3 +51,33 @@ class MyPasswordChangeForm(PasswordChangeForm):
             # Bind succeeded
             return old_password
         return super().clean_old_password()
+
+
+class SubscribeForm(forms.ModelForm):
+    date_of_birth = forms.DateField(input_formats=('%d-%m-%Y',), help_text="dd-mm-yyyy")
+
+    class Meta:
+        model = MembershipRequest
+        fields = ['first_name', 'last_name', 'initials', 'email', 'phone_number', 'street', 'postal_code', 'city',
+                  'country', 'gender', 'date_of_birth', 'preferred_language', 'field_of_study', 'is_student', 'iban',
+                  'tue_card_number', 'remarks', 'sub_association', 'instruments']
+        help_texts = {
+            'initials': "Initials of your first name(s) if you have multiple. In Dutch: voorletters.",
+            'tue_card_number': "If you have a TU/e campus card, fill in the number that is printed sideways, "
+                               "which is different from your student number or s-number. "
+                               "We will then make it possible for you to enter "
+                               "the cultural section in Luna using your campus card, during off-hours. During the "
+                               "day however the entrance is usually always open to anyone.",
+            'field_of_study': "Leave empty if not applicable.",
+            'iban': "Providing your IBAN bank account number helps our administration for arranging the "
+                    "contribution fee. This does not authorize us to do a bank charge.",
+            'is_student': "At any university or high school.",
+            'sub_association': "Which sub-associations are you interested in? "
+                               "If you are not interested in the orchestra and choir, select piano member. "
+                               "Leave empty if you are not (yet) sure.",
+        }
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     for key, field in self.fields.items():
+    #         field.required = True

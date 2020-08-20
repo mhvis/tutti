@@ -1,0 +1,62 @@
+{% extends "base_public.html" %}
+{% load bootstrap4 %}
+
+{% block title %}Become a Quadrivium member{% endblock %}
+
+{% block content %}
+    <h2>Become a member</h2>
+    <p>
+        Great that you're interested in becoming a member of Quadrivium, the student music association!
+        After filling out this form we will reach out to you for completing the membership application,
+        which includes arranging the yearly contribution fee of around 60 euros.
+    </p>
+    {#    <div class="alert alert-info">#}
+    {#        #}
+    {#    </div>#}
+    <p>
+        <small class="text-muted">
+            Why we need these personal details is indicated in our
+            <a href="https://esmgquadrivium.sharepoint.com/:b:/g/EdOOvjXmMr1Nndcz0TxlR7ABHp742itPXhYwOZFG43oJXA?e=iQZ7So"
+               target="_blank">
+                privacy document</a> (in Dutch).
+        </small>
+    </p>
+
+    <form method="post" action="{% url 'members:subscribe' %}">
+        {% csrf_token %}
+        <div class="alert alert-info">
+            If you're unsure yet, you can just fill out your contact details here and we'll get back to you.
+        </div>
+        {% bootstrap_form_errors form type='non_fields' %}
+        {% bootstrap_field form.first_name layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.last_name layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.email layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.phone_number layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.instruments layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">I'm interested</button>
+        {% endbuttons %}
+        <div class="alert alert-info">
+            If you're pretty sure that you want to become a member, fill in the other details here as well!
+        </div>
+        {% bootstrap_field form.initials layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.street layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.postal_code layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.city layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.country layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.gender layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.date_of_birth layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.preferred_language layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.is_student layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.field_of_study layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.iban layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.tue_card_number layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+        {% bootstrap_field form.sub_association layout='horizontal' label_class='col-sm-3' field_class='col-sm-9' %}
+        {% bootstrap_field form.remarks layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
+
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">Become a member</button>
+        {% endbuttons %}
+    </form>
+
+{% endblock %}

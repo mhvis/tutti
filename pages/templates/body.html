@@ -1,0 +1,22 @@
+{% load static i18n %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:"en" }}" class="h-100">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <title>{% block title %}Tutti{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static "img/favicon32.png" %}">
+    {# For now we can't install Font Awesome using NPM so we'll do it like this. #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+          integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog=="
+          crossorigin="anonymous"/>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% block body %}{% endblock %}
+
+<script src="{% static 'bundle.js' %}"></script>
+{% block extra_script %}{% endblock %}
+</body>
+</html>
