@@ -103,8 +103,14 @@ class Key(models.Model):
     number = models.IntegerField(primary_key=True)
     room_name = models.CharField(max_length=150, blank=True)
 
+    class Meta:
+        ordering = ('number',)
+
     def __str__(self):
-        return '{} {}'.format(self.number, self.room_name).strip()
+        if self.room_name:
+            return "{} ({})".format(self.number, self.room_name)
+        else:
+            return str(self.number)
 
 
 class PersonQuerySet(QuerySet):
