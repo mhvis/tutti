@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Activity | {{ block.super }}{% endblock %}
+
+
+{% block content %}
+<h1>Activity</h1>
+{% for activity in activities %}
+    <p>{{activity.name}}</p>
+{% endfor %}
+{% endblock %}

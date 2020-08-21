@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'pages.apps.PagesConfig',
     'pennotools.apps.PennotoolsConfig',
     'duqduqgo.apps.DuqduqgoConfig',
+    'activities.apps.ActivitiesConfig',
 
     'django.contrib.admin',
 

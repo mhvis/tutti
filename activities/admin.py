@@ -1,3 +1,10 @@
 from django.contrib import admin
+from activities.models import Activity
+from members.admin import admin_site
 
-# Register your models here.
+
+@admin.register(Activity, site=admin_site)
+class ActivityAdmin(admin.ModelAdmin):
+    """Admin page for activities"""
+    fields = ('name', 'description', 'date', 'closing_date')
+    filter_horizontal = ('groups', 'participants')
