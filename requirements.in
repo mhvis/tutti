@@ -16,3 +16,4 @@ whitenoise[brotli]
 django-environ
 django-q
 django-bootstrap4
+django-multiselectfield  # Used on subscribe form

@@ -38,3 +38,18 @@ class PersonQuerySetTestCase(TestCase):
         qs = Person.objects.filter_members()
         self.assertEqual(member, qs.first())
         self.assertEqual(1, qs.count())
+
+
+class PersonTestCase(TestCase):
+    def test_is_member(self):
+        """Tests is_member()."""
+        # Create group + member + non_member
+        members_group = QGroup.objects.create(name="Members")
+        member = Person.objects.create(username="a_member", first_name="A Member")  # type: Person
+        member.groups.add(members_group)
+        non_member = Person.objects.create(username="not_a_member", first_name="Not A Member")  # type: Person
+        # Set members group
+        settings.MEMBERS_GROUP = members_group.id
+        # Test
+        self.assertIs(True, member.is_member())
+        self.assertIs(False, non_member.is_member())

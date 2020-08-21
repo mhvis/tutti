@@ -8,6 +8,7 @@ from django_countries.fields import CountryField
 from ldap3 import HASHED_SALTED_SHA512
 from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
+from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -102,8 +103,14 @@ class Key(models.Model):
     number = models.IntegerField(primary_key=True)
     room_name = models.CharField(max_length=150, blank=True)
 
+    class Meta:
+        ordering = ('number',)
+
     def __str__(self):
-        return '{} {}'.format(self.number, self.room_name).strip()
+        if self.room_name:
+            return "{} ({})".format(self.number, self.room_name)
+        else:
+            return str(self.number)
 
 
 class PersonQuerySet(QuerySet):
@@ -193,9 +200,11 @@ class Person(User):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
 
-    # def is_member(self):
-    #     """Returns whether this person is currently a member."""
-    #     return
+    def is_member(self):
+        """Returns whether this person is currently a member."""
+        return self.groups.filter(id=settings.MEMBERS_GROUP).exists()
+
+    is_member.boolean = True  # This attribute enables a pretty on/off icon in Django admin
 
 
 class PersonTreasurerFields(Person):
@@ -218,6 +227,14 @@ class GroupMembership(models.Model):
     start = models.DateTimeField(_("start date"), default=timezone.now)
     end = models.DateTimeField(_("end date"), null=True, blank=True)
 
+    def __str__(self):
+        return 'GroupMembership(id={}, group={}, user={}, start={}, end={})'.format(
+            self.id,
+            self.group,
+            self.user,
+            self.start,
+            self.end)
+
 
 class ExternalCardLoan(models.Model):
     """For when someone borrows an external card from Q."""
@@ -238,3 +255,78 @@ class ExternalCardLoan(models.Model):
                                     choices=DEPOSIT_CHOICES,
                                     blank=True,
                                     help_text='Money deposit for the card.')
+
+
+class MembershipRequest(models.Model):
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=150, verbose_name="email address")
+    phone_number = PhoneNumberField()
+    instruments = models.CharField(max_length=150, verbose_name="instrument(s) or voice")
+
+    initials = models.CharField(max_length=30,
+                                blank=True,
+                                help_text="Initials of your first name(s) if you have multiple. In Dutch: voorletters.")
+
+    # Address
+    street = models.CharField(max_length=150, blank=True, verbose_name="street and house number")
+    postal_code = models.CharField(max_length=30, blank=True)
+    city = models.CharField(max_length=150, blank=True)
+    country = CountryField(blank=True, default='NL')
+
+    PREFERRED_LANGUAGES = (
+        ('en-us', 'English'),
+        ('nl-nl', 'Dutch'),
+    )
+    preferred_language = models.CharField(max_length=30,
+                                          blank=True,
+                                          choices=PREFERRED_LANGUAGES)
+    tue_card_number = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name='TU/e card number',
+        help_text="If you have a TU/e campus card, fill in the number that is printed sideways, "
+                  "which is different from your student number or s-number. "
+                  "We will then make it possible for you to enter "
+                  "the cultural section in Luna using your campus card, during off-hours. During the "
+                  "day however the entrance is usually always open to anyone.")
+    date_of_birth = models.DateField(null=True, blank=True, help_text="dd-mm-yyyy")
+    gender = models.CharField(max_length=30,
+                              blank=True,
+                              choices=(('male', 'Male'), ('female', 'Female')))
+    is_student = models.BooleanField(null=True,
+                                     blank=True,
+                                     verbose_name='student',
+                                     help_text="At any university or high school.")
+
+    sub_association = MultiSelectField(
+        choices=[
+            ("vokollage", "Vokollage – choir"),
+            ("ensuite", "Ensuite – symphony orchestra"),
+            ("auletes", "Auletes – wind orchestra"),
+            ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
+        verbose_name="sub-association",
+        blank=True,
+        help_text="Which sub-associations are you interested in? "
+                  "If you are not interested in the orchestra and choir, select piano member. "
+                  "Leave empty if you are not (yet) sure.")
+
+    field_of_study = models.CharField(max_length=150,
+                                      blank=True,
+                                      help_text="Leave empty if not applicable.")
+
+    iban = IBANField(blank=True,
+                     verbose_name='IBAN',
+                     help_text="Providing your IBAN bank account number helps our administration for arranging the "
+                               "contribution fee at a later moment. "
+                               "This form does not authorize us to do a bank charge.")
+
+    remarks = models.TextField(blank=True)
+
+    date = models.DateTimeField(default=timezone.now,
+                                help_text="When the form was submitted.")
+
+    seen = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name).strip()

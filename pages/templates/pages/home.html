@@ -1,5 +1,82 @@
 {% extends "base.html" %}
-{% block nav-home %}active{% endblock %}
+
+{% block nav_home %}active{% endblock %}
+
 {% block content %}
-    <h1><i class="fas fa-home"></i></h1>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">Your info</h5>
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>SharePoint username</strong></div>
+                <div class="col-sm-9">{{ user.username }}@esmgquadrivium.nl</div>
+            </div>
+            {% if user.person.keywatcher_id and user.person.keywatcher_pin %}
+                <div class="row mb-2">
+                    <div class="col-sm-3"><strong>KeyWatcher</strong></div>
+                    <div class="col-sm-9">
+                        ID: <span class="text-monospace">{{ user.person.keywatcher_id }}</span>
+                        PIN: <span class="text-monospace">
+                            <span id="actualPin" class="d-none">{{ user.person.keywatcher_pin }}</span>
+                            <span id="maskedPin">****</span>
+                            <i id="togglePin" class="fas fa-fw fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3"><strong>Keys that you can access</strong></div>
+                    <div class="col-sm-9">{{ user.person.key_access.all|join:", " }}</div>
+                </div>
+            {% else %}
+                <div class="mb-2"><strong>You don't (yet) have a KeyWatcher ID</strong></div>
+            {% endif %}
+            <a href="{% url "members:profile" %}">View all info</a>
+        </div>
+    </div>
+
+    <div class="card-deck mt-3">
+        {% for c in link_cards %}
+            {# Start a new card deck every 3 cards #}
+            {% if forloop.counter0 != 0 and forloop.counter0|divisibleby:3 %}
+                </div>
+                <div class="card-deck mt-3">
+            {% endif %}
+            {% include 'pages/home_card.html' with card=c %}
+        {% endfor %}
+        </div>
+
+    <h3 class="mt-3">Sub-association sites (SharePoint)</h3>
+    <div class="alert alert-info">
+        Mainly used for sheet music.
+    </div>
+    <div class="card-deck">
+        {% for c in sub_association_cards %}
+            {% include 'pages/home_sub_association_card.html' with card=c %}
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let actualPin = document.getElementById("actualPin");
+            let maskedPin = document.getElementById("maskedPin");
+            let togglePin = document.getElementById("togglePin");
+            togglePin.addEventListener('click', function (e) {
+                if (actualPin.className === "") {
+                    actualPin.className = "d-none";
+                    maskedPin.className = "";
+                    togglePin.className = "fas fa-fw fa-eye";
+                } else {
+                    actualPin.className = "";
+                    maskedPin.className = "d-none";
+                    togglePin.className = "fas fa-fw fa-eye-slash";
+                }
+            });
+            // Prevent selection when double-clicking
+            togglePin.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+            });
+        });
+    </script>
 {% endblock %}

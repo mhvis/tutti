@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load bootstrap4 static tutti_extras %}
+
+{% block nav_profile %}active{% endblock %}
+
+{% block content %}
+    <h1>Your info</h1>
+
+    <p>
+        This is the personal and membership information that we have stored about you.
+        If you would like to change your information,
+        contact the secretary of Quadrivium. For data removal requests and unsubscribe requests
+        you can also contact <a href="mailto:secretaris@esmgquadrivium.nl">the secretary of Quadrivium</a>.
+    </p>
+
+    <div class="row mb-2">
+        <div class="col-sm-3 col-lg-2"><strong>Username</strong></div>
+        <div class="col-sm-9 col-lg-10">{{ user.username }} (<a href="{% url "members:password_change" %}">change
+            password</a>)
+        </div>
+    </div>
+    {% include "members/profile_row.html" with label="Full name" value=user.get_full_name %}
+    {% include "members/profile_row.html" with label="Initials" value=user.person.initials %}
+    {% include "members/profile_row.html" with label="Gender" value=user.person.gender|capfirst %}
+    {% include "members/profile_row.html" with label="Date of birth" value=user.person.date_of_birth %}
+
+    <h2 class="mt-3">Contact info</h2>
+    {% include "members/profile_row.html" with label="Email address" value=user.email %}
+    {% include "members/profile_row.html" with label="Phone number" value=user.person.phone_number %}
+    {% include "members/profile_row.html" with label="Street" value=user.person.street %}
+    {% include "members/profile_row.html" with label="Postal code" value=user.person.postal_code %}
+    {% include "members/profile_row.html" with label="City" value=user.person.city %}
+    {% include "members/profile_row.html" with label="Country" value=country %}
+    <div class="row mb-2">
+        <div class="col"><a href="{% url "members:profile_form" %}">Change contact info</a></div>
+    </div>
+
+    <h2 class="mt-3">Groups</h2>
+
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Group</th>
+            <th scope="col">Since</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for membership in current_memberships %}
+            <tr>
+                <td>
+                    {{ membership.group.name }}
+                    {% if membership.group.qgroup.description %}
+                        <span class="fas fa-info-circle"
+                              data-toggle="tooltip"
+                              data-html="true"
+                              title="{{ membership.group.qgroup.description|linebreaksbr }}"></span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if membership.start.date != memberships_start %}
+                        {{ membership.start.date }}
+                    {% else %}
+                        <i class="far fa-sm fa-question-circle"></i>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Past groups</h4>
+    <div class="alert alert-info">
+        Past groups might be incomplete up until March 30, 2020.
+    </div>
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Group</th>
+            <th scope="col">Start date</th>
+            <th scope="col">End date</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for membership in past_memberships %}
+            <tr>
+                <td>
+                    {{ membership.group.name }}
+                    {% if membership.group.qgroup.description %}
+                        <span class="fas fa-info-circle"
+                              data-toggle="tooltip"
+                              data-html="true"
+                              title="{{ membership.group.qgroup.description|linebreaksbr }}"></span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if membership.start.date != memberships_start %}
+                        {{ membership.start.date }}
+                    {% else %}
+                        <i class="far fa-sm fa-question-circle"></i>
+                    {% endif %}
+                </td>
+                <td>{{ membership.end.date }}</td>
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+    <h2 class="mt-3">Membership info</h2>
+    {% include "members/profile_row.html" with label="Instruments" value=user.person.instruments.all|join:", "|capfirst %}
+    {% include "members/profile_row.html" with label="Preferred language" value=user.person.get_preferred_language_display %}
+    {% include "members/profile_row.html" with label="Is student" value=user.person.is_student|yesno|capfirst %}
+    {% include "members/profile_row.html" with label="Field of study" value=user.person.field_of_study %}
+    {% include "members/profile_row.html" with label="IBAN" value=user.person.iban|iban %}
+    {% include "members/profile_row.html" with label="SEPA direct debit" value=user.person.sepa_direct_debit|yesno|capfirst %}
+    {% include "members/profile_row.html" with label="BHV certificate" value=user.person.bhv_certificate %}
+    <h2 class="mt-3">KeyWatcher</h2>
+    <p>With these codes you can retrieve keys for rehearsal rooms. If you need help with the KeyWatcher system, contact
+        a board member.</p>
+    {% include "members/profile_row.html" with label="KeyWatcher ID" value=user.person.keywatcher_id %}
+    {% include "members/profile_row.html" with label="KeyWatcher PIN" value=user.person.keywatcher_pin %}
+    {% include "members/profile_row.html" with label="Keys that you can access" value=user.person.key_access.all|join:", " %}
+
+    <h2 class="mt-3">Card access</h2>
+    <p>Card access for Luna during off-hours.</p>
+    {% include "members/profile_row.html" with label="TU/e card number" value=user.person.tue_card_number %}
+    {% with loans=user.person.externalcardloan_set.all %}
+        {% if loans %}
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th scope="col">External card</th>
+                    <th scope="col">From</th>
+                    <th scope="col">To</th>
+                    <th scope="col">Deposit made</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.external_card }}</td>
+                        <td>{{ loan.start }}</td>
+                        <td>{% if loan.end %}{{ loan.end }}{% else %}-{% endif %}</td>
+                        <td>{{ loan.get_deposit_made_display }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You are not in possession of an external card.</p>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        // Enable tooltips on this page
+        // Could also put this in index.js
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+{% endblock %}

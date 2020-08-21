@@ -1,0 +1,16 @@
+{% extends "base_public.html" %}
+
+{% block title %}Become a Quadrivium member{% endblock %}
+
+{% block content %}
+    <h2>Thank you for your submission!</h2>
+    <p>
+        We'll get back to you. If you have any questions you can send them to
+        <a href="mailto:secretaris@esmgquadrivium.nl">secretaris@esmgquadrivium.nl</a>.
+    </p>
+
+    <p>
+        <a href="https://www.esmgquadrivium.nl/" class="btn btn-primary">Quadrivium website</a>
+        <a href="{% url "members:subscribe" %}" class="btn btn-outline-primary">Another submission</a>
+    </p>
+{% endblock %}

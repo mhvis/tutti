@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block nav_profile %}active{% endblock %}
+
+{% block content %}
+    <h1>Your info</h1>
+    <p><a href="{% url "members:profile" %}">← Back to overview</a></p>
+    <p>You can change your contact info here. If you want to change other details, contact the secretary.</p>
+    <form action="{% url "members:profile_form" %}" method="post">
+        {% csrf_token %}
+        {% bootstrap_form form layout="horizontal" %}
+        {% buttons %}
+            <button type="submit" class="btn btn-primary">Change</button>
+        {% endbuttons %}
+    </form>
+{% endblock %}

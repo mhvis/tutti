@@ -18,6 +18,7 @@ services:
       DJANGO_DEBUG: "on"
       DJANGO_SECRET_KEY: "hi"
       DATABASE_URL: "psql://tutti:tutti@db/tutti"
+      DJANGO_ALLOWED_HOSTS: "*"
 
     depends_on:
       - db
