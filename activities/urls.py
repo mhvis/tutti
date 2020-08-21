@@ -1,9 +1,10 @@
 from django.urls import path
-from activities.views import ActivityView
+from activities.views import ActivitiesView, ActivityView
 
 
 app_name = "activities"
 
 urlpatterns = [
-    path('', ActivityView.as_view(), name="activities"),
+    path('', ActivitiesView.as_view(), name="activities"),
+    path('activity/<int:id>/', ActivityView.as_view(), name="activity"),
 ]

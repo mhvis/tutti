@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Activity | {{ block.super }}{% endblock %}
+{% block title %}Activity {{activity.id}} | {{ block.super }}{% endblock %}
 
 
 {% block content %}
-<h1>Activity</h1>
-{% for activity in activities %}
-    <p>{{activity.name}}</p>
-{% endfor %}
+<h1>Activities</h1>
+<div class="card">
+    <div class="card-header">
+        {{activity.date}}
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">{{activity.name}}</h5>
+        <p class="card-text">{{activity.description}}</p>
+        <a href="{{activity.id}}" class="btn btn-primary">Sign up!</a>
+    </div>
+</div>
+<p></p>
+<ul class="list-group">
+    {% for participant in participants %}
+      <li class="list-group-item">{{participant}}</li>
+    {% endfor %}
+</ul>
 {% endblock %}
