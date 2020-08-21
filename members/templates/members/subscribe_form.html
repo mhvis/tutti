@@ -7,12 +7,9 @@
     <h2>Become a member</h2>
     <p>
         Great that you're interested in becoming a member of Quadrivium, the student music association!
-        After filling out this form we will reach out to you for completing the membership application,
-        which includes arranging the yearly contribution fee of around 60 euros.
+        Fill out the complete form to become a member or only leave your contact details if you're not yet sure and want
+        more info.
     </p>
-    {#    <div class="alert alert-info">#}
-    {#        #}
-    {#    </div>#}
     <p>
         <small class="text-muted">
             Why we need these personal details is indicated in our
@@ -25,7 +22,8 @@
     <form method="post" action="{% url 'members:subscribe' %}">
         {% csrf_token %}
         <div class="alert alert-info">
-            If you're unsure yet, you can just fill out your contact details here and we'll get back to you.
+            If you're just interested, fill in your contact details and we will send an email with more information,
+            around the beginning of the college year.
         </div>
         {% bootstrap_form_errors form type='non_fields' %}
         {% bootstrap_field form.first_name layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
@@ -37,7 +35,9 @@
             <button type="submit" class="btn btn-primary">I'm interested</button>
         {% endbuttons %}
         <div class="alert alert-info">
-            If you're pretty sure that you want to become a member, fill in the other details here as well!
+            If you want to become a member fill in the other details here as well!
+            We will reach out to you with all info and to complete the membership application.
+            The yearly contribution fee for a membership is around 60 euros.
         </div>
         {% bootstrap_field form.initials layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}
         {% bootstrap_field form.street layout='horizontal' label_class='col-sm-3 col-form-label' field_class='col-sm-9' %}

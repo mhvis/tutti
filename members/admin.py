@@ -1,35 +1,24 @@
 from django import forms
+from django.conf import settings
 from django.contrib import admin, messages
-from django.contrib.admin import RelatedFieldListFilter
+from django.contrib.admin import RelatedFieldListFilter, SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.forms import UserChangeForm, AdminPasswordChangeForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.template.response import TemplateResponse
 from django.urls import reverse, path
 from import_export.admin import ImportExportMixin
 
-from members.adminjobqueue import register_job_queue_admin
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
     ExternalCardLoan, GroupMembership, PersonTreasurerFields, MembershipRequest
 
-
-class QAdmin(admin.AdminSite):
-    site_header = "Members admin"
-    site_title = "Tutti"
-    index_title = "Members admin"
-
-    def has_permission(self, request):
-        # Allow everyone to access the admin site (normally the user needs to be staff)
-        #  Users will need to have explicit permissions assigned in order to be able to do something
-        return request.user.is_active
-
-
-admin_site = QAdmin()
-register_job_queue_admin(admin_site)
-admin_site.register(User, UserAdmin)
+admin.site.unregister(Group)
+admin.site.register(User, UserAdmin)
 
 
 # External card thingies
@@ -50,7 +39,7 @@ class ExternalCardLoanInline(admin.TabularInline):
         return False
 
 
-@admin.register(ExternalCardLoan, site=admin_site)
+@admin.register(ExternalCardLoan)
 class ExternalCardLoanAdmin(admin.ModelAdmin):
     """Separate admin page for external card loans."""
     list_display = ('external_card', 'person', 'start', 'end')
@@ -68,7 +57,7 @@ class ExternalCardLoanAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(ExternalCard, site=admin_site)
+@admin.register(ExternalCard)
 class ExternalCardAdmin(admin.ModelAdmin):
     """Admin page for external cards."""
     fields = ('card_number', 'reference_number', 'description')
@@ -141,7 +130,7 @@ class QGroupModelForm(forms.ModelForm):
         }
 
 
-@admin.register(QGroup, site=admin_site)
+@admin.register(QGroup)
 class QGroupAdmin(GroupAdmin):
     form = QGroupModelForm
 
@@ -174,6 +163,43 @@ class GroupListFilter(RelatedFieldListFilter):
         return ('name',)
 
 
+class MemberListFilter(SimpleListFilter):
+    """Filter for Quadrivium memberships.
+
+    By default filters people that are a member.
+    """
+
+    # Text shown in the right panel
+    title = "membership"
+
+    # Name used for the URL query parameter
+    parameter_name = 'is_member'
+
+    def lookups(self, request, model_admin):
+        # Returns the available options
+        return (
+            (None, "Is a member"),
+            ('no', "Is not a member"),
+            ('all', "All"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'no':
+            # Subtract members from the queryset
+            return queryset.filter(~Q(groups=settings.MEMBERS_GROUP))
+        elif self.value() is None:
+            # Only include members
+            return queryset.filter_members()
+
+    def choices(self, changelist):
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == lookup,
+                'query_string': changelist.get_query_string({self.parameter_name: lookup}),
+                'display': title,
+            }
+
+
 class PersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
@@ -198,8 +224,11 @@ class PersonAdmin(admin.ModelAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     readonly_fields = ('last_login', 'date_joined')
-    list_display = ('username', 'first_name', 'last_name', 'email')
-    list_filter = (('groups', GroupListFilter),)  # Custom group filter that applies ordering
+    list_display = ('username', 'first_name', 'last_name', 'email', 'is_member')
+    list_filter = (MemberListFilter,
+                   ('groups', GroupListFilter),  # Custom group filter that applies ordering
+                   'instruments')
+    list_max_show_all = 1000
     search_fields = ('username', 'first_name', 'last_name', 'email',
                      'initials', 'phone_number',
                      'street', 'postal_code', 'city',
@@ -215,6 +244,22 @@ class PersonAdmin(admin.ModelAdmin):
     # Needed for UserAdmin.user_change_password
     change_password_form = AdminPasswordChangeForm
     change_user_password_template = None
+
+    # def member_start(self, obj: Person):
+    #     """List filter that displays the start date of membership."""
+    #     try:
+    #         m = GroupMembership.objects.get(group=settings.MEMBERS_GROUP, user=obj)
+    #         return m.start
+    #     except GroupMembership.DoesNotExist:
+    #         return None
+    #
+    # def member_end(self, obj: Person):
+    #     """List filter that displays the end date of membership."""
+    #     try:
+    #         m = GroupMembership.objects.get(group=settings.MEMBERS_GROUP, user=obj)
+    #         return m.end
+    #     except GroupMembership.DoesNotExist:
+    #         return None
 
     def lookup_allowed(self, lookup, value):
         # Don't allow lookups involving passwords.
@@ -272,7 +317,7 @@ class PersonAdmin(admin.ModelAdmin):
         return fieldsets
 
 
-@admin.register(Person, site=admin_site)
+@admin.register(Person)
 class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
     """PersonAdmin extended with import/export capabilities."""
     resource_class = PersonResource  # Import/export settings
@@ -285,7 +330,7 @@ class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
         return request.user.has_perm('members.view_person')
 
 
-@admin.register(PersonTreasurerFields, site=admin_site)
+@admin.register(PersonTreasurerFields)
 class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
     """Separate admin for specific treasurer fields only."""
     fields = ("username", 'person_id', 'is_student', 'iban', 'sepa_direct_debit',)
@@ -301,15 +346,22 @@ class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
         return False
 
 
-admin_site.register(Instrument)
-admin_site.register(Key)
+admin.site.register(Instrument)
+admin.site.register(Key)
 
 
-@admin.register(MembershipRequest, site=admin_site)
+@admin.register(MembershipRequest)
 class MembershipRequestAdmin(admin.ModelAdmin):
-    readonly_fields = ('date',)
-    list_display = ('last_name', 'first_name', 'email', 'phone_number', 'instruments', 'date')
+    form_fields = (
+        'first_name', 'last_name', 'email', 'phone_number', 'instruments', 'initials', 'street', 'postal_code',
+        'city', 'country', 'gender', 'date_of_birth', 'preferred_language', 'is_student', 'field_of_study', 'iban',
+        'tue_card_number', 'sub_association', 'remarks')
+    other_fields = ('date', 'seen')
+    fieldsets = ((None, {'fields': form_fields}), ("Meta", {'fields': other_fields}))
+    readonly_fields = form_fields + ('date',)
+    list_display = ('last_name', 'first_name', 'email', 'instruments', 'date', 'seen')
     ordering = ('-date',)
+    list_filter = ('seen',)
 
 
 class GSuiteAccountInline(admin.TabularInline):
@@ -323,7 +375,7 @@ class GSuiteAccountInline(admin.TabularInline):
         return False
 
 
-@admin.register(GSuiteAccount, site=admin_site)
+@admin.register(GSuiteAccount)
 class GSuiteAccountAdmin(admin.ModelAdmin):
     fields = ('email',)
     inlines = (GSuiteAccountInline,)
