@@ -29,3 +29,6 @@ class Donor(models.Model):
 
     newsletter = models.BooleanField(null=True,
                                      help_text="Whether the donor wants to receive the newsletter.")
+
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name).strip()
