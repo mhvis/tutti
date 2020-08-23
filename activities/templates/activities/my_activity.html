@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap4 %}
 
 {% block title %}Edit activity {{activity.id}} | {{ block.super }}{% endblock %}
 
@@ -14,121 +15,10 @@
 
 <form method="post">
   {% csrf_token %}
-  <div class="form-row">
-    <div class="form-group col-md">
-      <label for="inputTitle">Title</label>
-      <input type="text"
-             class="form-control"
-             id="inputTitle"
-             placeholder="Title"
-             value="{{activity.name}}">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group col-md">
-      <label for="inputDescription">Description</label>
-      <textarea type="text"
-                class="form-control"
-                id="inputDescription"
-                placeholder="Description">{{activity.description}}
-      </textarea>
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group col-md-6">
-      <label for="inputCost">Cost</label>
-      <input type="text"
-             class="form-control"
-             id="inputCost"
-             placeholder="Cost"
-             value="{{activity.cost}}">
-    </div>
-    <div class="form-group col-md-6">
-      <label for="inputLocation">Location</label>
-      <input type="text"
-             class="form-control"
-             id="inputLocation"
-             placeholder="Location"
-             value="{{activity.location}}">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group col-md-6">
-      <label for="inputStartDate">Start date</label>
-      <input type="date"
-             class="form-control"
-             id="inputStartDate"
-             placeholder=""
-             value="{{activity.start_date|date:'Y-m-d'}}">
-    </div>
-    <div class="form-group col-md-2">
-      <label for="inputStartTime">Start time</label>
-      <input type="time"
-             class="form-control"
-             id="inputStartTime"
-             placeholder=""
-             value="{{activity.start_date|time:'H:i'}}">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group col-md-6">
-      <label for="inputEndDate">End date</label>
-      <input type="date"
-             class="form-control"
-             id="inputEndDate"
-             placeholder=""
-             value="{{activity.end_date|date:'Y-m-d'}}">
-    </div>
-    <div class="form-group col-md-2">
-      <label for="inputEndTime">End time</label>
-      <input type="time"
-             class="form-control"
-             id="inputEndTime"
-             placeholder=""
-             value="{{activity.end_date|time:'H:i'}}">
-    </div>
-  </div>
-
-  <div class="form-row">
-    <div class="form-group col-md-6">
-      <label for="inputCloseDate">Closing date</label>
-      <input type="date"
-             class="form-control"
-             id="inputCloseDate"
-             placeholder=""
-             value="{{activity.closing_date|date:'Y-m-d'}}">
-    </div>
-    <div class="form-group col-md-2">
-      <label for="inputCloseTime">Closing time</label>
-      <input type="time"
-             class="form-control"
-             id="inputCloseTime"
-             placeholder=""
-             value="{{activity.closing_date|time:'H:i'}}">
-    </div>
-  </div>
-
-  <div class="form-group">
-    <div class="form-check">
-      <input type="checkbox"
-             class="form-check-input"
-             id="inputHideActivity"
-             {{activity.hide_activity|yesno:"checked,"}}>
-      <label for="inputHideActivity" class="form-check-label">Hide activity</label>
-    </div>
-    <div class="form-check">
-      <input type="checkbox"
-             class="form-check-input"
-             id="inputHideParticipants"
-             {{activity.hide_participants|yesno:"checked,"}}>
-      <label for="inputHideParticipants" class="form-check-label">Hide participants</label>
-    </div>
-  </div>
-  <button type="submit" class="btn btn-primary">Save</button>
+  {% bootstrap_form form layout="horizontal" %}
+  {% buttons %}
+    <button type="submit" class="btn btn-primary">Save</button>
+  {% endbuttons %}
 </form>
 
 <p></p>

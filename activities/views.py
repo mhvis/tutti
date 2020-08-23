@@ -1,37 +1,47 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, FormView
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse_lazy
 
 from activities.models import Activity
+from activities.forms import ActivityForm
 from members.models import User, Person, GroupMembership
 
 
-def can_view_activity(person, activity):
+def can_view_activity(person: Person, activity: Activity) -> bool:
     for membership in GroupMembership.objects.filter(user=person):
         if membership.group in activity.groups.all() or person.is_staff:
             return True
     return False
 
 
-class MyActivityFormView(LoginRequiredMixin, TemplateView):
+def can_edit_activity(person: Person, activity: Activity) -> bool:
+    return person in activity.owners.all() or person.is_staff
+
+
+class MyActivityFormView(LoginRequiredMixin, FormView):
     """Displays a form to edit an activity."""
     template_name = "activities/my_activity.html"
+    form_class = ActivityForm
+    success_url = reverse_lazy("activities:index")
 
-    def get(self, request, *args, **kwargs):
-        person = Person.objects.get(username=request.user.username)
-        context = super().get_context_data(**kwargs)
-        activity = Activity.objects.get(id=context['id'])
-        context.update({
-            "activity": activity,
-            "no_permission": (person not in activity.owners.all()),
-        })
-        return self.render_to_response(context)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        activity = Activity.objects.get(id=self.kwargs['id'])
+        kwargs["instance"] = activity
+        return kwargs
 
-    def post(self, request, *args, **kwargs):
-        """Process submitted form data."""
-        context = self.get_context_data(**kwargs)
-        pass
+    def get_context_data(self, **kwargs):
+        context = super(MyActivityFormView, self).get_context_data(**kwargs)
+        activity = Activity.objects.get(id=self.kwargs['id'])
+        context["no_permission"] = not can_edit_activity(self.request.user, activity)
+        context["activity"] = activity
+        return context
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 class ActivitiesView(LoginRequiredMixin, TemplateView):
@@ -46,7 +56,7 @@ class ActivitiesView(LoginRequiredMixin, TemplateView):
         for activity in Activity.objects.all():
             if can_view_activity(person, activity) and activity not in activities:
                 activities.append(activity)
-            if (person in activity.owners.all() or person.is_staff) and activity.id not in can_edit:
+            if can_edit_activity(person, activity) and activity.id not in can_edit:
                 can_edit.append(activity.id)
 
         context.update({
@@ -78,7 +88,7 @@ class ActivityView(LoginRequiredMixin, TemplateView):
             "activity": activity,
             "participants": None if activity.hide_participants else participants,
             "is_subscribed": (persons.count() > 0),
-            "can_edit": (person in activity.owners.all()),
+            "can_edit": can_edit_activity(person, activity),
         })
         return self.render_to_response(context)
 
