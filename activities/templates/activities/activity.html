@@ -4,6 +4,9 @@
 
 
 {% block content %}
+{% if no_permission %}
+<div class="alert alert-danger mt-3">You do not have permission to view this activity</div>
+{% else %}
 <h1>Activities</h1>
 {% if form_invalid %}
 <div class="alert alert-danger mt-3">Something went wrong, user not found...</div>
@@ -21,7 +24,7 @@
             {% csrf_token %}
             <p class="card-text">{{activity.description}}</p>
             {% if is_subscribed %}
-            <button type="submit" name="signout" class="btn btn-primary">Sign out</button>
+            <button type="submit" name="signout" class="btn btn-light">Sign out</button>
             {% else %}
             <button type="submit" name="signup" class="btn btn-primary">Sign up!</button>
             {% endif %}
@@ -34,4 +37,5 @@
       <li class="list-group-item">{{participant}}</li>
     {% endfor %}
 </ul>
+{% endif %}
 {% endblock %}

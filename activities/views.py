@@ -4,19 +4,32 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 
 from activities.models import Activity
-from members.models import User, Person
+from members.models import User, Person, GroupMembership
+
+
+def can_view_activity(person, activity):
+    for membership in GroupMembership.objects.filter(user=person):
+        if membership.group in activity.groups.all() or person.is_staff:
+            return True
+    return False
 
 
 class ActivitiesView(LoginRequiredMixin, TemplateView):
     """Displays a list of activities."""
     template_name = "activities/activities.html"
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
+        person = Person.objects.get(username=request.user.username)
         context = super().get_context_data(**kwargs)
+        activities = []
+        for activity in Activity.objects.all():
+            if can_view_activity(person, activity) and activity not in activities:
+                activities.append(activity)
+
         context.update({
-            "activities": Activity.objects.all(),
+            "activities": activities,
         })
-        return context
+        return self.render_to_response(context)
 
 
 class ActivityView(LoginRequiredMixin, TemplateView):
@@ -25,9 +38,18 @@ class ActivityView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         context = super().get_context_data(**kwargs)
+
         activity = Activity.objects.get(id=context['id'])
+        person = Person.objects.get(username=request.user.username)
+        if not can_view_activity(person, activity):
+            context.update({
+                "no_permission": True,
+            })
+            return self.render_to_response(context)
+
         participants = activity.participants.all()
         persons = activity.participants.filter(username=request.user.username)
+
         for participant in participants:
             print(participant)
         context.update({
@@ -51,6 +73,9 @@ class ActivityView(LoginRequiredMixin, TemplateView):
 
         """Add or remove person from the activity"""
         activity = Activity.objects.get(id=context['id'])
+        if not can_view_activity(person, activity):
+            return self.get(request, no_permission=True, id=context['id'])
+
         if 'signup' in request.POST:
             activity.participants.add(person)
         else:
