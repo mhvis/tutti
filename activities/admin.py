@@ -7,4 +7,4 @@ from members.admin import admin_site
 class ActivityAdmin(admin.ModelAdmin):
     """Admin page for activities."""
     fields = ('name', 'description', 'date', 'closing_date', 'groups', 'participants')
-    list_filter = ('groups', 'participants')
+    filter_horizontal = ('groups', 'participants')
