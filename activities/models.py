@@ -10,14 +10,14 @@ class Activity(models.Model):
     cost = models.CharField(max_length=150, default='n/a')
     location = models.CharField(max_length=150, default='n/a')
     start_date = models.DateTimeField(null=True,
-                            blank=True,
-                            verbose_name='Start date')
-    end_date = models.DateTimeField(null=True,
                                       blank=True,
-                                      verbose_name='End date')
-    closing_date = models.DateTimeField(null=True,
+                                      verbose_name='Start date')
+    end_date = models.DateTimeField(null=True,
                                     blank=True,
-                                    verbose_name='Closing date')
+                                    verbose_name='End date')
+    closing_date = models.DateTimeField(null=True,
+                                        blank=True,
+                                        verbose_name='Closing date')
     groups = models.ManyToManyField(QGroup,
                                     blank=True,
                                     verbose_name='Linked groups')

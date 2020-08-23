@@ -1,72 +1,134 @@
 {% extends "base.html" %}
 
-{% block title %}Activity {{activity.id}} | {{ block.super }}{% endblock %}
+{% block title %}Edit activity {{activity.id}} | {{ block.super }}{% endblock %}
 
 
 {% block content %}
 {% if no_permission %}
 <div class="alert alert-danger mt-3">You do not have permission to edit this activity</div>
 {% else %}
-<h1>Activities</h1>
+<h1>Edit activity</h1>
 {% if form_invalid %}
 <div class="alert alert-danger mt-3">Something went wrong, user not found...</div>
 {% endif %}
 
-<form>
+<form method="post">
+  {% csrf_token %}
   <div class="form-row">
-    <div class="form-group col-md-6">
+    <div class="form-group col-md">
       <label for="inputTitle">Title</label>
-      <input type="text" class="form-control" id="inputTitle" placeholder="Title">
-    </div>
-      <div class="form-group col-md-3">
-        <label for="inputHideActivity">Hide activity</label>
-        <input type="checkbox" class="form-check-input" id="inputHideActivity">
-      </div>
-    <div class="form-group col-md-3">
-      <label for="inputHideParticipants">Hide participants</label>
-      <input type="checkbox" class="form-check-input" id="inputHideParticipants">
+      <input type="text"
+             class="form-control"
+             id="inputTitle"
+             placeholder="Title"
+             value="{{activity.name}}">
     </div>
   </div>
-  <div class="form-group col-md-6">
-    <label for="inputDescription">Description</label>
-    <input type="text" class="form-control" id="inputDescription" placeholder="Description">
+
+  <div class="form-row">
+    <div class="form-group col-md">
+      <label for="inputDescription">Description</label>
+      <textarea type="text"
+                class="form-control"
+                id="inputDescription"
+                placeholder="Description">{{activity.description}}
+      </textarea>
+    </div>
   </div>
+
   <div class="form-row">
     <div class="form-group col-md-6">
-      <label for="inputDate">Date</label>
-      <input type="date" class="form-control" id="inputDate" placeholder="">
+      <label for="inputCost">Cost</label>
+      <input type="text"
+             class="form-control"
+             id="inputCost"
+             placeholder="Cost"
+             value="{{activity.cost}}">
     </div>
     <div class="form-group col-md-6">
-      <label for="inputCloseDate">Closing date</label>
-      <input type="date" class="form-control" id="inputCloseDate" placeholder="">
+      <label for="inputLocation">Location</label>
+      <input type="text"
+             class="form-control"
+             id="inputLocation"
+             placeholder="Location"
+             value="{{activity.location}}">
     </div>
   </div>
+
   <div class="form-row">
     <div class="form-group col-md-6">
-      <label for="inputCity">City</label>
-      <input type="text" class="form-control" id="inputCity">
-    </div>
-    <div class="form-group col-md-4">
-      <label for="inputState">State</label>
-      <select id="inputState" class="form-control">
-        <option selected>Choose...</option>
-        <option>...</option>
-      </select>
+      <label for="inputStartDate">Start date</label>
+      <input type="date"
+             class="form-control"
+             id="inputStartDate"
+             placeholder=""
+             value="{{activity.start_date|date:'Y-m-d'}}">
     </div>
     <div class="form-group col-md-2">
-      <label for="inputZip">Zip</label>
-      <input type="text" class="form-control" id="inputZip">
+      <label for="inputStartTime">Start time</label>
+      <input type="time"
+             class="form-control"
+             id="inputStartTime"
+             placeholder=""
+             value="{{activity.start_date|time:'H:i'}}">
     </div>
   </div>
+
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="inputEndDate">End date</label>
+      <input type="date"
+             class="form-control"
+             id="inputEndDate"
+             placeholder=""
+             value="{{activity.end_date|date:'Y-m-d'}}">
+    </div>
+    <div class="form-group col-md-2">
+      <label for="inputEndTime">End time</label>
+      <input type="time"
+             class="form-control"
+             id="inputEndTime"
+             placeholder=""
+             value="{{activity.end_date|time:'H:i'}}">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="inputCloseDate">Closing date</label>
+      <input type="date"
+             class="form-control"
+             id="inputCloseDate"
+             placeholder=""
+             value="{{activity.closing_date|date:'Y-m-d'}}">
+    </div>
+    <div class="form-group col-md-2">
+      <label for="inputCloseTime">Closing time</label>
+      <input type="time"
+             class="form-control"
+             id="inputCloseTime"
+             placeholder=""
+             value="{{activity.closing_date|time:'H:i'}}">
+    </div>
+  </div>
+
   <div class="form-group">
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" id="gridCheck">
-      <label class="form-check-label" for="gridCheck">
-        Check me out
-      </label>
+      <input type="checkbox"
+             class="form-check-input"
+             id="inputHideActivity"
+             {{activity.hide_activity|yesno:"checked,"}}>
+      <label for="inputHideActivity" class="form-check-label">Hide activity</label>
+    </div>
+    <div class="form-check">
+      <input type="checkbox"
+             class="form-check-input"
+             id="inputHideParticipants"
+             {{activity.hide_participants|yesno:"checked,"}}>
+      <label for="inputHideParticipants" class="form-check-label">Hide participants</label>
     </div>
   </div>
-  <button type="submit" class="btn btn-primary">Sign in</button>
+  <button type="submit" class="btn btn-primary">Save</button>
 </form>
 
 <p></p>
