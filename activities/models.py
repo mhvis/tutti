@@ -3,12 +3,19 @@ from members.models import QGroup, Person
 
 
 class Activity(models.Model):
-    name = models.CharField(max_length=150, unique=True)
-    description = models.TextField(blank=True)
-    date = models.DateField(null=True,
+    name = models.CharField(max_length=50)
+    description = models.TextField(blank=True, default='n/a')
+    hide_activity = models.BooleanField(default=False)
+    hide_participants = models.BooleanField(default=False)
+    cost = models.CharField(max_length=150, default='n/a')
+    location = models.CharField(max_length=150, default='n/a')
+    start_date = models.DateTimeField(null=True,
                             blank=True,
-                            verbose_name='Date')
-    closing_date = models.DateField(null=True,
+                            verbose_name='Start date')
+    end_date = models.DateTimeField(null=True,
+                                      blank=True,
+                                      verbose_name='End date')
+    closing_date = models.DateTimeField(null=True,
                                     blank=True,
                                     verbose_name='Closing date')
     groups = models.ManyToManyField(QGroup,
@@ -16,7 +23,12 @@ class Activity(models.Model):
                                     verbose_name='Linked groups')
     participants = models.ManyToManyField(Person,
                                           blank=True,
+                                          related_name='participants',
                                           verbose_name='Participants')
+    owners = models.ManyToManyField(Person,
+                                    blank=True,
+                                    related_name='owners',
+                                    verbose_name='Activity owners')
 
     class Meta:
         verbose_name = 'activity'

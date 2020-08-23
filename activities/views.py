@@ -14,6 +14,26 @@ def can_view_activity(person, activity):
     return False
 
 
+class MyActivityFormView(LoginRequiredMixin, TemplateView):
+    """Displays a form to edit an activity."""
+    template_name = "activities/my_activity.html"
+
+    def get(self, request, *args, **kwargs):
+        person = Person.objects.get(username=request.user.username)
+        context = super().get_context_data(**kwargs)
+        activity = Activity.objects.get(id=context['id'])
+        context.update({
+            "activity": activity,
+            "no_permission": (person not in activity.owners.all()),
+        })
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        """Process submitted form data."""
+        context = self.get_context_data(**kwargs)
+        pass
+
+
 class ActivitiesView(LoginRequiredMixin, TemplateView):
     """Displays a list of activities."""
     template_name = "activities/activities.html"
@@ -28,6 +48,7 @@ class ActivitiesView(LoginRequiredMixin, TemplateView):
 
         context.update({
             "activities": activities,
+            "title": "Activities",
         })
         return self.render_to_response(context)
 
@@ -50,8 +71,6 @@ class ActivityView(LoginRequiredMixin, TemplateView):
         participants = activity.participants.all()
         persons = activity.participants.filter(username=request.user.username)
 
-        for participant in participants:
-            print(participant)
         context.update({
             "activity": activity,
             "participants": participants,
