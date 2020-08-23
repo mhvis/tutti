@@ -8,7 +8,7 @@
 {% block body %}
     <nav class="navbar navbar-expand-md navbar-dark bd-navbar fixed-top bg-primary">
         <a class="navbar-brand" href="{% url 'pages:index' %}">
-            <img src="{% static "img/logo_white.svg" %}" height="40" alt="ESMG Quadrivium">
+            <img src="{% static 'img/logo_white.svg' %}" height="40" alt="ESMG Quadrivium">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse">
             <span class="navbar-toggler-icon"></span>
@@ -16,7 +16,7 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% block nav_home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
+                    <a class="nav-link {% block nav_home %}{% endblock %}" href="{% url 'pages:index' %}">Home</a>
                 </li>
                 {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
                 <span class="navbar-text d-none d-md-inline-block">
@@ -32,20 +32,23 @@
                             <a class="dropdown-item {% block nav_qrekening %}{% endblock %}"
                                href="{% url 'pennotools:qrekening' %}">Q-rekening</a>
                             <a class="dropdown-item {% block nav_contribution %}{% endblock %}"
-                               href="{% url "pennotools:contribution" %}">Contributie</a>
+                               href="{% url 'pennotools:contribution' %}">Contributie</a>
                         </div>
                     </li>
                 {% endif %}
                 {% if perms.duqduqgo %}
                     <li class="nav-item">
-                        <a class="nav-link {% block nav_qalendar %}{% endblock %}" href="{% url "duqduqgo:qalendar" %}">Calendar</a>
+                        <a class="nav-link {% block nav_qalendar %}{% endblock %}" href="{% url 'duqduqgo:qalendar' %}">Calendar</a>
                     </li>
                 {% endif %}
                 {% if perms.members %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url "admin:index" %}">Members admin</a>
+                        <a class="nav-link" href="{% url 'admin:index' %}">Members admin</a>
                     </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'activities:index' %}">Activities</a>
+                </li>
             </ul>
 
             <ul class="navbar-nav">
@@ -61,7 +64,7 @@
                         <a class="dropdown-item" href="{% url 'oidc:logout' %}">Log out</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item {% block nav_about %}{% endblock %}"
-                           href="{% url "pages:about" %}">About</a>
+                           href="{% url 'pages:about' %}">About</a>
                     </div>
 
                 </li>

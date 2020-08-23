@@ -13,7 +13,7 @@
   <div class="card-body">
     <h5 class="card-title">{{activity.name}}</h5>
     <p class="card-text">{{activity.description}}</p>
-    <a href="activity/{{activity.id}}/" class="btn btn-primary">Sign up!</a>
+    <a href="{% url 'activities:activity' id=activity.id %}" class="btn btn-primary">Sign up!</a>
   </div>
 </div>
 <p></p>
