@@ -42,13 +42,17 @@ class ActivitiesView(LoginRequiredMixin, TemplateView):
         person = Person.objects.get(username=request.user.username)
         context = super().get_context_data(**kwargs)
         activities = []
+        can_edit = []
         for activity in Activity.objects.all():
             if can_view_activity(person, activity) and activity not in activities:
                 activities.append(activity)
+            if (person in activity.owners.all() or person.is_staff) and activity.id not in can_edit:
+                can_edit.append(activity.id)
 
         context.update({
             "activities": activities,
             "title": "Activities",
+            "can_edit": can_edit,
         })
         return self.render_to_response(context)
 
@@ -70,11 +74,11 @@ class ActivityView(LoginRequiredMixin, TemplateView):
 
         participants = activity.participants.all()
         persons = activity.participants.filter(username=request.user.username)
-
         context.update({
             "activity": activity,
-            "participants": participants,
+            "participants": None if activity.hide_participants else participants,
             "is_subscribed": (persons.count() > 0),
+            "can_edit": (person in activity.owners.all()),
         })
         return self.render_to_response(context)
 

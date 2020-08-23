@@ -28,6 +28,11 @@
                 {% else %}
                     <button type="submit" name="signup" class="btn btn-primary">Sign up!</button>
                 {% endif %}
+                {% if can_edit %}
+                    <a href="{% url 'activities:myactivity' id=activity.id %}"
+                       class="btn btn-danger float-lg-right">Edit
+                    </a>
+                {% endif %}
             </form>
         </div>
     </div>
