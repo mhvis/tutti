@@ -1,0 +1,7 @@
+<div class="list-group">
+  {% for activity in activities %}
+  <a href="{% url 'activities:activity' id=activity.id %}"
+     class="list-group-item list-group-item-action text-truncate">{{activity.name}}
+  </a>
+  {% endfor %}}
+</div>
