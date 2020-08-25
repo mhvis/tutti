@@ -3,7 +3,6 @@ from django.views.generic import TemplateView, FormView
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse_lazy
-from django.http import HttpResponse
 
 from activities.models import Activity
 from activities.forms import ActivityForm

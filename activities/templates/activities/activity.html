@@ -22,7 +22,18 @@
             <h5 class="card-title">{{activity.name}}</h5>
             <form method="post">
                 {% csrf_token %}
-                <p class="card-text">{{activity.description}}</p>
+                <p class="card-text">
+                <div class="row">
+                <div class="col-sm-8">{{activity.description}}</div>
+                <div class="col-sm-4">
+                <div><span class="font-weight-bold">Start</span> {{activity.start_date}}</div>
+                <div><span class="font-weight-bold">End</span> {{activity.end_date}}</div>
+                <div><span class="font-weight-bold">Location</span> {{activity.location}}</div>
+                <div><span class="font-weight-bold">Enlist before</span> {{activity.closing_date}}</div>
+                <div><span class="font-weight-bold">Cost</span> {{activity.cost}}</div>
+                </div>
+                </div>
+                </p>
                 {% if not activity.is_closed %}
                     {% if is_subscribed %}
                         <button type="submit" name="signout" class="btn btn-light">Sign out</button>
