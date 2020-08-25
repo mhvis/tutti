@@ -4,37 +4,44 @@ from django.utils import timezone
 
 
 class Activity(models.Model):
-    name = models.CharField(max_length=50)
-    description = models.TextField(blank=True, default='n/a')
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
     hide_activity = models.BooleanField(default=False)
-    hide_participants = models.BooleanField(default=False)
-    cost = models.CharField(max_length=150, default='n/a')
-    location = models.CharField(max_length=150, default='n/a')
-    start_date = models.DateTimeField(null=True,
-                                      blank=True,
-                                      verbose_name='Start date')
+    hide_participants = models.BooleanField(default=False,
+                                            help_text="Participants will be hidden for everyone except the organizers.")
+    cost = models.DecimalField(max_digits=8,
+                               decimal_places=2,
+                               help_text="Used for display only, can't be used to automatically debit people "
+                                         "using Q-rekening (as of yet).",
+                               null=True,
+                               blank=True)
+    location = models.CharField(max_length=150, blank=True)
+    start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True,
-                                    blank=True,
-                                    verbose_name='End date')
+                                    blank=True)
     closing_date = models.DateTimeField(null=True,
                                         blank=True,
-                                        verbose_name='Closing date')
+                                        help_text="People can't sign up after this date.")
     groups = models.ManyToManyField(QGroup,
                                     blank=True,
-                                    verbose_name='Linked groups')
+                                    verbose_name='linked groups',
+                                    help_text="You can restrict sign up to people from certain groups. "
+                                              "If you don't specify a group, all (current) members can sign up.")
     participants = models.ManyToManyField(Person,
                                           blank=True,
-                                          related_name='participants',
-                                          verbose_name='Participants')
+                                          related_name='activity_set')
     owners = models.ManyToManyField(Person,
                                     blank=True,
-                                    related_name='owners',
-                                    verbose_name='Activity owners')
+                                    related_name='activity_organized_set',
+                                    verbose_name='organizers',
+                                    help_text="Organizers can modify the activity and get participant contact details.")
 
     class Meta:
-        verbose_name = 'activity'
         verbose_name_plural = 'activities'
 
     @property
     def is_closed(self):
-        return timezone.now() > self.closing_date or timezone.now() > self.start_date or timezone.now() > self.end_date
+        if self.closing_date:
+            return timezone.now() > self.closing_date
+        else:
+            return timezone.now() > self.start_date

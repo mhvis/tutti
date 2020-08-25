@@ -22,7 +22,7 @@ class ActivityForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['name'].help_text = ("Name of the activity")
-        self.fields['start_date'].help_text = ("Start time and date of the activity")
-        self.fields['end_date'].help_text = ("End time and date of the activity")
-        self.fields['closing_date'].help_text = ("Time and date enlisting closes")
+        self.fields['name'].help_text = "Name of the activity"
+        self.fields['start_date'].help_text = "Start time and date of the activity"
+        self.fields['end_date'].help_text = "End time and date of the activity"
+        self.fields['closing_date'].help_text = "Time and date enlisting closes"
