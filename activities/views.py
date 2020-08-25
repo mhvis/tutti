@@ -10,12 +10,13 @@ from members.models import User, Person, GroupMembership
 
 
 def can_view_activity(person: Person, activity: Activity) -> bool:
-    for membership in GroupMembership.objects.filter(user=person):
-        if membership.group in activity.groups.all() and \
-                not activity.hide_activity or \
-                person.is_staff or \
-                person in activity.owners.all():
-            return True
+    for membership in GroupMembership.objects.filter(user=person, end=None):
+        for activity_group in activity.groups.all():
+            if (activity_group.id == membership.group.id and
+                not activity.hide_activity) or \
+                    person.is_staff or \
+                    person in activity.owners.all():
+                return True
     return False
 
 
@@ -38,7 +39,7 @@ class MyActivityFormView(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super(MyActivityFormView, self).get_context_data(**kwargs)
         activity = Activity.objects.get(id=self.kwargs['id'])
-        context["no_permission"] = not can_edit_activity(self.request.user, activity)
+        context["can_edit"] = can_edit_activity(self.request.user.person, activity)
         context["activity"] = activity
         context["participants"] = activity.participants.all()
         return context
@@ -80,12 +81,6 @@ class ActivityView(LoginRequiredMixin, TemplateView):
 
         activity = Activity.objects.get(id=context['id'])
         person = Person.objects.get(username=request.user.username)
-        if not can_view_activity(person, activity):
-            context.update({
-                "no_permission": True,
-            })
-            return self.render_to_response(context)
-
         participants = activity.participants.all()
         persons = activity.participants.filter(username=request.user.username)
         context.update({
