@@ -11,3 +11,5 @@ class ActivityAdmin(admin.ModelAdmin):
         ("Settings", {'fields': ('hide_activity', 'hide_participants', 'groups')}),
     ]
     autocomplete_fields = ('groups', 'owners')
+    ordering = ('-start_date',)
+    list_display = ('start_date', 'name', 'location')

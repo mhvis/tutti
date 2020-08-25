@@ -8,12 +8,6 @@
     <div class="alert alert-danger mt-3">You do not have permission to view this activity</div>
 {% else %}
     <h1>Activities</h1>
-    {% if form_invalid %}
-        <div class="alert alert-danger mt-3">Something went wrong...</div>
-    {% endif %}
-    {% if person_invalid %}
-        <div class="alert alert-danger mt-3">This user is not a Q person</div>
-    {% endif %}
     <div class="card">
         <div class="card-header">
             {{activity.start_date}}

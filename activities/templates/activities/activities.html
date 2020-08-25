@@ -6,7 +6,7 @@
 {% block content %}
 <h1>Activities</h1>
 {% for activity in activities %}
-<div class="card {{activity.hide_activity|yesno:'text-white bg-secondary,'}}">
+<div class="card {{activity.hide_activity|yesno:'text-white bg-secondary,'}} mb-3">
   <div class="card-header mb-3">
       <div class="float-lg-left">{{activity.start_date}}</div>
   </div>
@@ -19,6 +19,5 @@
     {% endif %}
   </div>
 </div>
-<p></p>
 {% endfor %}
 {% endblock %}

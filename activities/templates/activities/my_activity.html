@@ -3,14 +3,8 @@
 
 {% block title %}Edit activity {{activity.id}} | {{ block.super }}{% endblock %}
 
-
 {% block content %}
-{% if can_edit %}
 <h1>Edit activity</h1>
-{% if form_invalid %}
-<div class="alert alert-danger mt-3">Something went wrong, user not found...</div>
-{% endif %}
-
 <form method="post">
   {% csrf_token %}
   {% bootstrap_form form layout="horizontal" %}
@@ -19,7 +13,6 @@
   {% endbuttons %}
 </form>
 
-<p></p>
 <table class="table table-striped">
   <thead>
   <tr>
@@ -30,7 +23,7 @@
   </tr>
   </thead>
   <tbody>
-  {% for participant in participants %}
+  {% for participant in form.instance.participants.all %}
   <tr>
     <th scope="row">{{participant}}</th>
     <td>{{participant.email}}</td>
@@ -40,7 +33,4 @@
   {% endfor %}
   </tbody>
 </table>
-{% else %}
-<div class="alert alert-danger mt-3">You do not have permission to edit this activity</div>
-{% endif %}
 {% endblock %}

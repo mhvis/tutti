@@ -16,12 +16,11 @@ class Activity(models.Model):
                                null=True,
                                blank=True)
     location = models.CharField(max_length=150, blank=True)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True,
-                                    blank=True)
+    start_date = models.DateTimeField(help_text="Start time and date of the activity.")
+    end_date = models.DateTimeField(null=True, blank=True, help_text="End time and date of the activity.")
     closing_date = models.DateTimeField(null=True,
                                         blank=True,
-                                        help_text="People can't sign up after this date.")
+                                        help_text="Time and date enlisting closes.")
     groups = models.ManyToManyField(QGroup,
                                     blank=True,
                                     verbose_name='linked groups',
