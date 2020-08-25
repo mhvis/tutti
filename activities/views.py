@@ -13,9 +13,9 @@ def can_view_activity(person: Person, activity: Activity) -> bool:
     for membership in GroupMembership.objects.filter(user=person, end=None):
         for activity_group in activity.groups.all():
             if (activity_group.id == membership.group.id and
-                not activity.hide_activity) or \
-                    person.is_staff or \
-                    person in activity.owners.all():
+                    not activity.hide_activity or
+                    person.is_staff or
+                    person in activity.owners.all()):
                 return True
     return False
 
