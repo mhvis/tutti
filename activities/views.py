@@ -11,7 +11,10 @@ from members.models import User, Person, GroupMembership
 
 def can_view_activity(person: Person, activity: Activity) -> bool:
     for membership in GroupMembership.objects.filter(user=person):
-        if membership.group in activity.groups.all() or person.is_staff:
+        if membership.group in activity.groups.all() and \
+                not activity.hide_activity or \
+                person.is_staff or \
+                person in activity.owners.all():
             return True
     return False
 
