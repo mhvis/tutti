@@ -3,6 +3,7 @@ from django.views.generic import TemplateView, FormView
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse_lazy
+from django.http import HttpResponse
 
 from activities.models import Activity
 from activities.forms import ActivityForm
@@ -40,6 +41,7 @@ class MyActivityFormView(LoginRequiredMixin, FormView):
         activity = Activity.objects.get(id=self.kwargs['id'])
         context["no_permission"] = not can_edit_activity(self.request.user, activity)
         context["activity"] = activity
+        context["participants"] = activity.participants.all()
         return context
 
     def form_valid(self, form):
