@@ -1,10 +1,6 @@
 from django.db import models
 from members.models import QGroup, Person
 from django.utils import timezone
-from datetime import datetime
-import pytz
-
-utc=pytz.UTC
 
 
 class Activity(models.Model):
