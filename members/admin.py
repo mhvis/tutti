@@ -5,6 +5,7 @@ from django.contrib.admin import RelatedFieldListFilter, SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.forms import UserChangeForm, AdminPasswordChangeForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
@@ -12,26 +13,12 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, path
 from import_export.admin import ImportExportMixin
 
-from members.adminjobqueue import register_job_queue_admin
 from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
     ExternalCardLoan, GroupMembership, PersonTreasurerFields, MembershipRequest
 
-
-class QAdmin(admin.AdminSite):
-    site_header = "Members admin"
-    site_title = "Tutti"
-    index_title = "Members admin"
-
-    def has_permission(self, request):
-        # Allow everyone to access the admin site (normally the user needs to be staff)
-        #  Users will need to have explicit permissions assigned in order to be able to do something
-        return request.user.is_active
-
-
-admin_site = QAdmin()
-register_job_queue_admin(admin_site)
-admin_site.register(User, UserAdmin)
+admin.site.unregister(Group)
+admin.site.register(User, UserAdmin)
 
 
 # External card thingies
@@ -52,7 +39,7 @@ class ExternalCardLoanInline(admin.TabularInline):
         return False
 
 
-@admin.register(ExternalCardLoan, site=admin_site)
+@admin.register(ExternalCardLoan)
 class ExternalCardLoanAdmin(admin.ModelAdmin):
     """Separate admin page for external card loans."""
     list_display = ('external_card', 'person', 'start', 'end')
@@ -70,7 +57,7 @@ class ExternalCardLoanAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(ExternalCard, site=admin_site)
+@admin.register(ExternalCard)
 class ExternalCardAdmin(admin.ModelAdmin):
     """Admin page for external cards."""
     fields = ('card_number', 'reference_number', 'description')
@@ -143,7 +130,7 @@ class QGroupModelForm(forms.ModelForm):
         }
 
 
-@admin.register(QGroup, site=admin_site)
+@admin.register(QGroup)
 class QGroupAdmin(GroupAdmin):
     form = QGroupModelForm
 
@@ -327,7 +314,7 @@ class PersonAdmin(admin.ModelAdmin):
         return fieldsets
 
 
-@admin.register(Person, site=admin_site)
+@admin.register(Person)
 class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
     """PersonAdmin extended with import/export capabilities."""
     resource_class = PersonResource  # Import/export settings
@@ -340,7 +327,7 @@ class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
         return request.user.has_perm('members.view_person')
 
 
-@admin.register(PersonTreasurerFields, site=admin_site)
+@admin.register(PersonTreasurerFields)
 class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
     """Separate admin for specific treasurer fields only."""
     fields = ("username", 'person_id', 'is_student', 'iban', 'sepa_direct_debit',)
@@ -356,11 +343,11 @@ class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
         return False
 
 
-admin_site.register(Instrument)
-admin_site.register(Key)
+admin.site.register(Instrument)
+admin.site.register(Key)
 
 
-@admin.register(MembershipRequest, site=admin_site)
+@admin.register(MembershipRequest)
 class MembershipRequestAdmin(admin.ModelAdmin):
     form_fields = (
         'first_name', 'last_name', 'email', 'phone_number', 'instruments', 'initials', 'street', 'postal_code',
@@ -385,7 +372,7 @@ class GSuiteAccountInline(admin.TabularInline):
         return False
 
 
-@admin.register(GSuiteAccount, site=admin_site)
+@admin.register(GSuiteAccount)
 class GSuiteAccountAdmin(admin.ModelAdmin):
     fields = ('email',)
     inlines = (GSuiteAccountInline,)

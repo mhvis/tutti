@@ -1,9 +1,8 @@
 from django.contrib import admin
 from activities.models import Activity
-from members.admin import admin_site
 
 
-@admin.register(Activity, site=admin_site)
+@admin.register(Activity)
 class ActivityAdmin(admin.ModelAdmin):
     """Admin page for activities."""
     fields = ('name',
