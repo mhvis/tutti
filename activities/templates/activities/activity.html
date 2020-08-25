@@ -9,7 +9,7 @@
 {% else %}
     <h1>Activities</h1>
     {% if form_invalid %}
-        <div class="alert alert-danger mt-3">Something went wrong, user not found...</div>
+        <div class="alert alert-danger mt-3">Something went wrong...</div>
     {% endif %}
     {% if person_invalid %}
         <div class="alert alert-danger mt-3">This user is not a Q person</div>
@@ -23,10 +23,12 @@
             <form method="post">
                 {% csrf_token %}
                 <p class="card-text">{{activity.description}}</p>
-                {% if is_subscribed %}
-                    <button type="submit" name="signout" class="btn btn-light">Sign out</button>
-                {% else %}
-                    <button type="submit" name="signup" class="btn btn-primary">Sign up!</button>
+                {% if not activity.is_closed %}
+                    {% if is_subscribed %}
+                        <button type="submit" name="signout" class="btn btn-light">Sign out</button>
+                    {% else %}
+                        <button type="submit" name="signup" class="btn btn-primary">Sign up!</button>
+                    {% endif %}
                 {% endif %}
                 {% if can_edit %}
                     <a href="{% url 'activities:myactivity' id=activity.id %}"

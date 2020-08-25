@@ -1,5 +1,10 @@
 from django.db import models
 from members.models import QGroup, Person
+from django.utils import timezone
+from datetime import datetime
+import pytz
+
+utc=pytz.UTC
 
 
 class Activity(models.Model):
@@ -33,3 +38,7 @@ class Activity(models.Model):
     class Meta:
         verbose_name = 'activity'
         verbose_name_plural = 'activities'
+
+    @property
+    def is_closed(self):
+        return timezone.now() > self.closing_date or timezone.now() > self.start_date or timezone.now() > self.end_date

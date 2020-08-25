@@ -112,6 +112,9 @@ class ActivityView(LoginRequiredMixin, TemplateView):
         if not can_view_activity(person, activity):
             return self.get(request, no_permission=True, id=context['id'])
 
+        if activity.is_closed:
+            return self.get(request, form_invalid=True, id=context['id'])
+
         if 'signup' in request.POST:
             activity.participants.add(person)
         else:
