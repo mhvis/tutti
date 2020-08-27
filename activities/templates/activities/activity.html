@@ -1,53 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Activity {{activity.id}} | {{ block.super }}{% endblock %}
-
+{% block title %}{{ activity.name }} | {{ block.super }}{% endblock %}
 
 {% block content %}
-{% if no_permission %}
-    <div class="alert alert-danger mt-3">You do not have permission to view this activity</div>
-{% else %}
     <h1>Activities</h1>
     <div class="card">
         <div class="card-header">
-            {{activity.start_date}}
+            {{ activity.start_date.date }}
         </div>
         <div class="card-body">
-            <h5 class="card-title">{{activity.name}}</h5>
-            <form method="post">
-                {% csrf_token %}
-                <p class="card-text">
-                <div class="row">
-                <div class="col-sm-8">{{activity.description}}</div>
+            <h5 class="card-title">{{ activity.name }}</h5>
+            <div class="row">
+                <div class="col-sm-8"><p>{{ activity.description }}</p></div>
                 <div class="col-sm-4">
-                <div><span class="font-weight-bold">Start</span> {{activity.start_date}}</div>
-                <div><span class="font-weight-bold">End</span> {{activity.end_date}}</div>
-                <div><span class="font-weight-bold">Location</span> {{activity.location}}</div>
-                <div><span class="font-weight-bold">Enlist before</span> {{activity.closing_date}}</div>
-                <div><span class="font-weight-bold">Cost</span> {{activity.cost}}</div>
+                    <div><strong>Start</strong> {{ activity.start_date.time }}</div>
+                    {% if activity.end_date %}
+                        {# Display only time if the date is equal to start, else display full datetime #}
+                        <div>
+                            <strong>End</strong>
+                            {% if activity.end_date.date == activity.start_date.date %}
+                                {{ activity.end_date.time }}
+                            {% else %}
+                                {{ activity.end_date }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div><strong>Location</strong> {{ activity.location }}</div>
+                    {% if activity.closing_date %}
+                        <div><strong>Enlist before</strong> {{ activity.closing_date }}</div>
+                    {% endif %}
+                    <div><strong>Cost</strong> {{ activity.cost }}</div>
                 </div>
-                </div>
-                </p>
-                {% if not activity.is_closed %}
+            </div>
+            {% if not activity.is_closed %}
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
                     {% if is_subscribed %}
                         <button type="submit" name="signout" class="btn btn-light">Sign out</button>
                     {% else %}
                         <button type="submit" name="signup" class="btn btn-primary">Sign up!</button>
                     {% endif %}
-                {% endif %}
-                {% if can_edit %}
-                    <a href="{% url 'activities:myactivity' id=activity.id %}"
-                       class="btn btn-danger float-lg-right">Edit
-                    </a>
-                {% endif %}
-            </form>
+                </form>
+            {% endif %}
+            {% if can_edit %}
+                <a href="{% url 'activities:myactivity' id=activity.id %}"
+                   class="btn btn-danger float-lg-right">Edit
+                </a>
+            {% endif %}
         </div>
     </div>
     <p></p>
     <ul class="list-group">
         {% for participant in participants %}
-            <li class="list-group-item">{{participant}}</li>
+            <li class="list-group-item">{{ participant }}</li>
         {% endfor %}
     </ul>
-{% endif %}
 {% endblock %}

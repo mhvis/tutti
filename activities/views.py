@@ -2,7 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, FormView
+from django.utils import timezone
+from django.views.generic import TemplateView, FormView, ListView
 
 from activities.forms import ActivityForm
 from activities.models import Activity
@@ -44,16 +45,19 @@ class MyActivityFormView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class ActivitiesView(LoginRequiredMixin, TemplateView):
+class ActivitiesView(LoginRequiredMixin, ListView):
     """Displays a list of activities."""
     template_name = "activities/activities.html"
 
-    def get(self, request, *args, **kwargs):
-        person = Person.objects.get(username=request.user.username)
+    def get_queryset(self):
+        return Activity.objects.filter(start_date__gte=timezone.now()).order_by('start_date')
+
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        person = self.request.user.person
         activities = []
         can_edit = []
-        for activity in Activity.objects.all():
+        for activity in self.get_queryset():
             if can_view_activity(person, activity) and activity not in activities:
                 activities.append(activity)
             if can_edit_activity(person, activity) and activity.id not in can_edit:
@@ -61,10 +65,16 @@ class ActivitiesView(LoginRequiredMixin, TemplateView):
 
         context.update({
             "activities": activities,
-            "title": "Activities",
             "can_edit": can_edit,
         })
-        return self.render_to_response(context)
+        return context
+
+
+class PastActivitiesView(ActivitiesView):
+    template_name = 'activities/past_activities.html'
+
+    def get_queryset(self):
+        return Activity.objects.filter(start_date__lt=timezone.now()).order_by('-start_date')
 
 
 class ActivityView(LoginRequiredMixin, TemplateView):

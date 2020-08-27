@@ -9,12 +9,7 @@ class Activity(models.Model):
     hide_activity = models.BooleanField(default=False)
     hide_participants = models.BooleanField(default=False,
                                             help_text="Participants will be hidden for everyone except the organizers.")
-    cost = models.DecimalField(max_digits=8,
-                               decimal_places=2,
-                               help_text="Used for display only, can't be used to automatically debit people "
-                                         "using Q-rekening (as of yet).",
-                               null=True,
-                               blank=True)
+    cost = models.CharField(max_length=150, help_text="Used for display only.", blank=True)
     location = models.CharField(max_length=150, blank=True)
     start_date = models.DateTimeField(help_text="Start time and date of the activity.")
     end_date = models.DateTimeField(null=True, blank=True, help_text="End time and date of the activity.")
