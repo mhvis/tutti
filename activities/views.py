@@ -1,16 +1,16 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView, FormView
-from django.shortcuts import get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.views.generic import TemplateView, FormView
 
-from activities.models import Activity
 from activities.forms import ActivityForm
-from members.models import User, Person, GroupMembership
+from activities.models import Activity
+from members.models import Person, GroupMembership
 
 
 def can_view_activity(person: Person, activity: Activity) -> bool:
-    if person.is_staff or person in activity.owners.all():
+    if person in activity.owners.all() or person.has_perm('activities.view_activity'):
         return True
     for membership in GroupMembership.objects.filter(user=person, end=None):
         for activity_group in activity.groups.all():
@@ -20,7 +20,8 @@ def can_view_activity(person: Person, activity: Activity) -> bool:
 
 
 def can_edit_activity(person: Person, activity: Activity) -> bool:
-    return person in activity.owners.all() or person.is_staff
+    # We can use the below permission to grant board members edit access for all activities
+    return person in activity.owners.all() or person.has_perm('activities.change_activity')
 
 
 class MyActivityFormView(LoginRequiredMixin, FormView):
@@ -31,17 +32,12 @@ class MyActivityFormView(LoginRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        # Check access
         activity = Activity.objects.get(id=self.kwargs['id'])
-        kwargs["instance"] = activity
+        if not can_edit_activity(self.request.user.person, activity):
+            raise PermissionDenied
+        kwargs["instance"] = Activity.objects.get(id=self.kwargs['id'])
         return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super(MyActivityFormView, self).get_context_data(**kwargs)
-        activity = Activity.objects.get(id=self.kwargs['id'])
-        context["can_edit"] = can_edit_activity(self.request.user.person, activity)
-        context["activity"] = activity
-        context["participants"] = activity.participants.all()
-        return context
 
     def form_valid(self, form):
         form.save()
@@ -75,48 +71,42 @@ class ActivityView(LoginRequiredMixin, TemplateView):
     """Displays an activity."""
     template_name = "activities/activity.html"
 
-    def get(self, request, *args, **kwargs):
+    def get_activity(self):
+        """Returns the activity (if the user has view access)."""
+        activity = Activity.objects.get(id=self.kwargs['id'])
+        # Check permission
+        if not can_view_activity(self.request.user.person, activity):
+            raise PermissionDenied
+        return activity
+
+    def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        activity = Activity.objects.get(id=context['id'])
-        person = Person.objects.get(username=request.user.username)
+        activity = self.get_activity()
         participants = activity.participants.all()
-        persons = activity.participants.filter(username=request.user.username)
+        persons = activity.participants.filter(username=self.request.user.username)
         context.update({
             "activity": activity,
             "participants": None if activity.hide_participants else participants,
-            "is_subscribed": (persons.count() > 0),
-            "can_edit": can_edit_activity(person, activity),
+            "is_subscribed": persons.exists(),
+            "can_edit": can_edit_activity(self.request.user.person, activity),
         })
-        return self.render_to_response(context)
+        return context
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context_data(**kwargs)
-        try:
-            user = User.objects.get(username=request.user.username)
-        except ObjectDoesNotExist:
-            return self.get(request, form_invalid=True, id=context['id'])
+        # This might throw Person.DoesNotExist when accessed by a user without a related Person instance,
+        #  but that only happens in development.
+        person = request.user.person
 
-        try:
-            person = Person.objects.get(username=user.username)
-        except ObjectDoesNotExist:
-            return self.get(request, person_invalid=True, id=context['id'])
-
-        """Add or remove person from the activity"""
-        activity = Activity.objects.get(id=context['id'])
-        if not can_view_activity(person, activity):
-            return self.get(request, no_permission=True, id=context['id'])
-
+        # Add or remove person from the activity
+        activity = self.get_activity()
         if activity.is_closed:
-            return self.get(request, form_invalid=True, id=context['id'])
+            # Can't change enlistment when activity is closed
+            raise PermissionDenied
 
         if 'signup' in request.POST:
             activity.participants.add(person)
         else:
             activity.participants.remove(person)
 
-        return self.get(request, id=context['id'])
-
-    def get_queryset(self):
-        activity = get_object_or_404(Activity, id=self.kwargs['id'])
-        return activity
+        return redirect('activities:activity', id=activity.id)

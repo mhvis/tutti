@@ -18,10 +18,11 @@
                 <li class="nav-item">
                     <a class="nav-link {% block nav_home %}{% endblock %}" href="{% url 'pages:index' %}">Home</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'activities:index' %}">Activities</a>
+                </li>
                 {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
-                <span class="navbar-text d-none d-md-inline-block">
-                |
-            </span>
+                <span class="navbar-text d-none d-md-inline-block">|</span>
                 {% if perms.pennotools %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% block nav_penno %}{% endblock %}"
@@ -46,9 +47,6 @@
                         <a class="nav-link" href="{% url 'admin:index' %}">Members admin</a>
                     </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'activities:index' %}">Activities</a>
-                </li>
             </ul>
 
             <ul class="navbar-nav">
