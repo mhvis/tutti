@@ -19,6 +19,9 @@ class Command(BaseCommand):
                 '$expand': 'extensions($filter=id eq \'nl.esmgquadrivium.tutti\')',
             }
             objects = graph.get_paged('users', params=params)
+            # Filter objects which have extensions
+            objects = [o for o in objects if 'extensions' in o]
+            # Do cloning
             for o in objects:
                 self.stdout.write('Object: {}'.format(o))
                 pk = o['extensions'][0]['tuttiId']

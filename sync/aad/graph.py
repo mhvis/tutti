@@ -267,7 +267,7 @@ class Graph:
         objects = self.get_paged('users', params=params)
         if include_extension:
             # Filter objects which have extensions
-            objects = [o for o in objects if "extensions" in o]
+            objects = [o for o in objects if 'extensions' in o]
         return [GraphUser.from_object(o) for o in objects]
 
     def get_groups(self, include_extension=True) -> List[GraphGroup]:
