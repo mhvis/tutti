@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.db import models
@@ -195,6 +197,9 @@ class Person(User):
     keywatcher_pin = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher PIN')
 
     notes = models.TextField(blank=True)
+
+    # The Azure immutable ID is used to match Azure accounts with those stored in LDAP
+    azure_immutable_id = models.CharField(max_length=150, editable=False, default=uuid.uuid4, unique=True)
 
     def current_external_card_loans(self):
         """Get current external card loans."""

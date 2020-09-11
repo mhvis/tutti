@@ -21,7 +21,7 @@ class AADTestCase(TestCase):
 
     def test_user(self):
         """Tests user creation, update, license, extension and deletion."""
-        user = GraphUser("Random Person", "Random", "testcase", "en-us", "Person", "testcase@esmgquadrivium.nl")
+        user = GraphUser("Random Person", "Random", "testcase", "en-us", "Person", "testcase@esmgquadrivium.nl", 'asdf')
 
         def get_user(graph: Graph, user_id: str):
             # Get user
@@ -46,6 +46,7 @@ class AADTestCase(TestCase):
             user = get_user(self.graph, user_id)
             # print(json.dumps(user, indent=4))
             self.assertEqual('testcase@esmgquadrivium.nl', user['userPrincipalName'])
+            self.assertEqual('asdf', user['onPremisesImmutableId'])
             # Assert license
             self.assertEqual('6634e0ce-1a9f-428c-a498-f84ec7b8aa2e',
                              user['licenseAssignmentStates'][0]['skuId'])

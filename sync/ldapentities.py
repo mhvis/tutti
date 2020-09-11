@@ -108,6 +108,8 @@ class LDAPPerson(LDAPEntity):
             'uid': [self.instance.username],
             'qAzureUPN': ['{}@esmgquadrivium.nl'.format(self.instance.username.lower())],
             'qDBLinkID': [self.instance.id],
+            # We use 'employeeNumber' to store the Azure immutable ID
+            'employeeNumber': [self.instance.azure_immutable_id],
         }
         if self.instance.first_name:
             result['givenName'] = [self.instance.first_name]
@@ -144,5 +146,6 @@ class LDAPPerson(LDAPEntity):
                 'qGSuite',
                 'qDBLinkID',
                 'userPassword',
+                'employeeNumber',
             ]
         )
