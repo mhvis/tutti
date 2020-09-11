@@ -40,7 +40,7 @@ def aad_sync_members(graph: Graph) -> List[SyncOperation]:
     remote_id_map = {u.directory_id: u for u in aad_users}
     for group in graph.get_groups():
         # Get local and remote group members
-        qs = Person.objects.filter(groups=group.extension["tuttiId"])
+        qs = Person.objects.filter(groups=group.extension['tuttiId'])
         # Here we silently ignore local people that don't have a remote account
         local = [local_id_map[p.id] for p in qs if p.id in local_id_map]
         remote = [remote_id_map[i] for i in graph.get_group_members(group.directory_id)]
@@ -56,7 +56,7 @@ def convert_local_person(person: Person) -> GraphUser:
                      person.username,
                      person.preferred_language or None,
                      person.last_name or None,
-                     '{}@esmgquadrivium.nl'.format(person.username),
+                     '{}@esmgquadrivium.nl'.format(person.username).lower(),
                      person.azure_immutable_id,
                      extension={'tuttiId': person.id})
 
