@@ -211,6 +211,10 @@ class Person(User):
 
     is_member.boolean = True  # This attribute enables a pretty on/off icon in Django admin
 
+    def get_azure_upn(self):
+        """Returns the Azure userPrincipalName for this user."""
+        return '{}@esmgquadrivium.nl'.format(self.username.lower())
+
 
 class PersonTreasurerFields(Person):
     """Person proxy for use in admin for treasurer fields, see admin.py."""

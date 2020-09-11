@@ -9,7 +9,7 @@
             <h5 class="card-title">Your info</h5>
             <div class="row mb-2">
                 <div class="col-sm-3"><strong>SharePoint username</strong></div>
-                <div class="col-sm-9">{{ user.username|lower }}@esmgquadrivium.nl</div>
+                <div class="col-sm-9">{{ user.person.get_azure_upn }}</div>
             </div>
             {% if user.person.keywatcher_id and user.person.keywatcher_pin %}
                 <div class="row mb-2">

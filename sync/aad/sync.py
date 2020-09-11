@@ -56,7 +56,7 @@ def convert_local_person(person: Person) -> GraphUser:
                      person.username,
                      person.preferred_language or None,
                      person.last_name or None,
-                     '{}@esmgquadrivium.nl'.format(person.username).lower(),
+                     person.get_azure_upn(),
                      person.azure_immutable_id,
                      extension={'tuttiId': person.id})
 
