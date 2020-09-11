@@ -20,6 +20,7 @@ class Command(BaseCommand):
             }
             objects = graph.get_paged('users', params=params)
             for o in objects:
+                self.stdout.write('Object: {}'.format(o))
                 pk = o['extensions'][0]['tuttiId']
                 self.stdout.write('Setting immutable ID of {} ({}) to {}'.format(o['userPrincipalName'],
                                                                                  pk,
