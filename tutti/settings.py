@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'pages.apps.PagesConfig',
     'pennotools.apps.PennotoolsConfig',
     'duqduqgo.apps.DuqduqgoConfig',
+    'activities.apps.ActivitiesConfig',
     'donors.apps.DonorsConfig',
     # Admin site
     'tutti.apps.TuttiAdminConfig',

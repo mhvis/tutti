@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Activities | {{ block.super }}{% endblock %}
+
+{% block content %}
+    <h1>Activities</h1>
+    {% for activity in activities %}
+        {% include 'activities/activity_summary_card.html' %}
+    {% endfor %}
+    <a href="{% url 'activities:past' %}" class="btn btn-primary">Earlier activities</a>
+{% endblock %}

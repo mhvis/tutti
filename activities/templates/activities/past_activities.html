@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Activities | {{ block.super }}{% endblock %}
+
+{% block content %}
+    <h1>Finished activities</h1>
+    {% for activity in activities %}
+        {% include 'activities/activity_summary_card.html' %}
+    {% endfor %}
+{% endblock %}

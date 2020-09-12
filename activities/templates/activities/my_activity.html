@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}Edit activity {{activity.id}} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<h1>Edit activity</h1>
+<form method="post">
+  {% csrf_token %}
+  {% bootstrap_form form layout="horizontal" %}
+  {% buttons %}
+  <button type="submit" class="btn btn-primary">Save</button>
+  {% endbuttons %}
+</form>
+
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">E-mail</th>
+    <th scope="col">Phone number</th>
+    <th scope="col">ID</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for participant in form.instance.participants.all %}
+  <tr>
+    <th scope="row">{{participant}}</th>
+    <td>{{participant.email}}</td>
+    <td>{{participant.phone_number}}</td>
+    <td>{{participant.person_id}}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

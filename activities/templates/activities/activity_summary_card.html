@@ -1,0 +1,11 @@
+<div class="card {{ activity.hide_activity|yesno:'text-white bg-secondary,' }} mb-3">
+    <div class="card-header">{{ activity.start_date.date }}</div>
+    <div class="card-body">
+        <h5 class="card-title">{{ activity.name }}</h5>
+        <p class="card-text">{{ activity.description|truncatechars:300 }}</p>
+        <a href="{% url 'activities:activity' id=activity.id %}" class="btn btn-primary">More info</a>
+        {% if activity.id in can_edit %}
+            <a href="{% url 'activities:myactivity' id=activity.id %}" class="btn btn-danger float-lg-right">Edit</a>
+        {% endif %}
+    </div>
+</div>
