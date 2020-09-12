@@ -55,7 +55,7 @@ class GraphObject:
 
 class GraphUser(GraphObject):
     def __init__(self, display_name, given_name, mail_nickname, preferred_language, surname, user_principal_name,
-                 **kwargs):
+                 immutable_id, **kwargs):
         super().__init__(**kwargs)
         self.display_name = display_name
         self.given_name = given_name
@@ -63,16 +63,18 @@ class GraphUser(GraphObject):
         self.preferred_language = preferred_language
         self.surname = surname
         self.user_principal_name = user_principal_name
+        self.immutable_id = immutable_id
 
     @classmethod
     def from_object(cls, obj: Dict):
         directory_instance = GraphObject.from_object(obj)
-        return cls(obj["displayName"],
-                   obj["givenName"],
-                   obj["mailNickname"],
-                   obj["preferredLanguage"],
-                   obj["surname"],
-                   obj["userPrincipalName"],
+        return cls(obj['displayName'],
+                   obj['givenName'],
+                   obj['mailNickname'],
+                   obj['preferredLanguage'],
+                   obj['surname'],
+                   obj['userPrincipalName'],
+                   obj['onPremisesImmutableId'],
                    directory_id=directory_instance.directory_id,
                    extension=directory_instance.extension)
 
@@ -84,13 +86,13 @@ class GraphUser(GraphObject):
             'preferredLanguage': self.preferred_language,
             'surname': self.surname,
             'userPrincipalName': self.user_principal_name,
+            'onPremisesImmutableId': self.immutable_id,
         }
 
     def create_body(self) -> Dict:
-        # Generate random password and immutable ID
-        # We don't use these but they need to be provided when creating a new user
+        # Generate random password
+        # We don't use this password but it needs to be provided when creating a new user
         password = str(uuid4())
-        immutable_id = str(uuid4())
         o = self.as_object()
         o.update({
             'accountEnabled': True,
@@ -98,15 +100,7 @@ class GraphUser(GraphObject):
                 'password': password,
                 "forceChangePasswordNextSignIn": False,
             },
-            'onPremisesImmutableId': immutable_id,
             'usageLocation': 'NL',
-            # "identities": [
-            #     {
-            #         "signInType": "userPrincipalName",
-            #         "issuer": "esmgquadrivium.onmicrosoft.com",
-            #         "issuerAssignedId": self.user_principal_name,
-            #     },
-            # ],
         })
         return o
 
@@ -155,7 +149,7 @@ class Graph:
     access_token = None
     access_token_expiry = 0
 
-    def __init__(self, tenant: str, client_id: str, client_secret: str, extension_id="nl.esmgquadrivium.tutti"):
+    def __init__(self, tenant: str, client_id: str, client_secret: str, extension_id='nl.esmgquadrivium.tutti'):
         """Constructs instance using given authorization details.
 
         Docs: https://docs.microsoft.com/en-us/graph/auth-v2-service#token-request
@@ -263,16 +257,17 @@ class Graph:
             include_extension: If True, the extension will be included as well.
                 Only users with the extension will be returned!
         """
-        fields = ["id", "displayName", "givenName", "mailNickname", "preferredLanguage", "surname", "userPrincipalName"]
+        fields = ['id', 'displayName', 'givenName', 'mailNickname', 'preferredLanguage', 'surname', 'userPrincipalName',
+                  'onPremisesImmutableId']
         params = {
-            "$select": ",".join(fields),
+            '$select': ','.join(fields),
         }
         if include_extension:
-            params["$expand"] = "extensions($filter=id eq '{}')".format(self.extension_id)
-        objects = self.get_paged("users", params=params)
+            params['$expand'] = "extensions($filter=id eq '{}')".format(self.extension_id)
+        objects = self.get_paged('users', params=params)
         if include_extension:
             # Filter objects which have extensions
-            objects = [o for o in objects if "extensions" in o]
+            objects = [o for o in objects if 'extensions' in o]
         return [GraphUser.from_object(o) for o in objects]
 
     def get_groups(self, include_extension=True) -> List[GraphGroup]:
@@ -335,12 +330,12 @@ class Graph:
         Returns:
             The object ID of the created user.
         """
-        response = self.call_resource(resource="users", method="POST", json=user.create_body())
-        return response.json()["id"]
+        response = self.call_resource(resource='users', method='POST', json=user.create_body())
+        return response.json()['id']
 
     def create_group(self, group: GraphGroup) -> str:
-        response = self.call_resource(resource="groups", method="POST", json=group.create_body())
-        return response.json()["id"]
+        response = self.call_resource(resource='groups', method='POST', json=group.create_body())
+        return response.json()['id']
 
     def add_group_member(self, group_id: str, user_id: str):
         self.call_resource(resource="groups/{id}/members/$ref".format(id=group_id),

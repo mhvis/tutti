@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.db import models
@@ -205,6 +207,9 @@ class Person(User):
 
     notes = models.TextField(blank=True)
 
+    # The Azure immutable ID is used to match Azure accounts with those stored in LDAP
+    azure_immutable_id = models.CharField(max_length=150, editable=False, default=uuid.uuid4, unique=True)
+
     def current_external_card_loans(self):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
@@ -214,6 +219,10 @@ class Person(User):
         return self.groups.filter(id=settings.MEMBERS_GROUP).exists()
 
     is_member.boolean = True  # This attribute enables a pretty on/off icon in Django admin
+
+    def get_azure_upn(self):
+        """Returns the Azure userPrincipalName for this user."""
+        return '{}@esmgquadrivium.nl'.format(self.username.lower())
 
 
 class PersonTreasurerFields(Person):
