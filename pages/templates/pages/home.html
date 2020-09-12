@@ -9,27 +9,35 @@
             <h5 class="card-title">Your info</h5>
             <div class="row mb-2">
                 <div class="col-sm-3"><strong>SharePoint username</strong></div>
-                <div class="col-sm-9">{{ user.person.get_azure_upn }}</div>
+                <div class="col-sm-9">
+                    {{ user.person.get_azure_upn }}
+                    <div class="text-muted"><small>Use this email to log into Microsoft SharePoint.</small></div>
+                </div>
             </div>
-            {% if user.person.keywatcher_id and user.person.keywatcher_pin %}
-                <div class="row mb-2">
-                    <div class="col-sm-3"><strong>KeyWatcher</strong></div>
-                    <div class="col-sm-9">
+
+            <div class="row mb-2">
+                <div class="col-sm-3"><strong>KeyWatcher account</strong></div>
+                <div class="col-sm-9">
+                    {% if user.person.keywatcher_id and user.person.keywatcher_pin %}
                         ID: <span class="text-monospace">{{ user.person.keywatcher_id }}</span>
-                        PIN: <span class="text-monospace">
-                            <span id="actualPin" class="d-none">{{ user.person.keywatcher_pin }}</span>
-                            <span id="maskedPin">****</span>
-                            <i id="togglePin" class="fas fa-fw fa-eye"></i>
-                        </span>
+                        | PIN: <span class="text-monospace">
+                                <span id="actualPin" class="d-none">{{ user.person.keywatcher_pin }}</span>
+                                <span id="maskedPin">****</span>
+                                <i id="togglePin" class="fas fa-fw fa-eye"></i>
+                            </span>
+                        | Key numbers: {{ user.person.key_access.all|join:", " }}
+                    {% else %}
+                        You don't yet have a KeyWatcher account
+                    {% endif %}
+
+                    <div class="text-muted">
+                        <small>
+                            With this account you can retrieve keys for the rehearsal rooms
+                            from the KeyWatcher box in Luna.
+                        </small>
                     </div>
                 </div>
-                <div class="row mb-2">
-                    <div class="col-sm-3"><strong>Keys that you can access</strong></div>
-                    <div class="col-sm-9">{{ user.person.key_access.all|join:", " }}</div>
-                </div>
-            {% else %}
-                <div class="mb-2"><strong>You don't (yet) have a KeyWatcher ID</strong></div>
-            {% endif %}
+            </div>
             <a href="{% url "members:profile" %}">View all info</a>
         </div>
     </div>
@@ -45,10 +53,8 @@
         {% endfor %}
         </div>
 
-    <h3 class="mt-3">Sub-association sites (SharePoint)</h3>
-    <div class="alert alert-info">
-        Mainly used for sheet music.
-    </div>
+    <h3 class="mt-3">Sub-association sites</h3>
+    <p>Sheet music and info for each sub-association.</p>
     <div class="card-deck">
         {% for c in sub_association_cards %}
             {% include 'pages/home_sub_association_card.html' with card=c %}

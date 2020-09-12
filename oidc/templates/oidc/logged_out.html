@@ -1,0 +1,9 @@
+{% extends 'base_public.html' %}
+
+{% block content %}
+    <h2>Logged out</h2>
+    <p>You have been logged out.</p>
+    <p>
+        <a href="{% url 'pages:index' %}">Log in again</a> · <a href="https://www.esmgquadrivium.nl/">Main website</a>
+    </p>
+{% endblock %}

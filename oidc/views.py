@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
-from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, redirect
@@ -71,7 +70,7 @@ class AuthView(View):
         return redirect_to if url_is_safe else ''
 
 
-class LogoutView(TemplateView):
+class LogoutView(View):
     """Log out the user and redirect to logged out view.
 
     Redirects to OIDC provider to log out the user there as well.
@@ -93,15 +92,4 @@ class LogoutView(TemplateView):
 
 class LoggedOutView(TemplateView):
     """View that displays a 'logged out' message."""
-    # Todo: we should create a custom template instead this built-in one, once we have a base template
-    template_name = 'registration/logged_out.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        current_site = get_current_site(self.request)
-        context.update({
-            'site': current_site,
-            'site_name': current_site.name,
-            'title': 'Logged out',
-        })
-        return context
+    template_name = 'oidc/logged_out.html'

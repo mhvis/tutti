@@ -4,9 +4,12 @@
 {% block nav_graphs %}active{% endblock %}
 
 {% block content %}
-    <h1>Q graphs</h1>
+    <h1>Graphs</h1>
     <p>
-        Graphs compiled from the Quadrivium database. Note that the database may not always be accurate.
+        Graphs based on the Quadrivium database.
+    </p>
+    <p class="text-muted">
+        <small>Last update: {{ render_date.date }}</small>
     </p>
     <div class="card-deck">
         <div class="card">

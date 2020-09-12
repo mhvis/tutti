@@ -17,23 +17,24 @@
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link {% block nav_home %}{% endblock %}" href="{% url "pages:index" %}">Home</a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle {% block nav_faqts %}{% endblock %}"
-                   href="#" data-toggle="dropdown">
-                    Members
-                </a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item {% block nav_groups %}{% endblock %}"
-                       href="{% url 'faqts:groups' %}">Groups</a>
-                    <a class="dropdown-item {% block nav_graphs %}{% endblock %}"
-                       href="{% url "faqts:faqts" %}">Graphs</a>
-                </div>
                 </li>
-                {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
-                <span class="navbar-text d-none d-md-inline-block">
-                |
-            </span>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% block nav_faqts %}{% endblock %}"
+                       href="#" data-toggle="dropdown">
+                        Q facts
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item {% block nav_groups %}{% endblock %}"
+                           href="{% url 'faqts:groups' %}">Members</a>
+                        <a class="dropdown-item {% block nav_graphs %}{% endblock %}"
+                           href="{% url "faqts:faqts" %}">Graphs</a>
+                    </div>
+                </li>
+                {# Divider for board only pages #}
+                {% if perms.pennotools or perms.duqduqgo or perms.members %}
+                    {# The d-none/d-md-inline-block is there to hide the | when the navbar is collapsed. #}
+                    <span class="navbar-text d-none d-md-inline-block">|</span>
+                {% endif %}
                 {% if perms.pennotools %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% block nav_penno %}{% endblock %}"
@@ -68,8 +69,7 @@
                     <div class="dropdown-menu dropdown-menu-right">
                         <a class="dropdown-item {% block nav_profile %}{% endblock %}"
                            href="{% url 'members:profile' %}">Your info</a>
-                        <a class="dropdown-item {% block nav_password_change %}{% endblock %}"
-                           href="{% url 'members:password_change' %}">Change password</a>
+                        {# I've removed 'change password' because there's a link on the 'your info' page #}
                         <a class="dropdown-item" href="{% url 'oidc:logout' %}">Log out</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item {% block nav_about %}{% endblock %}"

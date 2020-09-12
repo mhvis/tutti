@@ -1,9 +1,11 @@
-from datetime import datetime, timezone
-from typing import List
+from datetime import datetime
+from typing import List, Dict
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.db.models import Count
+from django.utils import timezone
 from django.views.generic import TemplateView
 
 from faqts.facts import instrument_counts, group_size_curve
@@ -14,62 +16,81 @@ from members.models import QGroup, Person, GroupMembership
 class FaQtsView(LoginRequiredMixin, TemplateView):
     template_name = "faqts/faqts.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def render_plots(self) -> Dict:
+        """Renders and returns a dictionary of plots.
+
+        Each dictionary value is a base64 encoded SVG data URL.
+        """
+        plots = {}
 
         members = Person.objects.filter_members()  # Filter members
 
         # Members plot
         dates, count = group_size_curve(QGroup.objects.get_members_group())
-        idx = dates > datetime(2018, 1, 1, tzinfo=timezone.utc)
-        context['members_count_plot'] = date_plot(dates[idx], count[idx], title="Number of members over time")
+        idx = dates > datetime(2018, 1, 1, tzinfo=timezone.utc)  # We start at 2018
+        plots['members_count_plot'] = date_plot(dates[idx], count[idx], title="Number of members")
 
         # Sub-association plots
-        context.update({
+        plots.update({
             'ensuite_plot': date_plot(*group_size_curve(QGroup.objects.get(name="Ensuite")),
-                                      title="Ensuite members over time",
+                                      title="Ensuite members",
                                       from_zero=True),
             'piano_plot': date_plot(*group_size_curve(QGroup.objects.get(name="Pianisten")),
-                                    title="Piano members over time",
+                                    title="Piano members",
                                     from_zero=True),
             'vokollage_plot': date_plot(*group_size_curve(QGroup.objects.get(name="Vokollage")),
-                                        title="Vokollage members over time",
+                                        title="Vokollage members",
                                         from_zero=True),
             'auletes_plot': date_plot(*group_size_curve(QGroup.objects.get(name="Auletes")),
-                                      title="Auletes members over time",
+                                      title="Auletes members",
                                       from_zero=True),
         })
 
         # Instruments pie chart
         instrument_names, instrument_count = zip(*instrument_counts(cutoff=2))  # Unzip the result
-        context['instruments_pie'] = pie(instrument_count, instrument_names, title="Instrument distribution")
+        plots['instruments_pie'] = pie(instrument_count, instrument_names, title="Instruments")
 
         # Language pie chart
-        context['language_pie'] = pie(
+        plots['language_pie'] = pie(
             (members.filter(preferred_language='nl-nl').count(), members.filter(preferred_language='en-us').count()),
             ("Dutch", "English"),
-            title="Language distribution")
+            title="Language")
 
         # Gender pie chart
-        context['gender_pie'] = pie((members.filter(gender='male').count(), members.filter(gender='female').count()),
-                                    ("Male", "Female"),
-                                    title="Gender distribution")
+        plots['gender_pie'] = pie((members.filter(gender='male').count(), members.filter(gender='female').count()),
+                                  ("Male", "Female"),
+                                  title="Gender")
 
         # Birth year histogram
         birth_years = list(members.filter(date_of_birth__isnull=False).values_list('date_of_birth__year', flat=True))
-        context['birth_year_plot'] = count_bar(birth_years, title="Birth years")
+        plots['birth_year_plot'] = count_bar(birth_years, title="Birth years")
 
         # Length of Q membership
         membership_starts = list(GroupMembership.objects.filter(group=settings.MEMBERS_GROUP,
                                                                 end=None).values_list('start__year', flat=True))
-        context['membership_start_plot'] = count_bar(membership_starts,
-                                                     title="Membership start years")
+        plots['membership_start_plot'] = count_bar(membership_starts,
+                                                   title="Membership start years")
 
         # Triplegänger
         triple_name_qs = members.values('first_name').annotate(name_count=Count('first_name')).filter(
             name_count__gte=3).values_list('first_name', 'name_count')
-        context['triples_plot'] = bar(*zip(*triple_name_qs),
-                                      title="Triplegänger")
+        plots['triples_plot'] = bar(*zip(*triple_name_qs),
+                                    title="Triplegänger")
+
+        # We store the render date
+        plots['render_date'] = timezone.now()
+
+        return plots
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get plots from cache or render them
+        plots = cache.get('q_plots')
+        if not plots:
+            plots = self.render_plots()
+            cache.set('q_plots', plots, timeout=60 * 60 * 24 * 7)
+        context.update(plots)
 
         return context
 
