@@ -1,4 +1,4 @@
-django
+django<3.2  # django-import-export does not yet support Django 3.2 (support is already in dev branch, just not released)
 ldap3
 django-phonenumber-field
 phonenumbers

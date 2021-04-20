@@ -9,7 +9,7 @@
 # --noinput`.
 #
 # For environment variables that need to be set, see settings.py.
-FROM python:3.8-buster
+FROM python:3.8
 
 # Install dependencies
 WORKDIR /app/src
