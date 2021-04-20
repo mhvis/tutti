@@ -1,8 +1,9 @@
 name: Docker build
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+    - master
 
 env:
   DOCKER_BUILDKIT: 1
@@ -22,10 +23,8 @@ jobs:
           docker build \
             --cache-from $IMAGE_NAME:latest \
             --tag $IMAGE_NAME:latest \
-            --tag $IMAGE_NAME:${{ github.event.release.tag_name }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             "."
       - name: Push image to registry
         run: |
           docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:${{ github.event.release.tag_name }}
