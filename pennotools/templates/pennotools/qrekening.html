@@ -8,6 +8,10 @@
 {% block content %}
     <h1>Q-rekening</h1>
 
+    <div class="alert alert-warning">
+        Alleen <code>.xls</code>-bestanden worden ondersteund, laat het weten als dit een probleem geeft.
+    </div>
+
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <table class="table">

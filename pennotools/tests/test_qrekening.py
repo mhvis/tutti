@@ -13,7 +13,8 @@ from pennotools.qrekening.wb import read_exc
 
 class QRekeningTestCase(TestCase):
     def test_read_exc(self):
-        filename = os.path.join(os.path.dirname(__file__), 'qrekening/testfile_read.xlsx')
+        # Note: testfile_read.xlsx is the same as the .xls one but the new version of xlrd doesn't support .xlsx anymore
+        filename = os.path.join(os.path.dirname(__file__), 'qrekening/testfile_read.xls')
         wb = xlrd.open_workbook(filename)
 
         # Expected result
