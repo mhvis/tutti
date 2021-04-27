@@ -102,7 +102,7 @@ class ExternalCard(models.Model):
 
 class GSuiteAccount(models.Model):
     class Meta:
-        verbose_name = 'G Suite account'
+        verbose_name = 'Google Workspace account'
 
     email = models.EmailField(unique=True)
 
@@ -196,7 +196,7 @@ class Person(User):
 
     gsuite_accounts = models.ManyToManyField(GSuiteAccount,
                                              blank=True,
-                                             verbose_name='G Suite accounts')
+                                             verbose_name='Google Workspace accounts')
 
     iban = IBANField(blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID', help_text='Davilex code.')
