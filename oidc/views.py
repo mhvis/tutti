@@ -19,8 +19,8 @@ class LoginView(View):
     """Redirects to authorize endpoint of OpenID Connect provider."""
 
     def get(self, request, *args, **kwargs):
-        if not oauth.keycloak.client_secret:
-            # We skip Keycloak login if client secret is not set, e.g. in development
+        if not oauth.keycloak.client_id:
+            # We skip Keycloak login if client is not set, e.g. in development
             return redirect('admin:index')
         redirect_uri = request.build_absolute_uri(reverse('oidc:auth'))
         return oauth.keycloak.authorize_redirect(request, redirect_uri)
@@ -75,19 +75,17 @@ class LogoutView(View):
 
     Redirects to OIDC provider to log out the user there as well.
     """
-    # OpenID Connect provider Single Sign-Out url
-    logout_url = ('https://keycloak.esmgquadrivium.nl/auth/realms/esmgquadrivium/protocol/openid-connect/logout?'
-                  'redirect_uri={}')
 
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
-        if not oauth.keycloak.client_secret:
+        if not oauth.keycloak.client_id:
             # We do Django logout if Keycloak client secret is not set, e.g. in development
             return redirect('admin:logout')
         logout(request)
         # Redirect to OIDC provider, it will redirect back immediately
         redirect_uri = request.build_absolute_uri(reverse('oidc:loggedout'))
-        return HttpResponseRedirect(self.logout_url.format(redirect_uri))
+        end_session_uri = settings.OIDC_END_SESSION_ENDPOINT.format(redirect_uri)
+        return HttpResponseRedirect(end_session_uri)
 
 
 class LoggedOutView(TemplateView):

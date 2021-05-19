@@ -166,14 +166,18 @@ LDAP_SYNC_ON_SAVE = env.bool("DJANGO_LDAP_SYNC_ON_SAVE", default=False)
 
 PHONENUMBER_DEFAULT_REGION = 'NL'
 
-# Keycloak OpenID Connect configuration
+# OpenID Connect configuration
+#
+# If not set, OIDC will not be used.
 AUTHLIB_OAUTH_CLIENTS = {
     'keycloak': {
-        'client_id': 'tutti',
-        # If unset, OIDC will not be used
-        'client_secret': getenv_with_file('DJANGO_KEYCLOAK_SECRET'),
+        'client_id': os.getenv('OIDC_CLIENT_ID'),
+        'client_secret': getenv_with_file('OIDC_CLIENT_SECRET'),
+        'server_metadata_url': os.getenv('OIDC_METADATA_URL')
     }
 }
+# See OIDC spec, needs to have place a placeholder '{}' where the redirect URI will be placed
+OIDC_END_SESSION_ENDPOINT = os.getenv('OIDC_END_SESSION_ENDPOINT')
 
 # When users need to be logged in, the OpenID Connect flow will be started by
 # the login view.
