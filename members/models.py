@@ -210,6 +210,10 @@ class Person(User):
     # The Azure immutable ID is used to match Azure accounts with those stored in LDAP
     azure_immutable_id = models.CharField(max_length=150, editable=False, default=uuid.uuid4, unique=True)
 
+    def clean(self):
+        # Person ID should always be uppercase
+        self.person_id = self.person_id.upper()
+
     def current_external_card_loans(self):
         """Get current external card loans."""
         return self.externalcardloan_set.filter(end=None)
