@@ -14,7 +14,9 @@ ContributionException = namedtuple("ContributionException", ["group", "student",
 contributie_header = [
     'cn',
     'Amount',
-    'Bankrekening'
+    'Bankrekening',
+    'Email',
+    'mandaatID'
 ]
 
 
@@ -22,7 +24,9 @@ def get_contributie_row(p: Person, value: Decimal) -> Dict:
     return {
         'cn': '{} {}'.format(p.first_name, p.last_name),
         'Amount': value,
-        'Bankrekening': p.iban
+        'Bankrekening': p.iban,
+        'Email': p.email,
+        'mandaatID': p.person_id
     }
 
 
