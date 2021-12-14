@@ -28,8 +28,12 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         debit = request.FILES['Debit']
         credit = request.FILES['Credit']
 
-        wb_debit = xlrd.open_workbook(file_contents=debit.read())
-        wb_credit = xlrd.open_workbook(file_contents=credit.read())
+        try:
+            wb_debit = xlrd.open_workbook(file_contents=debit.read())
+            wb_credit = xlrd.open_workbook(file_contents=credit.read())
+        except xlrd.XLRDError as e:
+            return self.get(request, file_invalid=e)
+
 
         # Write Excel workbook into memory
         output = BytesIO()
