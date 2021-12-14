@@ -20,7 +20,11 @@ def iterate_rows(wb: Book):
             row = {}
             for name, col_nr in zip(col_names, range(s.ncols)):
                 value = s.cell(row_nr, col_nr).value
-                row[name.value] = value
+                header: str = name.value
+                # Check for similar 'omschrijving' headers
+                if 'omschrijving' in header.lower():
+                    header = 'Omschrijving'
+                row[header] = value
             yield row
 
 
