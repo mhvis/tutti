@@ -34,7 +34,6 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         except xlrd.XLRDError as e:
             return self.get(request, file_invalid=e)
 
-
         # Write Excel workbook into memory
         output = BytesIO()
         wb = xlsxwriter.Workbook(output)
