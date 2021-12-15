@@ -31,6 +31,8 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         if 'Debit' not in request.FILES or 'Credit' not in request.FILES:
             return self.get(request, form_invalid=True)
 
+        form = QrekeningForm(request.POST)
+
         debit = request.FILES['Debit']
         credit = request.FILES['Credit']
 
@@ -53,7 +55,7 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         if 'qrekening' in request.POST:
             write_qrekening(dav_persons, wb)
         elif 'sepa' in request.POST:
-            write_sepa(dav_persons, wb)
+            write_sepa(dav_persons, wb, kenmerk=form.data['kenmerk'])
 
         # Write workbook
         wb.close()
@@ -107,7 +109,7 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 write_contributie_sepa(wb,
                                        form.cleaned_data["student"],
                                        form.cleaned_data["non_student"],
-                                       exceptions)
+                                       exceptions, kenmerk=form.data['kenmerk'])
 
             # Write workbook
             wb.close()
