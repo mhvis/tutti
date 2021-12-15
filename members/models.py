@@ -12,7 +12,6 @@ from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
-import datetime
 
 
 class User(AbstractUser):
@@ -231,7 +230,7 @@ class Person(User):
         return '{}@esmgquadrivium.nl'.format(self.username.lower())
 
     def get_sepa_sign_date(self) -> str:
-        """Returns the date the SEPA contract was signed as a string. If it is not known, return 01-12-2019"""
+        """Returns the date the SEPA contract was signed as a string. If it is not known, return 01-12-2019."""
         if self.sepa_sign_date is None:
             return '01-12-2019'
         return self.sepa_sign_date.strftime('%d-%m-%Y')
