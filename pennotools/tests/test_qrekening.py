@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, date
+from datetime import datetime
 from decimal import Decimal
 
 import xlrd
@@ -131,28 +131,34 @@ class QRekeningTestCase(TestCase):
 
         # Expected result
         expect = [
-            {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 100,
-             'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 100,
-             'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 100,
-             'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 100,
-             'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02ABNA0123456789', 'BIC': '', 'mandaatid': 'JOHBAC', 'mandaatdatum': '', 'bedrag': 50,
-             'naam': 'Johann Sebastian Bach', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'JOHBAC{}'.format(date.today().strftime('%m%y'))},
-            {'IBAN': 'NL02INGB0123456789', 'BIC': '', 'mandaatid': 'NICPAG', 'mandaatdatum': '',
-             'bedrag': Decimal('0.01'),
-             'naam': 'Niccolo Paganini', 'beschrijving': 'Q afschrijving',
-             'endtoendid': 'NICPAG{}'.format(date.today().strftime('%m%y'))},
+            {'Kenmerk machtiging': 'NL00ZZZ0123456789', 'Naam betaler': 'Johann Sebastian Bach',
+             'Verkorte naam': 'JOHBAC', 'Rekeningnummer': 'NL02ABNA0123456789',
+             'Rekeninggroep': 'Algemeen', 'Bedrag': 130, 'Valuta': 'EUR', 'Categorie': '', 'Landcode': 'NL',
+             'Omschrijving 1': 'Q afschrijving', 'Omschrijving 2': '', 'Omschrijving 3': '',
+             'Type machtiging': 'Doorlopend', 'Ondertekend op': '01-11-2019'},
+            {'Kenmerk machtiging': 'NL00ZZZ0123456789', 'Naam betaler': 'Johann Sebastian Bach',
+             'Verkorte naam': 'JOHBAC', 'Rekeningnummer': 'NL02ABNA0123456789',
+             'Rekeninggroep': 'Algemeen', 'Bedrag': 130, 'Valuta': 'EUR', 'Categorie': '', 'Landcode': 'NL',
+             'Omschrijving 1': 'Q afschrijving', 'Omschrijving 2': '', 'Omschrijving 3': '',
+             'Type machtiging': 'Doorlopend', 'Ondertekend op': '01-11-2019'},
+            {'Kenmerk machtiging': 'NL00ZZZ0123456789', 'Naam betaler': 'Johann Sebastian Bach',
+             'Verkorte naam': 'JOHBAC', 'Rekeningnummer': 'NL02ABNA0123456789',
+             'Rekeninggroep': 'Algemeen', 'Bedrag': 130, 'Valuta': 'EUR', 'Categorie': '', 'Landcode': 'NL',
+             'Omschrijving 1': 'Q afschrijving', 'Omschrijving 2': '', 'Omschrijving 3': '',
+             'Type machtiging': 'Doorlopend', 'Ondertekend op': '01-11-2019'},
+            {'Kenmerk machtiging': 'NL00ZZZ0123456789', 'Naam betaler': 'Johann Sebastian Bach',
+             'Verkorte naam': 'JOHBAC', 'Rekeningnummer': 'NL02ABNA0123456789',
+             'Rekeninggroep': 'Algemeen', 'Bedrag': 60, 'Valuta': 'EUR', 'Categorie': '', 'Landcode': 'NL',
+             'Omschrijving 1': 'Q afschrijving', 'Omschrijving 2': '', 'Omschrijving 3': '',
+             'Type machtiging': 'Doorlopend', 'Ondertekend op': '01-11-2019'},
+            {'Kenmerk machtiging': 'NL00ZZZ0123456789', 'Naam betaler': 'Niccolo Paganini',
+             'Verkorte naam': 'NICPAG', 'Rekeningnummer': 'NL02INGB0123456789',
+             'Rekeninggroep': 'Algemeen', 'Bedrag': Decimal('0.01'), 'Valuta': 'EUR', 'Categorie': '', 'Landcode': 'NL',
+             'Omschrijving 1': 'Q afschrijving', 'Omschrijving 2': '', 'Omschrijving 3': '',
+             'Type machtiging': 'Doorlopend', 'Ondertekend op': '01-11-2019'},
         ]
 
         # Run and compare
         combine_persons(dav_people)
-        actual = get_sepa(dav_people, description='Q afschrijving')
+        actual = get_sepa(dav_people, description='Q afschrijving', kenmerk='NL00ZZZ0123456789')
         self.assertEqual(expect, actual)
