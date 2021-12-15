@@ -1,4 +1,4 @@
-name: Docker build
+name: Docker deploy
 
 on:
   push:
@@ -16,8 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Log in to the registry
-        run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} quadrivium.azurecr.io
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} quadrivium.azurecr.io
       - name: Build image
         run: |
           docker build \
@@ -26,5 +25,6 @@ jobs:
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             "."
       - name: Push image to registry
-        run: |
-          docker push $IMAGE_NAME:latest
+        run: docker push $IMAGE_NAME:latest
+      - name: Trigger re-deploy
+        run: curl -X POST ${{ secrets.PORTAINER_WEBHOOK1 }}; curl -X POST ${{ secrets.PORTAINER_WEBHOOK2 }}
