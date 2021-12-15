@@ -4,6 +4,11 @@ from members.models import QGroup
 
 
 class ContributionForm(forms.Form):
+    kenmerk = forms.CharField(max_length=35,
+                              label="Kenmerk",
+                              help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "
+                                        "Dit kenmerk moet uniek zijn per adres. "
+                                        "Het staat ook bekend als mandaat-ID of mandaatkenmerk.")
     student = forms.DecimalField(decimal_places=2,
                                  min_value=0,
                                  help_text="Hoogte van de contributie voor studenten.")
@@ -46,3 +51,14 @@ class BaseContributionExceptionFormSet(forms.BaseFormSet):
 ContributionExceptionFormSet = forms.formset_factory(ContributionExceptionForm,
                                                      formset=BaseContributionExceptionFormSet,
                                                      extra=0)
+
+
+class QrekeningForm(forms.Form):
+    kenmerk = forms.CharField(max_length=35,
+                              label="Kenmerk",
+                              help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "
+                                        "Dit kenmerk moet uniek zijn per adres. "
+                                        "Het staat ook bekend als mandaat-ID of mandaatkenmerk.")
+
+    Debit = forms.FileField()
+    Credit = forms.FileField()

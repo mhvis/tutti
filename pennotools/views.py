@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 
 from pennotools.contributie.process import write_contributie, write_contributie_sepa, ContributionException
-from pennotools.forms import ContributionForm, ContributionExceptionFormSet
+from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QrekeningForm
 from pennotools.qrekening.process import combine_persons
 from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
@@ -19,6 +19,12 @@ class TreasurerAccessMixin(PermissionRequiredMixin):
 
 class QRekeningView(TreasurerAccessMixin, TemplateView):
     template_name = 'pennotools/qrekening.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {
+            "form": QrekeningForm(),
+        }
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         """Process a Q-rekening debtor or creditor file and download Qrekening."""
