@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap4 static %}
 
 {% block title %}Q-rekening | {{ block.super }}{% endblock %}
 
@@ -14,18 +15,7 @@
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <table class="table">
-            <tbody>
-            <tr>
-                <th scope="row"><label for="Debit">Debit</label></th>
-                <td><input id="Debit" type="file" name="Debit"></td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="Credit">Credit</label></th>
-                <td><input id="Credit" type="file" name="Credit"></td>
-            </tr>
-            </tbody>
-        </table>
+        {% bootstrap_form form layout="horizontal" %}
         <button type="submit" name="qrekening" class="btn btn-primary">Q-rekening</button>
         <button type="submit" name="sepa" class="btn btn-secondary">SEPA file</button>
         {% if form_invalid %}

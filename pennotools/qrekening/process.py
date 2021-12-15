@@ -97,8 +97,25 @@ sepa_header = ['IBAN',
                'endtoendid'
                ]
 
+# Refer to https://www.rabobank.nl/images/pdf_formaatbeschrijving_csv_29856100.pdf
+rabo_sepa_header = ['Kenmerk machtiging',
+                    'Naam betaler',
+                    'Verkorte naam',
+                    'Rekeningnummer',
+                    'Rekeninggroep',
+                    'Bedrag',
+                    'Valuta',
+                    'Categorie',
+                    'Landcode',
+                    'Omschrijving 1',
+                    'Omschrijving 2',
+                    'Omschrijving 3',
+                    'Type machtiging',
+                    'Ondertekend op'
+                    ]
 
-def get_sepa_rows(p: DavilexPerson, description, split=Decimal('100.00')) -> List[Dict]:
+
+def get_sepa_rows(p: DavilexPerson, description, split=Decimal('130.00'), kenmerk: str = '') -> List[Dict]:
     """Get SEPA rows for a person.
 
     Args:
@@ -106,27 +123,45 @@ def get_sepa_rows(p: DavilexPerson, description, split=Decimal('100.00')) -> Lis
         description: Description which is included in the SEPA rows. Can be a
             string or a callable which returns a string.
         split: Amount is split over multiple rows if it is higher than this.
-
+        kenmerk: Mandaat kenmerk.
     """
     rows = []
+    #
+    # def get_row(amount):
+    #     return {
+    #         'IBAN': p.get_iban(),
+    #         'BIC': '',
+    #         'mandaatid': p.id,
+    #         'mandaatdatum': '',
+    #         'bedrag': amount,
+    #         'naam': p.name,
+    #         'beschrijving': description() if callable(description) else description,
+    #         'endtoendid': '{}{}'.format(p.id, date.today().strftime('%m%y')),
+    #     }
 
-    def get_row(amount):
+    def get_rabo_row(amount):
         return {
-            'IBAN': p.get_iban(),
-            'BIC': '',
-            'mandaatid': p.id,
-            'mandaatdatum': '',
-            'bedrag': amount,
-            'naam': p.name,
-            'beschrijving': description() if callable(description) else description,
-            'endtoendid': '{}{}'.format(p.id, date.today().strftime('%m%y')),
+            'Kenmerk machtiging': kenmerk,
+            'Naam betaler': p.name,
+            'Verkorte naam': p.id,
+            'Rekeningnummer': p.get_iban(),
+            'Rekeninggroep': 'Algemeen',
+            'Bedrag': f'{amount:.2f}'.replace('.', ','),
+            'Valuta': 'EUR',
+            'Categorie': '',
+            'Landcode': p.get_iban()[:2],
+            'Omschrijving 1': description() if callable(description) else description,
+            'Omschrijving 2': '',
+            'Omschrijving 3': '',
+            'Type machtiging': 'Doorlopend',
+            'Ondertekend op': p.q_person.get_sepa_sign_date(),
         }
 
     total = p.get_total()
     while total > split:
-        rows.append(get_row(amount=split))
+        rows.append(get_rabo_row(amount=split))
         total -= split
-    rows.append(get_row(amount=total))
+    rows.append(get_rabo_row(amount=total))
     return rows
 
 
@@ -134,19 +169,21 @@ def sepa_default_description():
     return 'Qrekening {}'.format(date.today().strftime('%B %Y'))
 
 
-def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_description) -> List[Dict]:
+def get_sepa(dav_people: Dict[str, DavilexPerson], description=sepa_default_description, kenmerk='') -> List[Dict]:
     """Get SEPA rows for Davilex people.
 
     Args:
         dav_people: Davilex people.
         description: Description used for the SEPA rows. Can be a string or a
             callable which returns a string.
+        kenmerk: Mandaat kenmerk.
     """
     rows = []
     for p in dav_people.values():
         if p.q_person:
+            print(f'Q person: {p.name}')
             if p.get_total() < 0 or not p.get_iban() or not p.q_person.sepa_direct_debit:
                 pass
             else:
-                rows += get_sepa_rows(p, description=description)
+                rows += get_sepa_rows(p, description=description, kenmerk=kenmerk)
     return rows

@@ -215,7 +215,7 @@ class PersonAdmin(admin.ModelAdmin):
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
         ('Quadrivium', {
-            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit'),
+            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
                        'bhv_certificate', 'gsuite_accounts', 'notes')
         }),
         ('TU/e', {
@@ -333,7 +333,7 @@ class PersonImportExportAdmin(ImportExportMixin, PersonAdmin):
 @admin.register(PersonTreasurerFields)
 class PersonTreasurerFieldsAdmin(admin.ModelAdmin):
     """Separate admin for specific treasurer fields only."""
-    fields = ("username", 'person_id', 'is_student', 'iban', 'sepa_direct_debit',)
+    fields = ("username", 'person_id', 'is_student', 'iban', 'sepa_direct_debit', 'sepa_sign_date',)
     readonly_fields = ("username",)
     list_display = ('username', 'first_name', 'last_name', 'email')
     search_fields = ('username', 'first_name', 'last_name', 'email')

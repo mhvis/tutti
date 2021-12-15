@@ -4,7 +4,7 @@ from typing import Dict, List
 from xlrd import Book, xldate_as_datetime
 from xlsxwriter import Workbook
 
-from pennotools.qrekening.process import get_qrekening, qrekening_header, sepa_header, get_sepa
+from pennotools.qrekening.process import get_qrekening, qrekening_header, get_sepa, rabo_sepa_header
 from pennotools.qrekening.qperson import DavilexPerson
 
 
@@ -20,7 +20,11 @@ def iterate_rows(wb: Book):
             row = {}
             for name, col_nr in zip(col_names, range(s.ncols)):
                 value = s.cell(row_nr, col_nr).value
-                row[name.value] = value
+                header: str = name.value
+                # Check for similar 'omschrijving' headers
+                if 'omschrijving' in header.lower():
+                    header = 'Omschrijving'
+                row[header] = value
             yield row
 
 
@@ -96,6 +100,6 @@ def write_qrekening(dav_people, workbook: Workbook):
     write_sheet(workbook, 'Externen', qrekening_header, external)
 
 
-def write_sepa(dav_people, workbook: Workbook):
+def write_sepa(dav_people, workbook: Workbook, kenmerk=''):
     """Get SEPA rows and write in the workbook."""
-    write_sheet(workbook, 'Debiteuren', sepa_header, get_sepa(dav_people))
+    write_sheet(workbook, 'Debiteuren', rabo_sepa_header, get_sepa(dav_people, kenmerk=kenmerk))

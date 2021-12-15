@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 
 from pennotools.contributie.process import write_contributie, write_contributie_sepa, ContributionException
-from pennotools.forms import ContributionForm, ContributionExceptionFormSet
+from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QrekeningForm
 from pennotools.qrekening.process import combine_persons
 from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
 
@@ -20,16 +20,27 @@ class TreasurerAccessMixin(PermissionRequiredMixin):
 class QRekeningView(TreasurerAccessMixin, TemplateView):
     template_name = 'pennotools/qrekening.html'
 
+    def get(self, request, *args, **kwargs):
+        context = {
+            "form": QrekeningForm(),
+        }
+        return self.render_to_response(context)
+
     def post(self, request, *args, **kwargs):
         """Process a Q-rekening debtor or creditor file and download Qrekening."""
         if 'Debit' not in request.FILES or 'Credit' not in request.FILES:
             return self.get(request, form_invalid=True)
 
+        form = QrekeningForm(request.POST)
+
         debit = request.FILES['Debit']
         credit = request.FILES['Credit']
 
-        wb_debit = xlrd.open_workbook(file_contents=debit.read())
-        wb_credit = xlrd.open_workbook(file_contents=credit.read())
+        try:
+            wb_debit = xlrd.open_workbook(file_contents=debit.read())
+            wb_credit = xlrd.open_workbook(file_contents=credit.read())
+        except xlrd.XLRDError as e:
+            return self.get(request, file_invalid=e)
 
         # Write Excel workbook into memory
         output = BytesIO()
@@ -44,7 +55,7 @@ class QRekeningView(TreasurerAccessMixin, TemplateView):
         if 'qrekening' in request.POST:
             write_qrekening(dav_persons, wb)
         elif 'sepa' in request.POST:
-            write_sepa(dav_persons, wb)
+            write_sepa(dav_persons, wb, kenmerk=form.data['kenmerk'])
 
         # Write workbook
         wb.close()
@@ -98,7 +109,7 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 write_contributie_sepa(wb,
                                        form.cleaned_data["student"],
                                        form.cleaned_data["non_student"],
-                                       exceptions)
+                                       exceptions, kenmerk=form.data['kenmerk'])
 
             # Write workbook
             wb.close()
