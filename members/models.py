@@ -12,6 +12,7 @@ from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
 from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
+import datetime
 
 
 class User(AbstractUser):
@@ -200,6 +201,7 @@ class Person(User):
 
     iban = IBANField(blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID', help_text='Davilex code.')
+    sepa_sign_date = models.DateField(blank=True, null=True, verbose_name='SEPA agreement date')
 
     key_access = models.ManyToManyField(Key, blank=True)
     keywatcher_id = models.CharField(max_length=4, blank=True, verbose_name='KeyWatcher ID')
@@ -227,6 +229,12 @@ class Person(User):
     def get_azure_upn(self):
         """Returns the Azure userPrincipalName for this user."""
         return '{}@esmgquadrivium.nl'.format(self.username.lower())
+
+    def get_sepa_sign_date(self) -> str:
+        """Returns the date the SEPA contract was signed as a string. If it is not known, return 01-12-2019"""
+        if self.sepa_sign_date is None:
+            return '01-12-2019'
+        return self.sepa_sign_date.strftime('%d-%m-%Y')
 
 
 class PersonTreasurerFields(Person):

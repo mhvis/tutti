@@ -150,7 +150,7 @@ def get_sepa_rows(p: Person, value: Decimal, description, split=Decimal('130.00'
             'Omschrijving 2': '',
             'Omschrijving 3': '',
             'Type machtiging': 'Doorlopend',
-            'Ondertekend op': '01-11-2019',
+            'Ondertekend op': p.get_sepa_sign_date(),
         }
 
     total = value

@@ -154,7 +154,7 @@ def get_sepa_rows(p: DavilexPerson, description, split=Decimal('130.00'), kenmer
             'Omschrijving 2': '',
             'Omschrijving 3': '',
             'Type machtiging': 'Doorlopend',
-            'Ondertekend op': '01-11-2019',
+            'Ondertekend op': p.q_person.get_sepa_sign_date(),
         }
 
     total = p.get_total()
