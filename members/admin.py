@@ -215,7 +215,7 @@ class PersonAdmin(admin.ModelAdmin):
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
         ('Quadrivium', {
-            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit'),
+            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
                        'bhv_certificate', 'gsuite_accounts', 'notes')
         }),
         ('TU/e', {
