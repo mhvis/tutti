@@ -3,7 +3,7 @@ import csv
 import xlsxwriter
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.mail import mail_admins
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.views.generic import TemplateView, FormView
 
 from pennotools.core.contribution import ContributionExemption, \
@@ -11,7 +11,7 @@ from pennotools.core.contribution import ContributionExemption, \
 from pennotools.core.davilex import parse_davilex_report, combine_reports
 from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
 from pennotools.core.rabo import rabo_sepa
-from pennotools.core.wb import write_sheet
+from pennotools.core.workbook import write_sheet
 from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QRekeningForm
 
 
@@ -50,7 +50,7 @@ class QRekeningView(TreasurerAccessMixin, FormView):
             writer.writerows(table)
             return response
 
-        elif 'qrekening' in self.request.POST:
+        else:
             # Get Qrekening sheets
             creditors, debtors, debtors_self, external = get_qrekening(accounts)
             # Write Excel workbook in response
@@ -65,7 +65,6 @@ class QRekeningView(TreasurerAccessMixin, FormView):
             write_sheet(workbook, 'Externen', qrekening_header, external)
             workbook.close()
             return response
-        return HttpResponseBadRequest()
 
 
 class ContributionView(TreasurerAccessMixin, TemplateView):

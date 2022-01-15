@@ -5,6 +5,8 @@ from django.test import TestCase
 
 from pennotools.core.davilex import parse_amount, parse_davilex_report, DavilexBook, DavilexJournalEntry
 
+# flake8: noqa
+
 s1 = """Boekstukvolgnr	Zoekcode	Omschrijving verkoopboekstuk	Factuurnr	Fac/Bet Datum	Vervaldatum	Bedrag	Betaling	Openstaand	
 									
 									
@@ -14,7 +16,6 @@ s1 = """Boekstukvolgnr	Zoekcode	Omschrijving verkoopboekstuk	Factuurnr	Fac/Bet D
 388		     AQCie		18-11-2021		€ 5,00		€ 5,00	
 398		     Bestuursfoto's 		9-12-2021		€ 4,38		€ 4,38	
 	JOHBAC	Johann Sebastian Bach totaal				€ 52,03	€ 0,00	€ 52,03	"""
-
 
 s2 = """Boekstukvolgnr	Zoekcode	Omschrijving	Factuurnr	Fac/Bet Datum	Vervaldatum	Bedrag	Betaling	Openstaand	
 									

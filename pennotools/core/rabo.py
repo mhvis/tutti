@@ -4,12 +4,12 @@ from typing import List, Tuple
 from members.models import Person
 
 
-import unicodedata
-
-def remove_accents(input_str):
-    nfkd_form = unicodedata.normalize('NFKD', input_str)
-    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
-
+# TODO: this snippet could be used if accents need to be removed
+# import unicodedata
+#
+# def remove_accents(input_str):
+#     nfkd_form = unicodedata.normalize('NFKD', input_str)
+#     return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 
 def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[List[str]]:
@@ -19,7 +19,6 @@ def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[Lis
 
     Args:
         lines: Each line specifies a member and the amount.
-        kenmerk: See format description.
         description: See format description.
 
     Returns:
@@ -55,9 +54,9 @@ def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[Lis
             raise ValueError("Person has no SEPA.")
 
         csv.append([
-            p.person_id,
+            p.person_id,  # Kenmerk
             "{} {}".format(p.first_name, p.last_name),
-            p.person_id,
+            p.person_id,  # Verkorte naam
             p.iban,
             'Algemeen',  # Rekeninggroep
             f'{amount:.2f}'.replace('.', ','),

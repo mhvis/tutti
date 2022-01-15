@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from io import StringIO
-from typing import List, Dict, Optional
+from typing import List
 
 from django.utils.functional import cached_property
 

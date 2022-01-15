@@ -1,12 +1,8 @@
 from collections import namedtuple
-from datetime import date
 from decimal import Decimal
 from typing import Dict, List, Tuple
 
-from xlsxwriter import Workbook
-
 from members.models import Person
-from pennotools.core.wb import write_sheet
 
 # Exception on the contribution fee for a certain group.
 ContributionExemption = namedtuple("ContributionExemption", ["group", "student", "non_student"])
@@ -68,15 +64,9 @@ def get_contributie(student: Decimal, non_student: Decimal, admin: Decimal, exce
     return debtors, debtors_self
 
 
-# SEPA
-
-
-
-
-
 def contribution_sepa_amounts(student: Decimal,
-                         non_student: Decimal,
-                         exceptions: List[ContributionExemption]) -> List[Tuple[Person, Decimal]]:
+                              non_student: Decimal,
+                              exceptions: List[ContributionExemption]) -> List[Tuple[Person, Decimal]]:
     """Returns the amounts to debit via SEPA.
 
     Only members with SEPA authorization will be included.
