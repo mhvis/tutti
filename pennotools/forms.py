@@ -1,4 +1,7 @@
+import datetime
+
 from django import forms
+from django.forms import Textarea
 
 from members.models import QGroup
 
@@ -53,12 +56,20 @@ ContributionExceptionFormSet = forms.formset_factory(ContributionExceptionForm,
                                                      extra=0)
 
 
-class QrekeningForm(forms.Form):
-    kenmerk = forms.CharField(max_length=35,
-                              label="Kenmerk",
-                              help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "
-                                        "Dit kenmerk moet uniek zijn per adres. "
-                                        "Het staat ook bekend als mandaat-ID of mandaatkenmerk.")
+def qrekening_initial_description():
+    return 'Qrekening {}'.format(datetime.date.today().strftime('%B %Y'))
 
-    Debit = forms.FileField()
-    Credit = forms.FileField()
+
+class QRekeningForm(forms.Form):
+    debit = forms.CharField(widget=Textarea,
+                            strip=False,
+                            help_text="Debit report exported from Davilex using 'Rapport kopiëren'.")
+    credit = forms.CharField(widget=Textarea, strip=False, help_text="Davilex credit report.")
+    description = forms.CharField(help_text="Description shown on the debtor direct debit statement.",
+                                  max_length=35,
+                                  initial=qrekening_initial_description)
+    # kenmerk = forms.CharField(max_length=35,
+    #                           label="Kenmerk",
+    #                           help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "
+    #                                     "Dit kenmerk moet uniek zijn per adres. "
+    #                                     "Het staat ook bekend als mandaat-ID of mandaatkenmerk.")

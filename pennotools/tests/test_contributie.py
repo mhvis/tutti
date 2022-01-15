@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from members.models import Person, QGroup
-from pennotools.contributie.process import get_contribution_fee, ContributionException
+from pennotools.contributie.process import get_contribution_fee, ContributionExemption
 
 ONE = Decimal("1")
 TWO = Decimal("2")
@@ -29,7 +29,7 @@ class ContributionFeeTestCase(TestCase):
         p = Person.objects.create(username="me", is_student=True)
         g = QGroup.objects.create(name="A group")
         p.groups.add(g)
-        exception = ContributionException(group=g, student=ONE, non_student=TWO)
+        exception = ContributionExemption(group=g, student=ONE, non_student=TWO)
         fee = get_contribution_fee(p, THREE, FOUR, [exception])
         self.assertEqual(ONE, fee)
 
@@ -38,7 +38,7 @@ class ContributionFeeTestCase(TestCase):
         p = Person.objects.create(username="me", is_student=True)
         g = QGroup.objects.create(name="A group")
         # Not adding p to group
-        exception = ContributionException(group=g, student=ONE, non_student=TWO)
+        exception = ContributionExemption(group=g, student=ONE, non_student=TWO)
         fee = get_contribution_fee(p, THREE, FOUR, [exception])
         self.assertEqual(THREE, fee)
 
@@ -49,8 +49,8 @@ class ContributionFeeTestCase(TestCase):
         g2 = QGroup.objects.create(name="Another group")
         p.groups.add(g1, g2)
         exceptions = [
-            ContributionException(group=g1, student=FOUR, non_student=ONE),
-            ContributionException(group=g2, student=THREE, non_student=ONE),
+            ContributionExemption(group=g1, student=FOUR, non_student=ONE),
+            ContributionExemption(group=g2, student=THREE, non_student=ONE),
         ]
         fee = get_contribution_fee(p, TWO, ONE, exceptions)
         self.assertEqual(THREE, fee)

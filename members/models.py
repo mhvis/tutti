@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, UserManager
@@ -229,11 +230,11 @@ class Person(User):
         """Returns the Azure userPrincipalName for this user."""
         return '{}@esmgquadrivium.nl'.format(self.username.lower())
 
-    def get_sepa_sign_date(self) -> str:
-        """Returns the date the SEPA contract was signed as a string. If it is not known, return 01-12-2019."""
+    def get_sepa_sign_date(self) -> date:
+        """Returns the date the SEPA contract was signed. If it is not known, return 01-12-2019."""
         if self.sepa_sign_date is None:
-            return '01-12-2019'
-        return self.sepa_sign_date.strftime('%d-%m-%Y')
+            return date(2019, 12, 1)
+        return self.sepa_sign_date
 
 
 class PersonTreasurerFields(Person):

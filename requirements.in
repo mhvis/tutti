@@ -1,4 +1,4 @@
-django<3.2  # django-import-export does not yet support Django 3.2 (support is already in dev branch, just not released)
+django
 ldap3
 django-phonenumber-field
 phonenumbers
@@ -10,7 +10,7 @@ django-health-check
 django-import-export
 requests-oauthlib
 msal
-xlrd
+xlrd  # Deprecated, this one can possibly be removed
 xlsxwriter
 whitenoise[brotli]
 django-environ

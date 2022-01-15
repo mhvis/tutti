@@ -1,15 +1,17 @@
+import csv
 from io import BytesIO
 
-import xlrd
 import xlsxwriter
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.generic import TemplateView, FormView
 
-from pennotools.contributie.process import write_contributie, write_contributie_sepa, ContributionException
-from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QrekeningForm
-from pennotools.qrekening.process import combine_persons
-from pennotools.qrekening.wb import write_qrekening, read_exc, write_sepa
+from pennotools.contributie.process import write_contributie, write_contributie_sepa, ContributionExemption
+from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QRekeningForm
+from pennotools.qrekening.davilex import parse_davilex_report, combine_reports
+from pennotools.qrekening.process import qrekening_sepa_amounts, get_qrekening, qrekening_header
+from pennotools.qrekening.rabo import rabo_sepa
+from pennotools.qrekening.wb import write_sheet
 
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
@@ -17,57 +19,49 @@ class TreasurerAccessMixin(PermissionRequiredMixin):
     permission_required = 'pennotools.can_access'
 
 
-class QRekeningView(TreasurerAccessMixin, TemplateView):
+class QRekeningView(TreasurerAccessMixin, FormView):
     template_name = 'pennotools/qrekening.html'
 
-    def get(self, request, *args, **kwargs):
-        context = {
-            "form": QrekeningForm(),
-        }
-        return self.render_to_response(context)
+    form_class = QRekeningForm
 
-    def post(self, request, *args, **kwargs):
-        """Process a Q-rekening debtor or creditor file and download Qrekening."""
-        if 'Debit' not in request.FILES or 'Credit' not in request.FILES:
-            return self.get(request, form_invalid=True)
+    def form_valid(self, form):
+        # Parse input
+        debit = parse_davilex_report(form.cleaned_data['debit'])
+        credit = parse_davilex_report(form.cleaned_data['credit'])
+        # Combine on person ID
+        accounts = combine_reports(debit, credit)
 
-        form = QrekeningForm(request.POST)
+        if 'sepa' in self.request.POST:
+            # Get the amounts for SEPA
+            debits = qrekening_sepa_amounts(accounts)
 
-        debit = request.FILES['Debit']
-        credit = request.FILES['Credit']
+            # Create and write the Rabobank CSV
+            table = rabo_sepa(debits, form.cleaned_data['description'])
 
-        try:
-            wb_debit = xlrd.open_workbook(file_contents=debit.read())
-            wb_credit = xlrd.open_workbook(file_contents=credit.read())
-        except xlrd.XLRDError as e:
-            return self.get(request, file_invalid=e)
+            response = HttpResponse(
+                content_type='text/csv',
+                headers={'Content-Disposition': 'attachment; filename="rabo_sepa.csv"'},
+            )
+            writer = csv.writer(response)
+            writer.writerows(table)
+            return response
 
-        # Write Excel workbook into memory
-        output = BytesIO()
-        wb = xlsxwriter.Workbook(output)
-
-        # Process workbook
-        try:
-            dav_persons = read_exc(wb_debit, True, read_exc(wb_credit, False, {}))
-        except ValueError as e:
-            return self.get(request, file_invalid=e)
-        combine_persons(dav_persons)
-        if 'qrekening' in request.POST:
-            write_qrekening(dav_persons, wb)
-        elif 'sepa' in request.POST:
-            write_sepa(dav_persons, wb, kenmerk=form.data['kenmerk'])
-
-        # Write workbook
-        wb.close()
-        output.seek(0)
-        response = HttpResponse(
-            output,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % (
-            'SEPA' if 'sepa' in request.POST else ('qrekening' if 'qrekening' in request.POST else 'UNKNOWN')
-        )
-        return response
+        elif 'qrekening' in self.request.POST:
+            # Get Qrekening sheets
+            creditors, debtors, debtors_self, external = get_qrekening(accounts)
+            # Write Excel workbook in response
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                headers={'Content-Disposition': 'attachment; filename="qrekening.xlsx"'},
+            )
+            workbook = xlsxwriter.Workbook(response)
+            write_sheet(workbook, 'Crediteuren', qrekening_header, creditors)
+            write_sheet(workbook, 'Debiteuren', qrekening_header, debtors)
+            write_sheet(workbook, 'DebiteurenZelf', qrekening_header, debtors_self)
+            write_sheet(workbook, 'Externen', qrekening_header, external)
+            workbook.close()
+            return response
+        return HttpResponseBadRequest()
 
 
 class ContributionView(TreasurerAccessMixin, TemplateView):
@@ -95,7 +89,7 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 if not form_data.get("group"):
                     # There may be empty forms which should be ignored
                     continue
-                exceptions.append(ContributionException(group=form_data["group"],
+                exceptions.append(ContributionExemption(group=form_data["group"],
                                                         student=form_data["student"],
                                                         non_student=form_data["non_student"]))
 

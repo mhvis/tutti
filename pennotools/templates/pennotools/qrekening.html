@@ -9,20 +9,17 @@
 {% block content %}
     <h1>Q-rekening</h1>
 
-    <div class="alert alert-warning">
-        Alleen <code>.xls</code>-bestanden worden ondersteund, laat het weten als dit een probleem geeft.
-    </div>
-
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" action="{% url 'pennotools:qrekening' %}">
         {% csrf_token %}
         {% bootstrap_form form layout="horizontal" %}
         <button type="submit" name="qrekening" class="btn btn-primary">Q-rekening</button>
-        <button type="submit" name="sepa" class="btn btn-secondary">SEPA file</button>
-        {% if form_invalid %}
-            <div class="alert alert-danger mt-3">Both debit and credit files need to be provided.</div>
-        {% endif %}
-        {% if file_invalid %}
-            <div class="alert alert-danger mt-3">Input file has unexpected format: {{ file_invalid }}.</div>
-        {% endif %}
+        <button type="submit" name="sepa" class="btn btn-primary">SEPA CSV</button>
+        <p>
+            <small class="text-muted">
+                The SEPA CSV file can be imported in Rabo Internetbankieren Professional (RIB Pro) and uses
+                <a href="https://www.rabobank.nl/images/pdf_formaatbeschrijving_csv_29856100.pdf" target="_blank">this
+                    format</a>.
+            </small>
+        </p>
     </form>
 {% endblock %}

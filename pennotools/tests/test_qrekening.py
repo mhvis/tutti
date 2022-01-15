@@ -6,7 +6,7 @@ import xlrd
 from django.test import TestCase
 
 from members.models import Person
-from pennotools.qrekening.process import combine_persons, get_qrekening, get_sepa
+from pennotools.qrekening.process import get_qrekening
 from pennotools.qrekening.qperson import DavilexPerson
 from pennotools.qrekening.wb import read_exc
 

@@ -183,18 +183,35 @@ OIDC_END_SESSION_ENDPOINT = os.getenv('OIDC_END_SESSION_ENDPOINT')
 # the login view.
 LOGIN_URL = 'oidc:login'
 
-# Logging to console as that's common for containers.
+# Set up logging for some of our modules
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    'formatters': {
+        'msg': {
+            'format': '{asctime} {name} {levelname:8s} {message}',
+            'style': '{',
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': os.getenv('DJANGO_LOGLEVEL', 'info').upper(),
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'debug': {
+            # Logs debug messages to console when DEBUG=True
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'msg',
+        },
+    },
+    'loggers': {
+        'pennotools': {
+            'handlers': ['debug'],
+            'level': 'DEBUG',
+        },
     },
 }
 

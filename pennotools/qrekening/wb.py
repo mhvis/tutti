@@ -1,11 +1,15 @@
+import logging
 from decimal import Decimal
 from typing import Dict, List
 
 from xlrd import Book, xldate_as_datetime
 from xlsxwriter import Workbook
 
-from pennotools.qrekening.process import get_qrekening, qrekening_header, get_sepa, rabo_sepa_header
+from pennotools.qrekening.davilex import DavilexAccount
+from pennotools.qrekening.process import get_qrekening, qrekening_header
 from pennotools.qrekening.qperson import DavilexPerson
+
+logger = logging.getLogger(__name__)
 
 
 def iterate_rows(wb: Book):
@@ -41,6 +45,7 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
     try:
         current_person = None
         for row in iterate_rows(wb):
+            logger.debug("Row: %s", row)
             if current_person is None:
                 # Not at person boekstuk rows
                 if row['Zoekcode'] and row['Omschrijving']:
@@ -51,11 +56,15 @@ def read_exc(wb: Book, debet: bool, persons: Dict[str, DavilexPerson]) -> Dict[s
                 current_person = None
             else:
                 # Person boekstuk row
-
-                # Amount is converted from float to Decimal where the Decimal
-                # takes over the float imprecision. Then the Decimal is rounded
-                # to 2 decimal places to get rid of the imprecision.
+                #
+                # Amount is converted from float to Decimal (exactness of
+                # Decimal is better for money values).
+                #
+                # Note: the value is rounded to 2 decimal places, this should
+                # always yield the same value as the original float.
+                logger.debug("Openstaand float: %s", row['Openstaand'])
                 amount = Decimal(row['Openstaand']).quantize(Decimal('1.00'))
+                logger.debug("Openstaand decimal: %s", amount)
 
                 current_person.add_boekstuk(
                     debet,
@@ -89,17 +98,3 @@ def write_sheet(workbook: Workbook, sheet_name: str, header: List[str], rows: Li
             # precision is 15."
             s.write(row_nr, i, row[header[i]])
         row_nr += 1
-
-
-def write_qrekening(dav_people, workbook: Workbook):
-    """Get Q-rekening and write it in the workbook."""
-    creditors, debtors, debtors_self, external = get_qrekening(dav_people)
-    write_sheet(workbook, 'Crediteuren', qrekening_header, creditors)
-    write_sheet(workbook, 'Debiteuren', qrekening_header, debtors)
-    write_sheet(workbook, 'DebiteurenZelf', qrekening_header, debtors_self)
-    write_sheet(workbook, 'Externen', qrekening_header, external)
-
-
-def write_sepa(dav_people, workbook: Workbook, kenmerk=''):
-    """Get SEPA rows and write in the workbook."""
-    write_sheet(workbook, 'Debiteuren', rabo_sepa_header, get_sepa(dav_people, kenmerk=kenmerk))
