@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Dict, List, Tuple
 
 from members.models import Person
-from pennotools.qrekening.davilex import DavilexAccount
+from pennotools.core.davilex import DavilexAccount
 
 logger = logging.getLogger(__name__)
 

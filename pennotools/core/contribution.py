@@ -6,7 +6,7 @@ from typing import Dict, List
 from xlsxwriter import Workbook
 
 from members.models import Person
-from pennotools.qrekening.wb import write_sheet
+from pennotools.core.wb import write_sheet
 
 # Exception on the contribution fee for a certain group.
 ContributionExemption = namedtuple("ContributionExemption", ["group", "student", "non_student"])
