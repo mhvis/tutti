@@ -6,9 +6,9 @@ import xlrd
 from django.test import TestCase
 
 from members.models import Person
-from pennotools.qrekening.process import get_qrekening
-from pennotools.qrekening.qperson import DavilexPerson
-from pennotools.qrekening.wb import read_exc
+from pennotools.core.qrekening import get_qrekening
+from pennotools.core.qperson import DavilexPerson
+from pennotools.core.wb import read_exc
 
 
 class QRekeningTestCase(TestCase):

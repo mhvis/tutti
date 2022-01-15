@@ -1,17 +1,18 @@
 import csv
-from io import BytesIO
 
 import xlsxwriter
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.mail import mail_admins
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView, FormView
 
-from pennotools.contributie.process import write_contributie, write_contributie_sepa, ContributionExemption
+from pennotools.core.contribution import write_contributie_sepa, ContributionExemption, \
+    get_contributie, contributie_header
+from pennotools.core.davilex import parse_davilex_report, combine_reports
+from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
+from pennotools.core.rabo import rabo_sepa
+from pennotools.core.wb import write_sheet
 from pennotools.forms import ContributionForm, ContributionExceptionFormSet, QRekeningForm
-from pennotools.qrekening.davilex import parse_davilex_report, combine_reports
-from pennotools.qrekening.process import qrekening_sepa_amounts, get_qrekening, qrekening_header
-from pennotools.qrekening.rabo import rabo_sepa
-from pennotools.qrekening.wb import write_sheet
 
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
@@ -25,6 +26,9 @@ class QRekeningView(TreasurerAccessMixin, FormView):
     form_class = QRekeningForm
 
     def form_valid(self, form):
+        # Temporary, for testing/auditing purposes, log form data by mail
+        mail_admins("Q-rekening log", f"Form data:\n{form.cleaned_data}\n\nPOST data:\n{self.request.POST}")
+
         # Parse input
         debit = parse_davilex_report(form.cleaned_data['debit'])
         credit = parse_davilex_report(form.cleaned_data['credit'])
@@ -78,32 +82,37 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
         form = ContributionForm(request.POST)
         exceptions_formset = ContributionExceptionFormSet(request.POST)
         if form.is_valid() and exceptions_formset.is_valid():
-            # Process form
-            # Write Excel workbook into memory
-            output = BytesIO()
-            wb = xlsxwriter.Workbook(output)
-
-            exceptions = []
+            # Collect exemptions
+            exemptions = []
             for form_data in exceptions_formset.cleaned_data:
                 # Loop over the data of all exception forms
                 if not form_data.get("group"):
                     # There may be empty forms which should be ignored
                     continue
-                exceptions.append(ContributionExemption(group=form_data["group"],
+                exemptions.append(ContributionExemption(group=form_data["group"],
                                                         student=form_data["student"],
                                                         non_student=form_data["non_student"]))
 
             if 'contribution_file' in request.POST:
-                write_contributie(wb,
-                                  form.cleaned_data["student"],
-                                  form.cleaned_data["non_student"],
-                                  form.cleaned_data["administration_fee"],
-                                  exceptions)
+                # Get contribution sheets
+                debtors, debtors_self = get_contributie(form.cleaned_data['student'],
+                                                        form.cleaned_data['non_student'],
+                                                        form.cleaned_data['administration_fee'], exemptions)
+
+                # Write to response
+                response = HttpResponse(
+                    content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    headers={'Content-Disposition': 'attachment; filename="contributielijst.xlsx"'},
+                )
+                workbook = xlsxwriter.Workbook(response)
+                write_sheet(workbook, 'Debiteuren', contributie_header, debtors)
+                write_sheet(workbook, 'DebiteurenZelf', contributie_header, debtors_self)
+                return response
             else:
                 write_contributie_sepa(wb,
                                        form.cleaned_data["student"],
                                        form.cleaned_data["non_student"],
-                                       exceptions, kenmerk=form.data['kenmerk'])
+                                       exemptions, kenmerk=form.data['kenmerk'])
 
             # Write workbook
             wb.close()

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from pennotools.qrekening.davilex import parse_amount, parse_davilex_report, DavilexBook, DavilexJournalEntry
+from pennotools.core.davilex import parse_amount, parse_davilex_report, DavilexBook, DavilexJournalEntry
 
 s1 = """Boekstukvolgnr	Zoekcode	Omschrijving verkoopboekstuk	Factuurnr	Fac/Bet Datum	Vervaldatum	Bedrag	Betaling	Openstaand	
 									

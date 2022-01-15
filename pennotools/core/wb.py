@@ -5,9 +5,9 @@ from typing import Dict, List
 from xlrd import Book, xldate_as_datetime
 from xlsxwriter import Workbook
 
-from pennotools.qrekening.davilex import DavilexAccount
-from pennotools.qrekening.process import get_qrekening, qrekening_header
-from pennotools.qrekening.qperson import DavilexPerson
+from pennotools.core.davilex import DavilexAccount
+from pennotools.core.qrekening import get_qrekening, qrekening_header
+from pennotools.core.qperson import DavilexPerson
 
 logger = logging.getLogger(__name__)
 

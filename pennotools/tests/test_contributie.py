@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.test import TestCase
 
 from members.models import Person, QGroup
-from pennotools.contributie.process import get_contribution_fee, ContributionExemption
+from pennotools.core.contribution import get_contribution_fee, ContributionExemption
 
 ONE = Decimal("1")
 TWO = Decimal("2")
