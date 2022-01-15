@@ -6,8 +6,8 @@ from django.core.mail import mail_admins
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import TemplateView, FormView
 
-from pennotools.core.contribution import write_contributie_sepa, ContributionExemption, \
-    get_contributie, contributie_header
+from pennotools.core.contribution import ContributionExemption, \
+    get_contributie, contributie_header, contribution_sepa_amounts
 from pennotools.core.davilex import parse_davilex_report, combine_reports
 from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
 from pennotools.core.rabo import rabo_sepa
@@ -26,7 +26,7 @@ class QRekeningView(TreasurerAccessMixin, FormView):
     form_class = QRekeningForm
 
     def form_valid(self, form):
-        # Temporary, for testing/auditing purposes, log form data by mail
+        # Temporary log form data by mail, for testing/auditing
         mail_admins("Q-rekening log", f"Form data:\n{form.cleaned_data}\n\nPOST data:\n{self.request.POST}")
 
         # Parse input
@@ -107,24 +107,23 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 workbook = xlsxwriter.Workbook(response)
                 write_sheet(workbook, 'Debiteuren', contributie_header, debtors)
                 write_sheet(workbook, 'DebiteurenZelf', contributie_header, debtors_self)
+                workbook.close()
                 return response
             else:
-                write_contributie_sepa(wb,
-                                       form.cleaned_data["student"],
-                                       form.cleaned_data["non_student"],
-                                       exemptions, kenmerk=form.data['kenmerk'])
+                amounts = contribution_sepa_amounts(form.cleaned_data['student'],
+                                                    form.cleaned_data['non_student'],
+                                                    exemptions)
+                table = rabo_sepa(amounts, form.cleaned_data['description'])
 
-            # Write workbook
-            wb.close()
-            output.seek(0)
-            response = HttpResponse(
-                output,
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            response['Content-Disposition'] = 'attachment; filename={}.xlsx'.format(
-                'contributielijst' if 'contribution_file' in request.POST else 'sepa'
-            )
-            return response
+                # Write CSV
+                response = HttpResponse(
+                    content_type='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename="rabo_sepa.csv"'},
+                )
+                writer = csv.writer(response)
+                writer.writerows(table)
+                return response
+            # Unreachable
         # One of the forms was not valid, render again
         context = {
             "form": form,

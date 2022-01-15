@@ -1,7 +1,7 @@
 from collections import namedtuple
 from datetime import date
 from decimal import Decimal
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from xlsxwriter import Workbook
 
@@ -68,58 +68,25 @@ def get_contributie(student: Decimal, non_student: Decimal, admin: Decimal, exce
     return debtors, debtors_self
 
 
-def write_contributie(workbook: Workbook,
-                      student: Decimal,
-                      non_student: Decimal,
-                      admin: Decimal,
-                      exceptions: List[ContributionExemption]):
-    """Writes contribution rows into a workbook."""
-    debtors, debtors_self = get_contributie(student, non_student, admin, exceptions)
-    write_sheet(workbook, 'Debiteuren', contributie_header, debtors)
-    write_sheet(workbook, 'DebiteurenZelf', contributie_header, debtors_self)
-
-
 # SEPA
 
 
 
 
-def sepa_default_description():
-    return 'Contributie {}'.format(date.today().strftime('%Y'))
 
-
-def get_contributie_sepa(student: Decimal,
+def contribution_sepa_amounts(student: Decimal,
                          non_student: Decimal,
-                         exceptions: List[ContributionExemption],
-                         description=sepa_default_description,
-                         kenmerk: str = '') -> List[Dict]:
-    """Gets SEPA rows for Davilex people.
+                         exceptions: List[ContributionExemption]) -> List[Tuple[Person, Decimal]]:
+    """Returns the amounts to debit via SEPA.
 
-    Args:
-        student: -
-        non_student: -
-        exceptions: -
-        description: Description used for the SEPA rows. Can be a string or a
-            callable which returns a string.
-        kenmerk: Mandaat kenmerk.
+    Only members with SEPA authorization will be included.
     """
     lines = []
-    # Only include members
     for person in Person.objects.filter_members():
         if not has_sepa(person):
             continue
         lines.append((person, get_contribution_fee(person, student, non_student, exceptions)))
     return lines
-
-
-def write_contributie_sepa(workbook: Workbook,
-                           student: Decimal,
-                           non_student: Decimal,
-                           exceptions: List[ContributionExemption],
-                           kenmerk: str = ''):
-    """Gets SEPA rows and writes them in the workbook."""
-    write_sheet(workbook, 'Debiteuren', rabo_sepa_header, get_contributie_sepa(student, non_student,
-                                                                               exceptions, kenmerk=kenmerk))
 
 
 def has_sepa(person: Person):

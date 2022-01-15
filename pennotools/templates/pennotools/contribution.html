@@ -10,7 +10,7 @@
     <h1>Contributie tool</h1>
 
     <form method="post" action="{% url "pennotools:contribution" %}">
-        <p>Maakt contributie SEPA-bestanden.</p>
+        <p>Maakt contributie bestanden.</p>
         {% csrf_token %}
         {% bootstrap_form form layout="horizontal" %}
         <h2>Uitzonderingen</h2>
