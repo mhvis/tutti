@@ -110,7 +110,7 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
         next(f)  # Skip the first header line
 
         while True:
-            # Get first non-empty line, has person ID (zoekcode)
+            # Get first non-empty line
             try:
                 while True:
                     line = next(f)  # type: str
@@ -118,11 +118,29 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
                         break  # Line is non-empty
             except StopIteration:
                 break  # End of file reached
+
+            # First line of book/account, should have person ID/zoekcode
             fields = line.split('\t')
+
+            if not fields[1] and fields[2] == 'TOTAAL':
+                # Line has 'TOTAAL', end reached
+                #
+                # Sanity check: very unnecessary, but let's make sure that the end total is correct,
+                #   to ensure that no accounts/books have been missed or tampered with.
+                expect_amount = parse_amount(fields[6])
+                expect_paid = parse_amount(fields[7])
+                expect_open = parse_amount(fields[8])
+                # Had to Google the correct way for this: https://stackoverflow.com/a/36734643/2373688
+                actual_amount = sum(y.amount for x in res for y in x.entries)
+                actual_paid = sum(y.paid for x in res for y in x.entries)
+                actual_open = sum(y.open for x in res for y in x.entries)
+                if expect_amount != actual_amount or expect_paid != actual_paid or expect_open != actual_open:
+                    raise ValueError("End total is incorrect.")
+                continue  # (continue instead of break in case there's additional data below this line)
+
             search_code = fields[1]  # Person ID/zoekcode
             description = fields[2]  # Account description
             if not search_code or not description:
-                # Search code and description must exist
                 raise ValueError("Invalid report format.")
 
             # Parse journal entries on next lines (boekstukken)
@@ -135,17 +153,16 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
                 entries.append(DavilexJournalEntry.from_line(fields))
 
             # Sanity check: compare total amounts
-            amount_total = parse_amount(fields[6])
-            paid_total = parse_amount(fields[7])
-            open_total = parse_amount(fields[8])
+            expect_amount = parse_amount(fields[6])
+            expect_paid = parse_amount(fields[7])
+            expect_open = parse_amount(fields[8])
+            actual_amount = sum(e.amount for e in entries)
+            actual_paid = sum(e.paid for e in entries)
+            actual_open = sum(e.open for e in entries)
+            if expect_amount != actual_amount or expect_paid != actual_paid or expect_open != actual_open:
+                raise ValueError("Book total is incorrect.")
 
-            amount_sum = sum(e.amount for e in entries)
-            paid_sum = sum(e.paid for e in entries)
-            open_sum = sum(e.open for e in entries)
-            if amount_total != amount_sum or paid_total != paid_sum or open_total != open_sum:
-                raise ValueError("Amounts don't sum up to expected totals.")
-
-            # Done
+            # Store
             res.append(DavilexBook(search_code, description, entries))
 
     logger.debug("Parsed Davilex report: %s", res)
