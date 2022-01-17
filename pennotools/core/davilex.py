@@ -26,7 +26,7 @@ def parse_amount(s: str, optional=False) -> Decimal:
         if optional:
             return Decimal('0.00')
         else:
-            raise RuntimeError('Empty amount')
+            raise ValueError("Empty amount.")
     return Decimal(s)
 
 
@@ -43,6 +43,9 @@ class DavilexJournalEntry:
     @classmethod
     def from_line(cls, fields: List[str]):
         # fields: Boekstukvolgnr,Zoekcode,Omschrijving,Factuurnr,Fac/Bet Datum,Vervaldatum,Bedrag,Betaling,Openstaand
+        if not fields[0].strip() or not fields[2].strip() or not fields[4].strip():
+            # Sanity check, some fields must exist
+            raise ValueError("Invalid line format.")
         return cls(
             entry_no=int(fields[0]),
             description=fields[2].strip(),
@@ -118,6 +121,9 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
             fields = line.split('\t')
             search_code = fields[1]  # Person ID/zoekcode
             description = fields[2]  # Account description
+            if not search_code or not description:
+                # Search code and description must exist
+                raise ValueError("Invalid report format.")
 
             # Parse journal entries on next lines (boekstukken)
             entries = []
