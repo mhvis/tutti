@@ -10,7 +10,6 @@ django-health-check
 django-import-export
 requests-oauthlib
 msal
-xlrd  # Deprecated, this one can possibly be removed
 xlsxwriter
 whitenoise[brotli]
 django-environ
