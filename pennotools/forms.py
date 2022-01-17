@@ -1,9 +1,11 @@
 import datetime
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import Textarea
 
 from members.models import QGroup
+from pennotools.core.davilex import combine_reports, parse_davilex_report
 
 
 def sepa_initial_description():
@@ -29,7 +31,7 @@ class ContributionForm(forms.Form):
                                   label="Omschrijving")
 
 
-class ContributionExceptionForm(forms.Form):
+class ContributionExemptionForm(forms.Form):
     group = forms.ModelChoiceField(queryset=QGroup.objects.all().order_by('name'))
     student = forms.DecimalField(decimal_places=2,
                                  min_value=0)
@@ -38,7 +40,7 @@ class ContributionExceptionForm(forms.Form):
                                      label="Burger")
 
 
-class BaseContributionExceptionFormSet(forms.BaseFormSet):
+class BaseContributionExemptionFormSet(forms.BaseFormSet):
     def clean(self):
         """Checks that the groups are unique."""
         if any(self.errors):
@@ -54,8 +56,8 @@ class BaseContributionExceptionFormSet(forms.BaseFormSet):
             groups.append(group)
 
 
-ContributionExceptionFormSet = forms.formset_factory(ContributionExceptionForm,
-                                                     formset=BaseContributionExceptionFormSet,
+ContributionExemptionFormSet = forms.formset_factory(ContributionExemptionForm,
+                                                     formset=BaseContributionExemptionFormSet,
                                                      extra=0)
 
 
@@ -64,6 +66,10 @@ def qrekening_initial_description():
 
 
 class QRekeningForm(forms.Form):
+    """Form which parses the Davilex report during cleaning.
+
+    It shows a validation error when parsing fails.
+    """
     debit = forms.CharField(widget=Textarea,
                             strip=False,
                             help_text="Debit report exported from Davilex using 'Rapport kopiëren'.")
@@ -71,6 +77,34 @@ class QRekeningForm(forms.Form):
     description = forms.CharField(help_text="Description shown on the debtor direct debit statement.",
                                   max_length=35,
                                   initial=qrekening_initial_description)
+
+    @staticmethod
+    def _parse_davilex(data):
+        # Converts ValueError to ValidationError
+        try:
+            return parse_davilex_report(data)
+        except ValueError as e:
+            raise ValidationError(f"Could not parse report, error: \"{e}\". See code for details.")
+
+    def clean_debit(self):
+        return self._parse_davilex(self.cleaned_data['debit'])
+
+    def clean_credit(self):
+        return self._parse_davilex(self.cleaned_data['credit'])
+
+    def clean(self):
+        # This method combines debit and credit on person ID
+        cleaned_data = super().clean()
+        debit = cleaned_data.get('debit')
+        credit = cleaned_data.get('credit')
+        # 'is not None' is maybe necessary in case a value is [] (empty list)
+        if debit is not None and credit is not None:
+            try:
+                cleaned_data['accounts'] = combine_reports(debit, credit)
+            except ValueError as e:
+                raise ValidationError(f"Could not parse report, error: \"{e}\". See code for details.")
+        return cleaned_data
+
     # kenmerk = forms.CharField(max_length=35,
     #                           label="Kenmerk",
     #                           help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "

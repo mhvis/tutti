@@ -26,7 +26,7 @@ def parse_amount(s: str, optional=False) -> Decimal:
         if optional:
             return Decimal('0.00')
         else:
-            raise ValueError("Empty amount.")
+            raise ValueError("invalid amount format")
     return Decimal(s)
 
 
@@ -45,7 +45,7 @@ class DavilexJournalEntry:
         # fields: Boekstukvolgnr,Zoekcode,Omschrijving,Factuurnr,Fac/Bet Datum,Vervaldatum,Bedrag,Betaling,Openstaand
         if not fields[0].strip() or not fields[2].strip() or not fields[4].strip():
             # Sanity check, some fields must exist
-            raise ValueError("Invalid line format.")
+            raise ValueError("invalid boekstuk line format")
         return cls(
             entry_no=int(fields[0]),
             description=fields[2].strip(),
@@ -130,13 +130,13 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
                 actual_paid = sum(y.paid for x in res for y in x.entries)
                 actual_open = sum(y.open for x in res for y in x.entries)
                 if expect_amount != actual_amount or expect_paid != actual_paid or expect_open != actual_open:
-                    raise ValueError("End total is incorrect.")
+                    raise ValueError("end total is incorrect")
                 continue  # (continue instead of break in case there's additional data below this line)
 
             search_code = fields[1]  # Person ID/zoekcode
             description = fields[2]  # Account description
             if not search_code or not description:
-                raise ValueError("Invalid report format.")
+                raise ValueError("invalid report format")
 
             # Parse journal entries on next lines (boekstukken)
             entries = []
@@ -155,7 +155,7 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
             actual_paid = sum(e.paid for e in entries)
             actual_open = sum(e.open for e in entries)
             if expect_amount != actual_amount or expect_paid != actual_paid or expect_open != actual_open:
-                raise ValueError("Book total is incorrect.")
+                raise ValueError(f"book total is incorrect for {search_code}")
 
             # Store
             res.append(DavilexBook(search_code, description, entries))
@@ -172,7 +172,7 @@ def combine_reports(debit: List[DavilexBook], credit: List[DavilexBook]) -> List
     for book in debit:
         # Sanity check for duplicate search codes
         if book.search_code in accounts:
-            raise ValueError("Duplicate search code in debit.")
+            raise ValueError(f"duplicate search code '{book.search_code}' in debit")
         accounts[book.search_code] = DavilexAccount(book.search_code, book.description, debit=book.entries, credit=[])
 
     # Add the credit books to the accounts
@@ -180,9 +180,9 @@ def combine_reports(debit: List[DavilexBook], credit: List[DavilexBook]) -> List
         if book.search_code in accounts:
             # Sanity checks for duplicate credit entries and description
             if accounts[book.search_code].credit:
-                raise ValueError("Duplicate search code in credit.")
+                raise ValueError(f"duplicate search code '{book.search_code}' in credit")
             if accounts[book.search_code].description != book.description:
-                raise ValueError("Credit/debit book descriptions not equal.")
+                raise ValueError(f"credit/debit book descriptions not equal for '{book.search_code}'")
             accounts[book.search_code].credit = book.entries
         else:
             accounts[book.search_code] = DavilexAccount(
