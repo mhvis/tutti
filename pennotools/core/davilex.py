@@ -110,17 +110,12 @@ def parse_davilex_report(data: str) -> List[DavilexBook]:
         next(f)  # Skip the first header line
 
         while True:
-            # Get first non-empty line
+            # Get first book/account line, should have person ID/zoekcode
             try:
-                while True:
-                    line = next(f)  # type: str
-                    if line.strip():
-                        break  # Line is non-empty
+                # This generator skips empty lines
+                fields = next(line for line in f if line.strip()).split('\t')
             except StopIteration:
                 break  # End of file reached
-
-            # First line of book/account, should have person ID/zoekcode
-            fields = line.split('\t')
 
             if not fields[1] and fields[2] == 'TOTAAL':
                 # Line has 'TOTAAL', end reached
