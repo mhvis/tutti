@@ -1,15 +1,14 @@
+import unicodedata
 from decimal import Decimal
 from typing import List, Tuple
 
 from members.models import Person
 
 
-# TODO: this snippet could be used if accents need to be removed
-# import unicodedata
-#
-# def remove_accents(input_str):
-#     nfkd_form = unicodedata.normalize('NFKD', input_str)
-#     return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
+# From here: https://stackoverflow.com/a/517974/2373688
+def remove_accents(input_str):
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 
 def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[List[str]]:
@@ -55,7 +54,7 @@ def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[Lis
 
         csv.append([
             p.person_id,  # Kenmerk
-            "{} {}".format(p.first_name, p.last_name),
+            remove_accents("{} {}".format(p.first_name, p.last_name)),
             p.person_id,  # Verkorte naam
             p.iban,
             'Algemeen',  # Rekeninggroep
