@@ -44,10 +44,7 @@ def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[Lis
             ]]
 
     # Add rows
-    for line in lines:
-        p = line[0]
-        amount = line[1]
-
+    for p, amount in lines:
         # Check that IBAN and SEPA are set
         if not p.sepa_direct_debit or not p.iban:
             raise ValueError("Person has no SEPA.")

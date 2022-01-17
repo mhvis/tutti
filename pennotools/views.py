@@ -2,12 +2,11 @@ import csv
 
 import xlsxwriter
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.mail import mail_admins
 from django.http import HttpResponse
 from django.views.generic import TemplateView, FormView
 
-from pennotools.core.contribution import ContributionExemption, \
-    get_contributie, contributie_header, contribution_sepa_amounts
+from pennotools.core.contribution import ContributionExemption, get_contributie, contributie_header, \
+    contribution_sepa_amounts
 from pennotools.core.davilex import parse_davilex_report, combine_reports
 from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
 from pennotools.core.rabo import rabo_sepa
@@ -26,9 +25,6 @@ class QRekeningView(TreasurerAccessMixin, FormView):
     form_class = QRekeningForm
 
     def form_valid(self, form):
-        # Temporary log form data by mail, for testing/auditing
-        mail_admins("Q-rekening log", f"Form data:\n{form.cleaned_data}\n\nPOST data:\n{self.request.POST}")
-
         # Parse input
         debit = parse_davilex_report(form.cleaned_data['debit'])
         credit = parse_davilex_report(form.cleaned_data['credit'])
