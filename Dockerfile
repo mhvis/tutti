@@ -30,12 +30,13 @@ RUN mkdir /app/static /app/media && python manage.py collectstatic --noinput
 # Unset secret key
 ENV DJANGO_SECRET_KEY=
 
-# Bake build date into src directory, will be read by the app
-RUN date -I > builddate.txt
-
 # Create user
 RUN useradd -u 1001 appuser && chown appuser /app/media
 USER appuser
+
+# The SHA1 hash of the commit
+ARG SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 # By default launch gunicorn on :8000
 CMD ["gunicorn", "-w", "3", "-b", "0.0.0.0:8000", "tutti.wsgi"]
