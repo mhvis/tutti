@@ -1,17 +1,11 @@
-import unicodedata
 from decimal import Decimal
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 from members.models import Person
+from pennotools.core.util import remove_accents
 
 
-# From here: https://stackoverflow.com/a/517974/2373688
-def remove_accents(input_str):
-    nfkd_form = unicodedata.normalize('NFKD', input_str)
-    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
-
-
-def rabo_sepa(lines: List[Tuple[Person, Decimal]], description: str) -> List[List[str]]:
+def rabo_sepa(lines: Iterable[Tuple[Person, Decimal]], description: str) -> List[List[str]]:
     """Constructs table in Rabo incasso csv format.
 
     Format description: https://www.rabobank.nl/images/pdf_formaatbeschrijving_csv_29856100.pdf

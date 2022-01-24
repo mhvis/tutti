@@ -9,6 +9,7 @@ from pennotools.core.contribution import ContributionExemption, get_contributie,
     contribution_sepa_amounts
 from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
 from pennotools.core.rabo import rabo_sepa
+from pennotools.core.util import split_amount
 from pennotools.core.workbook import write_sheet
 from pennotools.forms import ContributionForm, ContributionExemptionFormSet, QRekeningForm
 
@@ -29,7 +30,7 @@ class QRekeningView(TreasurerAccessMixin, FormView):
 
         if 'sepa' in self.request.POST:
             # Get the amounts for SEPA
-            debits = qrekening_sepa_amounts(accounts)
+            debits = split_amount(qrekening_sepa_amounts(accounts), split=form.cleaned_data['sepa_split'])
 
             # Create and write the Rabobank CSV
             table = rabo_sepa(debits, form.cleaned_data['description'])
@@ -104,7 +105,8 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 amounts = contribution_sepa_amounts(form.cleaned_data['student'],
                                                     form.cleaned_data['non_student'],
                                                     exemptions)
-                table = rabo_sepa(amounts, form.cleaned_data['description'])
+                split = split_amount(amounts, split=form.cleaned_data['sepa_split'])
+                table = rabo_sepa(split, form.cleaned_data['description'])
 
                 # Write CSV
                 response = HttpResponse(
@@ -114,7 +116,6 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
                 writer = csv.writer(response)
                 writer.writerows(table)
                 return response
-            # Unreachable
         # One of the forms was not valid, render again
         context = {
             "form": form,

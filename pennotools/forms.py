@@ -1,8 +1,11 @@
 import datetime
+from contextlib import contextmanager
+from decimal import Decimal
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import Textarea
+from django.utils.safestring import mark_safe
 
 from members.models import QGroup
 from pennotools.core.davilex import combine_reports, parse_davilex_report
@@ -29,6 +32,10 @@ class ContributionForm(forms.Form):
                                   max_length=35,
                                   initial=sepa_initial_description,
                                   label="Omschrijving")
+    sepa_split = forms.DecimalField(min_value=Decimal('0.01'), decimal_places=2, label="SEPA split",
+                                    help_text="SEPA debit rows with a value larger than this amount will be "
+                                              "split over multiple rows.",
+                                    initial=Decimal('130.00'))
 
 
 class ContributionExemptionForm(forms.Form):
@@ -65,6 +72,17 @@ def qrekening_initial_description():
     return 'Qrekening {}'.format(datetime.date.today().strftime('%B %Y'))
 
 
+@contextmanager
+def to_validation_error():
+    """Context manager that reraises errors from parsing as ValidationError."""
+    try:
+        yield
+    except (ValueError, IndexError) as e:
+        raise ValidationError(mark_safe(
+            f"Could not parse report. See code or <a href='mailto:sysop@esmgquadrivium.nl'>ask</a> for details."
+            f" The error encountered was: '{e}'."))
+
+
 class QRekeningForm(forms.Form):
     """Form which parses the Davilex report during cleaning.
 
@@ -77,36 +95,26 @@ class QRekeningForm(forms.Form):
     description = forms.CharField(help_text="Description shown on the debtor direct debit statement.",
                                   max_length=35,
                                   initial=qrekening_initial_description)
-
-    @staticmethod
-    def _parse_davilex(data):
-        # Converts ValueError to ValidationError
-        try:
-            return parse_davilex_report(data)
-        except ValueError as e:
-            raise ValidationError(f"Could not parse report, error: \"{e}\". See code for details.")
+    sepa_split = forms.DecimalField(min_value=Decimal('0.01'), decimal_places=2, label="SEPA split",
+                                    help_text="SEPA debit rows with a value larger than this amount will be "
+                                              "split over multiple rows.",
+                                    initial=Decimal('130.00'))
 
     def clean_debit(self):
-        return self._parse_davilex(self.cleaned_data['debit'])
+        with to_validation_error():
+            return parse_davilex_report(self.cleaned_data['debit'])
 
     def clean_credit(self):
-        return self._parse_davilex(self.cleaned_data['credit'])
+        with to_validation_error():
+            return parse_davilex_report(self.cleaned_data['credit'])
 
     def clean(self):
         # This method combines debit and credit on person ID
         cleaned_data = super().clean()
         debit = cleaned_data.get('debit')
         credit = cleaned_data.get('credit')
-        # 'is not None' is maybe necessary in case a value is [] (empty list)
+        # 'is not None' is maybe necessary in case the value is an empty list
         if debit is not None and credit is not None:
-            try:
+            with to_validation_error():
                 cleaned_data['accounts'] = combine_reports(debit, credit)
-            except ValueError as e:
-                raise ValidationError(f"Could not parse report, error: \"{e}\". See code for details.")
         return cleaned_data
-
-    # kenmerk = forms.CharField(max_length=35,
-    #                           label="Kenmerk",
-    #                           help_text="Het kenmerk van de machtiging die door de debiteur ondertekend is. "
-    #                                     "Dit kenmerk moet uniek zijn per adres. "
-    #                                     "Het staat ook bekend als mandaat-ID of mandaatkenmerk.")
