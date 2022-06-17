@@ -1,8 +1,9 @@
 """Use Django signals to automatically run sync on object changes."""
 from django.conf import settings
+from django.core.mail import mail_admins
 from django.db.models.signals import post_save, post_delete, post_migrate
 from django.dispatch import receiver
-from django_q.models import Schedule
+from django_q.models import Schedule, Task
 from django_q.tasks import schedule, async_task
 
 from members.models import Person, QGroup, User, GSuiteAccount
@@ -19,9 +20,15 @@ from members.models import Person, QGroup, User, GSuiteAccount
 def queue_sync(sender, **kwargs):
     """Queues a sync task to be run immediately."""
     if settings.LDAP_SYNC_ON_SAVE:
-        async_task("sync.ldapsync.ldap_sync")
+        async_task("sync.ldapsync.ldap_sync", hook='sync.signals.error_reporting')
     if settings.GRAPH_SYNC_ON_SAVE:
-        async_task("sync.aad.tasks.aad_sync")
+        async_task("sync.aad.tasks.aad_sync", hook='sync.signals.error_reporting')
+
+
+def error_reporting(task: Task):
+    """Used as hook for Django-Q to send an email when a failure occurred."""
+    if not task.success:
+        mail_admins('Task {} failed'.format(task.name), str(task.result), fail_silently=True)
 
 
 def migrate_schedule(func, name, version: int, *args, **kwargs):
@@ -41,7 +48,7 @@ def migrate_schedule(func, name, version: int, *args, **kwargs):
     # Create current version if it doesn't exist
     current_name = "{}-{}".format(name, version)
     if not Schedule.objects.filter(name=current_name).exists():
-        schedule(func, name=current_name, *args, **kwargs)
+        schedule(func, name=current_name, hook='sync.signals.error_reporting', *args, **kwargs)
 
 
 @receiver(post_migrate)
@@ -54,10 +61,10 @@ def setup_sync_tasks(sender, **kwargs):
     # Schedule for LDAP
     migrate_schedule(func="sync.ldapsync.ldap_sync",
                      name="ldapsync",
-                     version=1,
+                     version=2,
                      schedule_type=Schedule.DAILY)
     # Schedule for AAD
     migrate_schedule(func="sync.aad.tasks.aad_sync",
                      name="aadsync",
-                     version=1,
+                     version=2,
                      schedule_type=Schedule.DAILY)
