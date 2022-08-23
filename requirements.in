@@ -4,7 +4,7 @@ django-phonenumber-field
 phonenumbers
 django-localflavor
 django-countries
-authlib
+authlib<=0.15.5
 requests
 django-health-check
 django-import-export
@@ -15,5 +15,5 @@ whitenoise[brotli]
 django-environ
 django-q
 django-bootstrap4
-django-multiselectfield  # Used on subscribe form
+django-multiselectfield  # Used on subscribe form, TODO: remove
 matplotlib

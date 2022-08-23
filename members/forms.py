@@ -62,7 +62,7 @@ class SubscribeForm(forms.ModelForm):
         model = MembershipRequest
         fields = ['first_name', 'last_name', 'initials', 'email', 'phone_number', 'street', 'postal_code', 'city',
                   'country', 'gender', 'date_of_birth', 'preferred_language', 'field_of_study', 'is_student', 'iban',
-                  'tue_card_number', 'remarks', 'sub_association', 'instruments']
+                  'tue_card_number', 'remarks', 'instruments']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

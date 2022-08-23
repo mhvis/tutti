@@ -14,7 +14,7 @@ from django.urls import reverse, path
 from import_export.admin import ImportExportMixin
 
 from members.adminresources import PersonResource
-from members.models import User, QGroup, Person, Instrument, Key, GSuiteAccount, ExternalCard, \
+from members.models import User, QGroup, Person, Instrument, Key, ExternalCard, \
     ExternalCardLoan, GroupMembership, PersonTreasurerFields, MembershipRequest
 
 admin.site.unregister(Group)
@@ -216,7 +216,7 @@ class PersonAdmin(admin.ModelAdmin):
         }),
         ('Quadrivium', {
             'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
-                       'bhv_certificate', 'gsuite_accounts', 'notes')
+                       'bhv_certificate', 'notes')
         }),
         ('TU/e', {
             'fields': ('tue_card_number', 'key_access', ('keywatcher_id', 'keywatcher_pin'))
@@ -234,7 +234,7 @@ class PersonAdmin(admin.ModelAdmin):
                      'street', 'postal_code', 'city',
                      'person_id', 'iban', 'notes')
     ordering = ('username',)
-    filter_horizontal = ('instruments', 'gsuite_accounts', 'key_access', 'groups')
+    filter_horizontal = ('instruments', 'key_access', 'groups')
 
     inlines = (ExternalCardLoanInline, GroupMembershipInline)
     save_on_top = True
@@ -355,27 +355,10 @@ class MembershipRequestAdmin(admin.ModelAdmin):
     form_fields = (
         'first_name', 'last_name', 'email', 'phone_number', 'instruments', 'initials', 'street', 'postal_code',
         'city', 'country', 'gender', 'date_of_birth', 'preferred_language', 'is_student', 'field_of_study', 'iban',
-        'tue_card_number', 'sub_association', 'remarks')
+        'tue_card_number', 'remarks')
     other_fields = ('date', 'seen')
     fieldsets = ((None, {'fields': form_fields}), ("Meta", {'fields': other_fields}))
     readonly_fields = form_fields + ('date',)
     list_display = ('last_name', 'first_name', 'email', 'instruments', 'date', 'seen')
     ordering = ('-date',)
     list_filter = ('seen',)
-
-
-class GSuiteAccountInline(admin.TabularInline):
-    model = Person.gsuite_accounts.through
-    extra = 0
-    autocomplete_fields = ('person',)
-    verbose_name = 'authorized person'
-    verbose_name_plural = 'authorized people'
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-
-@admin.register(GSuiteAccount)
-class GSuiteAccountAdmin(admin.ModelAdmin):
-    fields = ('email',)
-    inlines = (GSuiteAccountInline,)

@@ -6,17 +6,15 @@ from django.dispatch import receiver
 from django_q.models import Schedule, Task
 from django_q.tasks import schedule, async_task
 
-from members.models import Person, QGroup, User, GSuiteAccount
+from members.models import Person, QGroup, User
 
 
 @receiver(post_save, sender=User)
 @receiver(post_save, sender=Person)
 @receiver(post_save, sender=QGroup)
-@receiver(post_save, sender=GSuiteAccount)
 @receiver(post_delete, sender=User)
 @receiver(post_delete, sender=Person)
 @receiver(post_delete, sender=QGroup)
-@receiver(post_delete, sender=GSuiteAccount)
 def queue_sync(sender, **kwargs):
     """Queues a sync task to be run immediately."""
     if settings.LDAP_SYNC_ON_SAVE:

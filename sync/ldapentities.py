@@ -124,9 +124,6 @@ class LDAPPerson(LDAPEntity):
         if self.instance.ldap_password:
             # userPassword is stored as a bytes object in LDAP, we encode with UTF-8
             result['userPassword'] = [self.instance.ldap_password.encode()]
-        gsuite_accounts = self.instance.gsuite_accounts.all()
-        if gsuite_accounts:
-            result['qGSuite'] = [a.email for a in gsuite_accounts]
         return result
 
     @classmethod
@@ -143,7 +140,6 @@ class LDAPPerson(LDAPEntity):
                 'mail',
                 'preferredLanguage',
                 'qAzureUPN',
-                'qGSuite',
                 'qDBLinkID',
                 'userPassword',
                 'employeeNumber',

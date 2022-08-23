@@ -4,9 +4,9 @@ from argparse import ArgumentParser
 from django.core.management import BaseCommand
 from ldap3.utils.log import set_library_log_detail_level, BASIC
 
+from members.models import Instrument, ExternalCard, Key, QGroup, Person, GroupMembership, ExternalCardLoan
 from sync.clone import CLONE_SEARCH, clone, check_for_issues
 from sync.ldap import get_ldap_entries, get_connection
-from members.models import Instrument, GSuiteAccount, ExternalCard, Key, QGroup, Person, GroupMembership, ExternalCardLoan
 
 
 class Command(BaseCommand):
@@ -48,7 +48,6 @@ class Command(BaseCommand):
             Instrument.objects.all().delete()
             QGroup.objects.all().delete()
             Person.objects.all().delete()
-            GSuiteAccount.objects.all().delete()
             ExternalCard.objects.all().delete()
             Key.objects.all().delete()
 

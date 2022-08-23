@@ -12,10 +12,10 @@ from django.db import transaction
 from localflavor.generic.validators import IBANValidator
 from phonenumber_field.validators import validate_international_phonenumber
 
+from members.models import QGroup, Person, Instrument, Key, ExternalCard, ExternalCardLoan, \
+    GroupMembership
 from sync.ldap import LDAPSearch, LDAPAttributeType
 from sync.ldapoperations import LDAPOperation, ModifyOperation
-from members.models import QGroup, Person, GSuiteAccount, Instrument, Key, ExternalCard, ExternalCardLoan, \
-    GroupMembership
 
 CURRENT_MEMBERS_GROUP = 'cn=huidige leden,ou=groups,dc=esmgquadrivium,dc=nl'
 """Distinguished name for the group that stores current Quadrivium members."""
@@ -37,7 +37,6 @@ CLONE_SEARCH = (
             'qDateOfBirth',
             'qFieldOfStudy',
             # 'qFoundVia',
-            'qGSuite',
             'qGender',
             'qIBAN',
             'qID',
@@ -258,10 +257,6 @@ def create_person_and_related(attrs, q_member_group: QGroup) -> Person:
     )
 
     # Create related instances
-    # GSuite
-    for mailbox in attrs.get('qGSuite', []):
-        account, _ = GSuiteAccount.objects.get_or_create(email=mailbox.lower())
-        person.gsuite_accounts.add(account)
     # Instruments
     for i in attrs.get('qInstrumentVoice', []):
         instrument, _ = Instrument.objects.get_or_create(name=i.lower())

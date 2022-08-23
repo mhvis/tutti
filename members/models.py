@@ -101,16 +101,6 @@ class ExternalCard(models.Model):
         return '–'.join([str(x) for x in (self.card_number, self.reference_number, self.description) if x])
 
 
-class GSuiteAccount(models.Model):
-    class Meta:
-        verbose_name = 'Google Workspace account'
-
-    email = models.EmailField(unique=True)
-
-    def __str__(self):
-        return self.email
-
-
 class Key(models.Model):
     number = models.IntegerField(primary_key=True)
     room_name = models.CharField(max_length=150, blank=True)
@@ -194,10 +184,6 @@ class Person(User):
 
     field_of_study = models.CharField(max_length=150,
                                       blank=True)
-
-    gsuite_accounts = models.ManyToManyField(GSuiteAccount,
-                                             blank=True,
-                                             verbose_name='Google Workspace accounts')
 
     iban = IBANField(blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID', help_text='Davilex code.')
@@ -288,6 +274,7 @@ class ExternalCardLoan(models.Model):
 
 
 class MembershipRequest(models.Model):
+    # TODO: this model is no longer used and can be removed.
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(max_length=150, verbose_name="email address")
@@ -329,17 +316,18 @@ class MembershipRequest(models.Model):
                                      verbose_name='student',
                                      help_text="At any university or high school.")
 
-    sub_association = MultiSelectField(
-        choices=[
-            ("vokollage", "Vokollage – choir"),
-            ("ensuite", "Ensuite – symphony orchestra"),
-            ("auletes", "Auletes – wind orchestra"),
-            ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
-        verbose_name="sub-association",
-        blank=True,
-        help_text="Which sub-associations are you interested in? "
-                  "If you are not interested in the orchestra and choir, select piano member. "
-                  "Leave empty if you are not (yet) sure.")
+    # Broken in Django 4.1
+    # sub_association = MultiSelectField(
+    #     choices=[
+    #         ("vokollage", "Vokollage – choir"),
+    #         ("ensuite", "Ensuite – symphony orchestra"),
+    #         ("auletes", "Auletes – wind orchestra"),
+    #         ("piano", "Piano member – join association-wide activities and use our rehearsal rooms")],
+    #     verbose_name="sub-association",
+    #     blank=True,
+    #     help_text="Which sub-associations are you interested in? "
+    #               "If you are not interested in the orchestra and choir, select piano member. "
+    #               "Leave empty if you are not (yet) sure.")
 
     field_of_study = models.CharField(max_length=150,
                                       blank=True,

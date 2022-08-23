@@ -4,10 +4,9 @@ from django.db.models import Q
 from django.test import TestCase
 from django.utils import timezone
 
+from members.models import Person, QGroup, GroupMembership, Instrument, ExternalCard, ExternalCardLoan, Key
 from sync.clone import clone, CloneError
 from sync.ldapoperations import ModifyOperation
-from members.models import Person, QGroup, GroupMembership, Instrument, ExternalCard, ExternalCardLoan, GSuiteAccount, \
-    Key
 
 
 class CloneTestCase(TestCase):
@@ -235,7 +234,6 @@ class CloneTestCase(TestCase):
                 'qCardNumber': [1234567],
                 'qDateOfBirth': [18600707],
                 'qFieldOfStudy': ['Alma'],
-                'qGSuite': ['gustav@esmgquadrivium.nl', 'mahler@esmgquadrivium.nl'],
                 'qGender': ['Male'],
                 'qIBAN': ['NL45ABNA9574218201'],
                 'qID': ['GUSMAL'],
@@ -262,7 +260,6 @@ class CloneTestCase(TestCase):
         self.assertEqual(2, Instrument.objects.count())
         self.assertEqual(0, ExternalCard.objects.count())
         self.assertEqual(0, ExternalCardLoan.objects.count())
-        self.assertEqual(2, GSuiteAccount.objects.count())
         self.assertEqual(2, Key.objects.count())
         self.assertEqual(1, GroupMembership.objects.count())
         # Check the values
@@ -274,8 +271,6 @@ class CloneTestCase(TestCase):
         self.assertEqual(1234567, gustav.tue_card_number)
         self.assertEqual(date(1860, 7, 7), gustav.date_of_birth)
         self.assertEqual('Alma', gustav.field_of_study)
-        self.assertCountEqual(['gustav@esmgquadrivium.nl', 'mahler@esmgquadrivium.nl'],
-                              [a.email for a in gustav.gsuite_accounts.all()])
         self.assertEqual('male', gustav.gender)
         self.assertEqual('NL45ABNA9574218201', gustav.iban)
         self.assertEqual('GUSMAL', gustav.person_id)
