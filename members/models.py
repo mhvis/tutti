@@ -11,7 +11,6 @@ from django_countries.fields import CountryField
 from ldap3 import HASHED_SALTED_SHA512
 from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
-from multiselectfield import MultiSelectField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
