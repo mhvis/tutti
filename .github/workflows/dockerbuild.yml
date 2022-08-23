@@ -23,6 +23,7 @@ jobs:
             --cache-from $IMAGE_NAME:latest \
             --tag $IMAGE_NAME:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg SOURCE_COMMIT=$GITHUB_SHA \
             "."
       - name: Push image to registry
         run: docker push $IMAGE_NAME:latest
