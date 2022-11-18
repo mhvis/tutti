@@ -8,10 +8,10 @@ from django.views.generic import TemplateView, FormView
 from pennotools.core.contribution import ContributionExemption, get_contributie, contributie_header, \
     contribution_sepa_amounts
 from pennotools.core.qrekening import qrekening_sepa_amounts, get_qrekening, qrekening_header
-from pennotools.core.rabo import rabo_sepa
+from pennotools.core.rabo import rabo_sepa, parse_csv_dict, rabo_sepa_xml
 from pennotools.core.util import split_amount
 from pennotools.core.workbook import write_sheet
-from pennotools.forms import ContributionForm, ContributionExemptionFormSet, QRekeningForm
+from pennotools.forms import ContributionForm, ContributionExemptionFormSet, QRekeningForm, XmlMakerForm
 
 
 class TreasurerAccessMixin(PermissionRequiredMixin):
@@ -39,7 +39,7 @@ class QRekeningView(TreasurerAccessMixin, FormView):
                 content_type='text/csv',
                 headers={'Content-Disposition': 'attachment; filename="rabo_sepa.csv"'},
             )
-            writer = csv.writer(response)
+            writer = csv.writer(response, delimiter=";")
             writer.writerows(table)
             return response
 
@@ -122,3 +122,16 @@ class ContributionView(TreasurerAccessMixin, TemplateView):
             "exceptions_formset": exceptions_formset,
         }
         return self.render_to_response(context)
+
+class XmlMakerView(TreasurerAccessMixin, FormView):
+    template_name = "pennotools/xml_maker.html"
+
+    def get(self, request, *args, **kwargs):
+        form = XmlMakerForm()
+        return self.render_to_response({"form": form})
+    
+    def post(self, request, *args, **kwargs):
+        data = parse_csv_dict(request.POST['SEPA_csv_file'])
+        xmlbody = rabo_sepa_xml(data)
+        return HttpResponse(xmlbody, content_type="application/xml")
+        

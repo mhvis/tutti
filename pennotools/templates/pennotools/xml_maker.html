@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load bootstrap4 static %}
+
+{% block title %}XML maker | {{ block.super }}{% endblock %}
+
+{% block nav_penno %}active{% endblock %}
+{% block nav_contribution %}active{% endblock %}
+
+{% block content %}
+<h1>SEPA XML-maker</h1>
+    <p>Deze tool converteert de door het qrekening en contributiescript gegenereerde SEPA csv bestand naar een xml-bestand. </p>
+    <p>Let op! Controleer altijd de checksum</p>
+    
+
+    <form method="post" action="{% url 'pennotools:xmlmaker' %}">
+        {% csrf_token %}
+        {% bootstrap_form form layout="horizontal" %}
+        <button type="submit" name="xml" class="btn btn-primary">Maak XML-bestand</button>
+        <p>
+            <small class="text-muted">
+                The SEPA XML file can be imported in Rabo Internetbankieren Professional (RIB Pro) and uses
+                <a href="https://statics.rabobank.com/binaries-processed/Formaatbeschrijving_Euro_IncassoV2_931143607.pdf" target="_blank">this
+                    format</a>.
+            </small>
+        </p>
+    </form>
+{% endblock %}

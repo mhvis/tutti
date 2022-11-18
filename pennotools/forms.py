@@ -118,3 +118,8 @@ class QRekeningForm(forms.Form):
             with to_validation_error():
                 cleaned_data['accounts'] = combine_reports(debit, credit)
         return cleaned_data
+
+class XmlMakerForm(forms.Form):
+    SEPA_csv_file = forms.CharField(widget=Textarea,
+                            strip=False,
+                            help_text="Open het SEPA csv file in Notepad and paste it in here")
