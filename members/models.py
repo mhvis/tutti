@@ -3,15 +3,23 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, UserManager
+from django.core import validators
 from django.db import models
 from django.db.models import QuerySet
 from django.utils import timezone
+from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from ldap3 import HASHED_SALTED_SHA512
 from ldap3.utils.hashed import hashed
 from localflavor.generic.models import IBANField
 from phonenumber_field.modelfields import PhoneNumberField
+
+
+@deconstructible
+class UsernameValidator(validators.RegexValidator):
+    regex = r"^[a-z0-9]+\Z"
+    message = "Enter a valid username. This value may contain only lowercase letters and numbers."
 
 
 class User(AbstractUser):
@@ -22,6 +30,15 @@ class User(AbstractUser):
 
     A bit invasive, but an easy solution.
     """
+
+    # We override the username field to set a validator for only lowercase letters and numbers.
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        help_text="Required. 150 characters or fewer. Lowercase letters and numbers only.",
+        validators=[UsernameValidator()],
+        error_messages={"unique": _("A user with that username already exists."), },
+    )
 
     def __str__(self):
         # Default implementation returns username
