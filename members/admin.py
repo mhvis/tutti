@@ -1,11 +1,10 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
-from django.contrib.admin import RelatedFieldListFilter, SimpleListFilter
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.forms import UserChangeForm, AdminPasswordChangeForm
-from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
@@ -17,7 +16,8 @@ from members.adminresources import PersonResource
 from members.models import User, QGroup, Person, Instrument, Key, ExternalCard, \
     ExternalCardLoan, GroupMembership, PersonTreasurerFields, MembershipRequest
 
-admin.site.unregister(Group)
+# We need to keep the Django group admin registered, because it sets the ordering.
+# admin.site.unregister(Group)
 admin.site.register(User, UserAdmin)
 
 
@@ -156,17 +156,11 @@ class QGroupAdmin(GroupAdmin):
 
 # Person
 
-class GroupListFilter(RelatedFieldListFilter):
-    """Filter that orders the groups on the `name` field."""
-
-    def field_admin_ordering(self, field, request, model_admin):
-        return ('name',)
-
 
 class MemberListFilter(SimpleListFilter):
     """Filter for Quadrivium memberships.
 
-    By default filters people that are a member.
+    By default, filters people that are a member.
     """
 
     # Text shown in the right panel
@@ -225,9 +219,7 @@ class PersonAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_member')
-    list_filter = (MemberListFilter,
-                   ('groups', GroupListFilter),  # Custom group filter that applies ordering
-                   'instruments')
+    list_filter = (MemberListFilter, 'groups', 'instruments')
     list_max_show_all = 1000
     search_fields = ('username', 'first_name', 'last_name', 'email',
                      'initials', 'phone_number',

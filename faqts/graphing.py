@@ -5,10 +5,9 @@ from collections import Counter
 from io import BytesIO
 from typing import Iterable
 
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-
 import numpy as np
+from matplotlib.axes import Axes  # noqa: F401
+from matplotlib.figure import Figure
 from matplotlib.ticker import MaxNLocator
 
 
