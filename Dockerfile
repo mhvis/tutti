@@ -7,28 +7,22 @@
 # The default command runs the gunicorn server on port 8000. You need to run
 # migrate yourself, e.g. using `docker run tutti python manage.py migrate
 # --noinput`.
-#
-# For environment variables that need to be set, see settings.py.
-FROM python:3.8
+FROM python:3.11
 
-# Install dependencies
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
 WORKDIR /app/src
-RUN pip install --no-cache-dir gunicorn psycopg2
+
+RUN pip install --no-cache-dir gunicorn==20.1.0 psycopg2==2.9.5
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app
 COPY . .
 
-# Some Python settings
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-
 # Setup static and media folders
-# A secret key needs to be set otherwise collectstatic fails
 ENV DJANGO_STATIC_ROOT=/app/static DJANGO_MEDIA_ROOT=/app/media DJANGO_SECRET_KEY=dummy DJANGO_WHITENOISE=1
 RUN mkdir /app/static /app/media && python manage.py collectstatic --noinput
-# Unset secret key
-ENV DJANGO_SECRET_KEY=
+ENV DJANGO_SECRET_KEY=''
 
 # Create user
 RUN useradd -u 1001 appuser && chown appuser /app/media

@@ -1,34 +1,27 @@
-# Development compose file
-version: "3.8"
-
-volumes:
-  tutti_db:
-  tutti_media:
-
 services:
   app:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app/src
-      - tutti_media:/app/media
+      - media:/app/media
     ports:
-      - 8000:8000
+      - "8000:8000"
     environment:
       DJANGO_DEBUG: "on"
-      DJANGO_SECRET_KEY: "hi"
-      DATABASE_URL: "psql://tutti:tutti@db/tutti"
+      DJANGO_SECRET_KEY: insecure
+      DATABASE_URL: psql://postgres:postgres@db/postgres
       DJANGO_ALLOWED_HOSTS: "*"
 
-    depends_on:
-      - db
   db:
-    image: postgres:12
+    image: postgres:15
     volumes:
-      - tutti_db:/var/lib/postgresql/data/
+      - db:/var/lib/postgresql/data/
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
-      - POSTGRES_USER=tutti
-      - POSTGRES_PASSWORD=tutti
-      - POSTGRES_DB=tutti
+      POSTGRES_PASSWORD: postgres
+
+volumes:
+  db:
+  media:
