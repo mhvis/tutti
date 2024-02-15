@@ -12,15 +12,11 @@ def apply(operations: List[SyncOperation], graph: Graph) -> List[SyncOperation]:
     return operations
 
 
-def aad_sync(apply_deletions=False) -> List[SyncOperation]:
+def aad_sync(apply_deletions=True) -> List[SyncOperation]:
     """Runs full sync with Azure Active Directory.
 
     Args:
         apply_deletions: If True, delete operations will be applied as well.
-            Disabled by default to prevent accidental deletion of objects in
-            case of a bug. Leftover users or groups in AAD usually don't pose a
-            problem, a manual sync can be run sometimes to clean the deleted
-            objects.
 
     Returns:
         The operations that have been applied.

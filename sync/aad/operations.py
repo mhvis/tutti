@@ -1,6 +1,8 @@
 from abc import ABCMeta
 from typing import Dict
 
+from django.conf import settings
+
 from sync.aad.graph import GraphUser, GraphGroup, Graph
 
 
@@ -29,10 +31,9 @@ class CreateUserOperation(SyncOperation):
         user_id = graph.create_user(self.user)
         # Add extension data (Tutti database ID)
         graph.add_user_extension(user_id, self.user.extension)
-        # Assign Office 365 license (without Exchange)
-        graph.assign_license(user_id=user_id,
-                             sku_id="6634e0ce-1a9f-428c-a498-f84ec7b8aa2e",
-                             disabled_plans=["9aaf7827-d63c-4b61-89c3-182f06f82e5c"])
+        if settings.GRAPH_LICENSE_SKU_ID:
+            # Assign Microsoft 365 license
+            graph.assign_license(user_id=user_id, sku_id=settings.GRAPH_LICENSE_SKU_ID)
 
     def __repr__(self):
         return "CreateUser({})".format(repr(self.user))

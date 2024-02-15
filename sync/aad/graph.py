@@ -308,7 +308,7 @@ class Graph:
     def add_user_extension(self, user_id: str, extension):
         self.add_extension("users/{}/extensions".format(user_id), extension)
 
-    def assign_license(self, user_id: str, sku_id: str, disabled_plans: List[str]):
+    def assign_license(self, user_id: str, sku_id: str, disabled_plans: List[str] = None):
         """Assigns a subscription for a user.
 
         Args:
@@ -316,6 +316,8 @@ class Graph:
             sku_id: License SKU unique identifier.
             disabled_plans: List of identifiers of plans to disable.
         """
+        if disabled_plans is None:
+            disabled_plans = []
         data = {
             "addLicenses": [{"skuId": sku_id, "disabledPlans": disabled_plans}],
             "removeLicenses": [],
