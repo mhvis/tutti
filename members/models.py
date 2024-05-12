@@ -190,6 +190,20 @@ class Person(User):
     gender = models.CharField(max_length=30,
                               blank=True,
                               choices=(('male', 'Male'), ('female', 'Female')))
+
+    photo_video_consent_internal = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name="photos/videos consent internal",
+        help_text="Whether the person has given consent to share photos and videos of them internally with other members."
+    )
+    photo_video_consent_external = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name='photos/videos consent external',
+        help_text="Whether the person has given consent to share photos and videos of them externally (on website, social media)."
+    )
+
     is_student = models.BooleanField(null=True, blank=True)
 
     sepa_direct_debit = models.BooleanField(null=True,

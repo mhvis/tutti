@@ -209,7 +209,10 @@ class PersonAdmin(admin.ModelAdmin):
             'fields': ('gender', 'date_of_birth', 'preferred_language', 'instruments', 'field_of_study')
         }),
         ('Quadrivium', {
-            'fields': ('person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
+            'fields': (
+                "photo_video_consent_internal",
+                "photo_video_consent_external",
+                'person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
                        'bhv_certificate', 'notes')
         }),
         ('TU/e', {
