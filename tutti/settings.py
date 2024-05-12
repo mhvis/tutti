@@ -137,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Europe/Amsterdam'
 USE_I18N = False
-USE_L10N = False
+# USE_L10N = False
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)

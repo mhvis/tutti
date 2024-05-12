@@ -13,7 +13,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 WORKDIR /app/src
 
-RUN pip install --no-cache-dir gunicorn==20.1.0 psycopg2==2.9.5
+RUN pip install --no-cache-dir gunicorn==22.0.0 psycopg==3.1.19
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

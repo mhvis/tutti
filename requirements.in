@@ -1,4 +1,4 @@
-django
+django<5  # django-q doesn't work with version 5
 ldap3
 django-phonenumber-field
 phonenumbers
@@ -7,7 +7,7 @@ django-countries
 authlib<=0.15.5
 requests
 django-health-check
-django-import-export
+django-import-export<4  # version 4 has breaking changes
 requests-oauthlib
 msal
 xlsxwriter
