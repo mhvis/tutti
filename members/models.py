@@ -197,12 +197,19 @@ class Person(User):
         verbose_name="photos/videos consent internal",
         help_text="Whether the person has given consent to share photos and videos of them internally with other members."
     )
+    photo_video_consent_external_group = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name='photos/videos consent external group',
+        help_text="Whether the person has given consent to share group photos and videos of them externally (on website, social media). With group is meant large groups, such as pictures of a full orchestra or choir during a concert."
+    )
     photo_video_consent_external = models.BooleanField(
         null=True,
         blank=True,
-        verbose_name='photos/videos consent external',
-        help_text="Whether the person has given consent to share photos and videos of them externally (on website, social media)."
+        verbose_name='photos/videos consent external non-group',
+        help_text="Whether the person has given consent to share other photos and videos of them externally (on website, social media)."
     )
+    
 
     is_student = models.BooleanField(null=True, blank=True)
 

@@ -211,6 +211,7 @@ class PersonAdmin(admin.ModelAdmin):
         ('Quadrivium', {
             'fields': (
                 "photo_video_consent_internal",
+                "photo_video_consent_external_group",
                 "photo_video_consent_external",
                 'person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
                        'bhv_certificate', 'notes')
