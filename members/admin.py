@@ -234,7 +234,7 @@ class PersonAdmin(admin.ModelAdmin):
     list_max_show_all = 1000
     search_fields = ('username', 'first_name', 'last_name', 'email',
                      'initials', 'phone_number',
-                     'street', 'postal_code', 'city', 'instruments',
+                     'street', 'postal_code', 'city', 'instruments__name',
                      'person_id', 'iban', 'notes')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'key_access', 'groups')
