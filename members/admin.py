@@ -223,11 +223,18 @@ class PersonAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('last_login', 'date_joined')
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_member')
-    list_filter = (MemberListFilter, 'groups', 'instruments')
+    list_filter = (
+        MemberListFilter,
+        'groups',
+        'photo_video_consent_internal',
+        'photo_video_consent_external_group',
+        'photo_video_consent_external',
+        'instruments'
+    )
     list_max_show_all = 1000
     search_fields = ('username', 'first_name', 'last_name', 'email',
                      'initials', 'phone_number',
-                     'street', 'postal_code', 'city',
+                     'street', 'postal_code', 'city', 'instruments'
                      'person_id', 'iban', 'notes')
     ordering = ('username',)
     filter_horizontal = ('instruments', 'key_access', 'groups')
