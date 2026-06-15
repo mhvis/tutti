@@ -32,7 +32,7 @@ class CreateUserOperation(SyncOperation):
         user_id = graph.create_user(self.user)
 
         # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
-        time.sleep(5)
+        time.sleep(30)
 
         # Add extension data (Tutti database ID)
         graph.add_user_extension(user_id, self.user.extension)
@@ -78,7 +78,7 @@ class CreateGroupOperation(SyncOperation):
         group_id = graph.create_group(self.group)
 
         # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
-        time.sleep(5)
+        time.sleep(30)
 
         graph.add_group_extension(group_id, self.group.extension)
 
