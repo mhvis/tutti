@@ -30,10 +30,10 @@ class CreateUserOperation(SyncOperation):
         """Creates the user with extension data and assigns the license."""
         # Create user
         user_id = graph.create_user(self.user)
-        
+
         # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
         time.sleep(5)
-        
+
         # Add extension data (Tutti database ID)
         graph.add_user_extension(user_id, self.user.extension)
         if settings.GRAPH_LICENSE_SKU_ID:
@@ -76,10 +76,10 @@ class CreateGroupOperation(SyncOperation):
 
     def apply(self, graph: Graph):
         group_id = graph.create_group(self.group)
-        
+
         # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
         time.sleep(5)
-        
+
         graph.add_group_extension(group_id, self.group.extension)
 
 
