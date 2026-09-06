@@ -6,13 +6,13 @@
 # The default command runs the gunicorn server on port 8000. You need to run
 # migrate yourself, e.g. using `docker run tutti python manage.py migrate
 # --noinput`.
-FROM python:3.11.14
+FROM python:3.14.7-trixie@sha256:8edbf9e42c7fb168b9c523718ed907117e6d2e60f5889c0c499bbda3a787da53
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 WORKDIR /app/src
 
-RUN pip install --no-cache-dir gunicorn==23.0.0 psycopg==3.2.10
+RUN pip install --no-cache-dir gunicorn==26.2.0 psycopg==3.3.5
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
