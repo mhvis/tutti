@@ -217,7 +217,7 @@ class PersonAdmin(admin.ModelAdmin):
                 "photo_video_consent_internal",
                 "photo_video_consent_external_group",
                 "photo_video_consent_external",
-                'person_id', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
+                'person_id', 'conscribo_relation_number', 'is_student', ('iban', 'sepa_direct_debit', 'sepa_sign_date'),
                 'bhv_certificate', 'notes')
         }),
         ('TU/e', {

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.test import TestCase
 
 from members.models import QGroup, Person, GroupMembership
+from members.adminresources import PersonResource
 
 
 class GroupMembershipTestCase(TestCase):
@@ -41,6 +42,17 @@ class PersonQuerySetTestCase(TestCase):
 
 
 class PersonTestCase(TestCase):
+    def test_conscribo_relation_number_is_exported(self):
+        person = Person.objects.create(
+            username='conscribo_person',
+            conscribo_relation_number='123456',
+        )
+
+        exported_dataset = PersonResource().export(Person.objects.filter(pk=person.pk))
+        exported_row = dict(zip(exported_dataset.headers, exported_dataset[0]))
+
+        self.assertEqual('123456', exported_row['conscribo_relation_number'])
+
     def test_is_member(self):
         """Tests is_member()."""
         # Create group + member + non_member

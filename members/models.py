@@ -232,6 +232,11 @@ class Person(User):
 
     iban = IBANField(blank=True, verbose_name='IBAN')
     person_id = models.CharField(max_length=30, blank=True, verbose_name='person ID', help_text='Davilex code.')
+    conscribo_relation_number = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name='Conscribo relation number',
+    )
     sepa_sign_date = models.DateField(blank=True, null=True, verbose_name='SEPA agreement date')
 
     key_access = models.ManyToManyField(Key, blank=True)
