@@ -1,10 +1,15 @@
 from abc import ABCMeta
+from datetime import date
 from typing import Dict
-import time
 
 from django.conf import settings
+from django.utils import timezone
+from requests import HTTPError
 
 from sync.aad.graph import GraphUser, GraphGroup, Graph
+
+
+TEMPORARY_ORPHAN_RECOVERY_DATE = date(2026, 9, 6)
 
 
 class SyncOperation:
@@ -28,14 +33,21 @@ class CreateUserOperation(SyncOperation):
 
     def apply(self, graph: Graph):
         """Creates the user with extension data and assigns the license."""
-        # Create user
-        user_id = graph.create_user(self.user)
+        try:
+            user_id = graph.create_user(self.user)
+        except HTTPError:
+            if timezone.localdate() != TEMPORARY_ORPHAN_RECOVERY_DATE:
+                raise
+            existing_user = graph.get_user_by_immutable_id(self.user.immutable_id)
+            if existing_user is None:
+                raise
+            if existing_user.extension is None:
+                graph.add_user_extension(existing_user.directory_id, self.user.extension)
+            elif existing_user.extension.get('tuttiId') != self.user.extension['tuttiId']:
+                raise RuntimeError('Microsoft Graph user {} has a conflicting Tutti extension'.format(
+                    existing_user.user_principal_name))
+            user_id = existing_user.directory_id
 
-        # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
-        time.sleep(30)
-
-        # Add extension data (Tutti database ID)
-        graph.add_user_extension(user_id, self.user.extension)
         if settings.GRAPH_LICENSE_SKU_ID:
             # Assign Microsoft 365 license
             graph.assign_license(user_id=user_id, sku_id=settings.GRAPH_LICENSE_SKU_ID)
@@ -75,12 +87,7 @@ class CreateGroupOperation(SyncOperation):
         return "CreateGroup({})".format(repr(self.group))
 
     def apply(self, graph: Graph):
-        group_id = graph.create_group(self.group)
-
-        # We have issues where sometimes the extensions API call fails with 404. Maybe a time delay helps.
-        time.sleep(30)
-
-        graph.add_group_extension(group_id, self.group.extension)
+        graph.create_group(self.group)
 
 
 class DeleteGroupOperation(SyncOperation):

@@ -1,6 +1,6 @@
 """API for interacting with Microsoft Graph REST API."""
 from time import time
-from typing import List, Dict
+from typing import Dict, List, Optional
 from uuid import uuid4
 
 import requests
@@ -304,12 +304,16 @@ class Graph:
             resource: The directory resource.
             extension: The extension to store, can include arbitrary data.
         """
-        body = {
+        body = self.extension_body(extension)
+        self.call_resource(resource, method="POST", json=body)
+
+    def extension_body(self, extension: Dict) -> Dict:
+        """Returns an open extension request body."""
+        return {
             "@odata.type": "microsoft.graph.openTypeExtension",
             "extensionName": self.extension_id,
             **extension,
         }
-        self.call_resource(resource, method="POST", json=body)
 
     def add_group_extension(self, group_id: str, extension):
         self.add_extension("groups/{}/extensions".format(group_id), extension)
@@ -341,12 +345,33 @@ class Graph:
         Returns:
             The object ID of the created user.
         """
-        response = self.call_resource(resource='users', method='POST', json=user.create_body())
+        body = user.create_body()
+        if user.extension:
+            body['extensions'] = [self.extension_body(user.extension)]
+        response = self.call_resource(resource='users', method='POST', json=body)
         return response.json()['id']
 
     def create_group(self, group: GraphGroup) -> str:
-        response = self.call_resource(resource='groups', method='POST', json=group.create_body())
+        body = group.create_body()
+        if group.extension:
+            body['extensions'] = [self.extension_body(group.extension)]
+        response = self.call_resource(resource='groups', method='POST', json=body)
         return response.json()['id']
+
+    def get_user_by_immutable_id(self, immutable_id: str) -> Optional[GraphUser]:
+        """Returns the user with the specified on-premises immutable ID, if any."""
+        fields = ['id', 'displayName', 'givenName', 'mailNickname', 'preferredLanguage', 'surname',
+                  'userPrincipalName', 'onPremisesImmutableId']
+        escaped_immutable_id = immutable_id.replace("'", "''")
+        params = {
+            '$select': ','.join(fields),
+            '$filter': "onPremisesImmutableId eq '{}'".format(escaped_immutable_id),
+            '$expand': "extensions($filter=id eq '{}')".format(self.extension_id),
+        }
+        users = [GraphUser.from_object(user) for user in self.get_paged('users', params=params)]
+        if len(users) > 1:
+            raise RuntimeError('Multiple Microsoft Graph users have immutable ID {}'.format(immutable_id))
+        return users[0] if users else None
 
     def add_group_member(self, group_id: str, user_id: str):
         self.call_resource(resource="groups/{id}/members/$ref".format(id=group_id),
