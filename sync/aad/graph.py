@@ -352,21 +352,6 @@ class Graph:
         response = self.call_resource(resource='groups', method='POST', json=group.create_body())
         return response.json()['id']
 
-    def get_user_by_immutable_id(self, immutable_id: str) -> Optional[GraphUser]:
-        """Returns the user with the specified on-premises immutable ID, if any."""
-        fields = ['id', 'displayName', 'givenName', 'mailNickname', 'preferredLanguage', 'surname',
-                  'userPrincipalName', 'onPremisesImmutableId']
-        escaped_immutable_id = immutable_id.replace("'", "''")
-        params = {
-            '$select': ','.join(fields),
-            '$filter': "onPremisesImmutableId eq '{}'".format(escaped_immutable_id),
-            '$expand': "extensions($filter=id eq '{}')".format(self.extension_id),
-        }
-        users = [GraphUser.from_object(user) for user in self.get_paged('users', params=params)]
-        if len(users) > 1:
-            raise RuntimeError('Multiple Microsoft Graph users have immutable ID {}'.format(immutable_id))
-        return users[0] if users else None
-
     def get_user(self, user_id: str) -> GraphUser:
         """Returns the user with the specified directory ID."""
         fields = ['id', 'displayName', 'givenName', 'mailNickname', 'preferredLanguage', 'surname',
@@ -376,6 +361,17 @@ class Graph:
             '$expand': "extensions($filter=id eq '{}')".format(self.extension_id),
         }
         return GraphUser.from_object(self.call_resource('users/{}'.format(user_id), params=params).json())
+
+    def get_deleted_user_immutable_id(self, user_id: str) -> Optional[str]:
+        """Returns the immutable ID of a soft-deleted user."""
+        response = self.call_resource('directory/deletedItems/{}'.format(user_id),
+                                      params={'$select': 'id,onPremisesImmutableId'})
+        return response.json().get('onPremisesImmutableId')
+
+    def restore_deleted_user(self, user_id: str) -> str:
+        """Restores a soft-deleted user and returns its directory ID."""
+        response = self.call_resource('directory/deletedItems/{}/restore'.format(user_id), method='POST')
+        return response.json()['id']
 
     def add_group_member(self, group_id: str, user_id: str):
         self.call_resource(resource="groups/{id}/members/$ref".format(id=group_id),

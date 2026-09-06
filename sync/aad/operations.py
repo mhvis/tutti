@@ -1,31 +1,32 @@
 from abc import ABCMeta
-from datetime import date
 import time
 from typing import Dict
 from uuid import UUID
 
 from django.conf import settings
-from django.utils import timezone
 from requests import HTTPError
 
 from sync.aad.graph import GraphUser, GraphGroup, Graph
 
 
-TEMPORARY_ORPHAN_RECOVERY_DATE = date(2026, 9, 6)
 EXTENSION_RETRY_DELAYS = (1, 2, 4, 8, 16, 32, 64, 128)
 
 
-def add_extension_with_retry(graph: Graph, resource: str, extension: Dict):
-    """Adds an extension, retrying 404 errors while Graph replicates the object."""
+def retry_not_found(call):
+    """Retries a Graph call after 404 errors while an object replicates."""
     for delay in EXTENSION_RETRY_DELAYS:
         try:
-            graph.add_extension(resource, extension)
-            return
+            return call()
         except HTTPError as error:
             if error.response is None or error.response.status_code != 404:
                 raise
             time.sleep(delay)
-    graph.add_extension(resource, extension)
+    return call()
+
+
+def add_extension_with_retry(graph: Graph, resource: str, extension: Dict):
+    """Adds an extension, retrying 404 errors while Graph replicates the object."""
+    retry_not_found(lambda: graph.add_extension(resource, extension))
 
 
 def get_conflicting_user_id(error: HTTPError):
@@ -73,15 +74,13 @@ class CreateUserOperation(SyncOperation):
         try:
             user_id = graph.create_user(self.user)
         except HTTPError as error:
-            if timezone.localdate() != TEMPORARY_ORPHAN_RECOVERY_DATE:
-                raise
             conflicting_user_id = get_conflicting_user_id(error)
-            if conflicting_user_id:
-                existing_user = graph.get_user(conflicting_user_id)
-            else:
-                existing_user = graph.get_user_by_immutable_id(self.user.immutable_id)
-            if existing_user is None:
+            if conflicting_user_id is None:
                 raise
+            if graph.get_deleted_user_immutable_id(conflicting_user_id) != self.user.immutable_id:
+                raise
+            user_id = graph.restore_deleted_user(conflicting_user_id)
+            existing_user = retry_not_found(lambda: graph.get_user(user_id))
             if existing_user.immutable_id != self.user.immutable_id:
                 raise RuntimeError('Microsoft Graph user {} has a conflicting immutable ID'.format(
                     existing_user.user_principal_name))

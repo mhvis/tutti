@@ -1,4 +1,3 @@
-from datetime import date
 from unittest.mock import Mock, patch
 
 from django.conf import settings
@@ -6,7 +5,7 @@ from django.test import TestCase, override_settings
 from requests import HTTPError
 
 from sync.aad.graph import Graph, GraphGroup, GraphUser
-from sync.aad.operations import CreateUserOperation, TEMPORARY_ORPHAN_RECOVERY_DATE, add_extension_with_retry
+from sync.aad.operations import CreateUserOperation, add_extension_with_retry
 
 
 class GraphErrorTestCase(TestCase):
@@ -52,23 +51,7 @@ class GraphErrorTestCase(TestCase):
         sleep.assert_called_once_with(1)
 
     @override_settings(GRAPH_LICENSE_SKU_ID=None)
-    @patch('sync.aad.operations.timezone.localdate', return_value=TEMPORARY_ORPHAN_RECOVERY_DATE)
-    def test_create_user_operation_adopts_existing_user_without_extension(self, localdate):
-        graph = Mock()
-        graph.create_user.side_effect = HTTPError('400 Client Error')
-        graph.get_user_by_immutable_id.return_value = GraphUser(
-            'Test User', 'Test', 'test', 'en-US', 'User', 'test@example.com', 'immutable-id',
-            directory_id='existing-user-id')
-        user = GraphUser('Test User', 'Test', 'test', 'en-US', 'User', 'test@example.com', 'immutable-id',
-                         extension={'tuttiId': 1})
-
-        CreateUserOperation(user).apply(graph)
-
-        graph.add_extension.assert_called_once_with('users/existing-user-id/extensions', {'tuttiId': 1})
-
-    @override_settings(GRAPH_LICENSE_SKU_ID=None)
-    @patch('sync.aad.operations.timezone.localdate', return_value=TEMPORARY_ORPHAN_RECOVERY_DATE)
-    def test_create_user_operation_adopts_conflicting_graph_user(self, localdate):
+    def test_create_user_operation_restores_conflicting_deleted_user(self):
         response = Mock()
         response.json.return_value = {
             'error': {
@@ -80,22 +63,23 @@ class GraphErrorTestCase(TestCase):
         }
         graph = Mock()
         graph.create_user.side_effect = HTTPError('400 Client Error', response=response)
+        graph.get_deleted_user_immutable_id.return_value = 'immutable-id'
+        graph.restore_deleted_user.return_value = '75f4c728-a149-4328-84e1-bde0875cacab'
         graph.get_user.return_value = GraphUser(
             'Test User', 'Test', 'test', 'en-US', 'User', 'test@example.com', 'immutable-id',
-            directory_id='75f4c728-a149-4328-84e1-bde0875cacab')
+            directory_id='75f4c728-a149-4328-84e1-bde0875cacab', extension={'tuttiId': 1})
         user = GraphUser('Test User', 'Test', 'test', 'en-US', 'User', 'test@example.com', 'immutable-id',
                          extension={'tuttiId': 1})
 
         CreateUserOperation(user).apply(graph)
 
+        graph.get_deleted_user_immutable_id.assert_called_once_with('75f4c728-a149-4328-84e1-bde0875cacab')
+        graph.restore_deleted_user.assert_called_once_with('75f4c728-a149-4328-84e1-bde0875cacab')
         graph.get_user.assert_called_once_with('75f4c728-a149-4328-84e1-bde0875cacab')
-        graph.get_user_by_immutable_id.assert_not_called()
-        graph.add_extension.assert_called_once_with('users/75f4c728-a149-4328-84e1-bde0875cacab/extensions',
-                                                    {'tuttiId': 1})
+        graph.add_extension.assert_not_called()
 
     @override_settings(GRAPH_LICENSE_SKU_ID=None)
-    @patch('sync.aad.operations.timezone.localdate', return_value=date(2026, 9, 7))
-    def test_create_user_operation_does_not_adopt_user_after_recovery_date(self, localdate):
+    def test_create_user_operation_reraises_unidentified_conflict(self):
         graph = Mock()
         graph.create_user.side_effect = HTTPError('400 Client Error')
         user = GraphUser('Test User', 'Test', 'test', 'en-US', 'User', 'test@example.com', 'immutable-id',
@@ -104,9 +88,8 @@ class GraphErrorTestCase(TestCase):
         with self.assertRaisesRegex(HTTPError, '400 Client Error'):
             CreateUserOperation(user).apply(graph)
 
-        graph.get_user.assert_not_called()
-        graph.get_user_by_immutable_id.assert_not_called()
-
+        graph.get_deleted_user_immutable_id.assert_not_called()
+        graph.restore_deleted_user.assert_not_called()
 
 class AADTestCase(TestCase):
     """Some test cases for Azure Active Directory.
