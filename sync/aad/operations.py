@@ -2,6 +2,7 @@ from abc import ABCMeta
 from datetime import date
 import time
 from typing import Dict
+from uuid import UUID
 
 from django.conf import settings
 from django.utils import timezone
@@ -27,6 +28,27 @@ def add_extension_with_retry(graph: Graph, resource: str, extension: Dict):
     graph.add_extension(resource, extension)
 
 
+def get_conflicting_user_id(error: HTTPError):
+    """Returns the user ID in a Graph immutable-ID conflict response, if present."""
+    if error.response is None:
+        return None
+    try:
+        details = error.response.json()['error'].get('details', [])
+    except (KeyError, ValueError):
+        return None
+    for detail in details:
+        target = detail.get('target', '')
+        if detail.get('code') != 'ConflictingObjects' or not target.startswith('User_'):
+            continue
+        user_id = target.removeprefix('User_')
+        try:
+            UUID(user_id)
+        except ValueError:
+            continue
+        return user_id
+    return None
+
+
 class SyncOperation:
     """Operation to be applied in Azure Active Directory."""
 
@@ -50,12 +72,19 @@ class CreateUserOperation(SyncOperation):
         """Creates the user with extension data and assigns the license."""
         try:
             user_id = graph.create_user(self.user)
-        except HTTPError:
+        except HTTPError as error:
             if timezone.localdate() != TEMPORARY_ORPHAN_RECOVERY_DATE:
                 raise
-            existing_user = graph.get_user_by_immutable_id(self.user.immutable_id)
+            conflicting_user_id = get_conflicting_user_id(error)
+            if conflicting_user_id:
+                existing_user = graph.get_user(conflicting_user_id)
+            else:
+                existing_user = graph.get_user_by_immutable_id(self.user.immutable_id)
             if existing_user is None:
                 raise
+            if existing_user.immutable_id != self.user.immutable_id:
+                raise RuntimeError('Microsoft Graph user {} has a conflicting immutable ID'.format(
+                    existing_user.user_principal_name))
             if existing_user.extension is None:
                 add_extension_with_retry(graph, 'users/{}/extensions'.format(existing_user.directory_id),
                                          self.user.extension)

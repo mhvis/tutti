@@ -367,6 +367,16 @@ class Graph:
             raise RuntimeError('Multiple Microsoft Graph users have immutable ID {}'.format(immutable_id))
         return users[0] if users else None
 
+    def get_user(self, user_id: str) -> GraphUser:
+        """Returns the user with the specified directory ID."""
+        fields = ['id', 'displayName', 'givenName', 'mailNickname', 'preferredLanguage', 'surname',
+                  'userPrincipalName', 'onPremisesImmutableId']
+        params = {
+            '$select': ','.join(fields),
+            '$expand': "extensions($filter=id eq '{}')".format(self.extension_id),
+        }
+        return GraphUser.from_object(self.call_resource('users/{}'.format(user_id), params=params).json())
+
     def add_group_member(self, group_id: str, user_id: str):
         self.call_resource(resource="groups/{id}/members/$ref".format(id=group_id),
                            method="POST",
