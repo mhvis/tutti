@@ -1,8 +1,7 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from django.db.models import Q
 from django.test import TestCase
-from django.utils import timezone
 
 from members.models import Person, QGroup, GroupMembership, Instrument, ExternalCard, ExternalCardLoan, Key
 from sync.clone import clone, CloneError

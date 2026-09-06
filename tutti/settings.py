@@ -64,8 +64,6 @@ INSTALLED_APPS = [
     'localflavor',
     'django_countries',
     'health_check',  # django-health-check
-    'health_check.db',
-    'health_check.storage',
     'import_export',  # django-import-export
     'django_q',
     'bootstrap4',

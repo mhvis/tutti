@@ -1,4 +1,4 @@
-django<5  # django-q doesn't work with version 5
+django
 ldap3
 django-phonenumber-field
 phonenumbers
@@ -13,7 +13,7 @@ msal
 xlsxwriter
 whitenoise[brotli]
 django-environ
-django-q
+django-q2
 django-bootstrap4
 django-multiselectfield
 matplotlib
