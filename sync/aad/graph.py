@@ -345,17 +345,11 @@ class Graph:
         Returns:
             The object ID of the created user.
         """
-        body = user.create_body()
-        if user.extension:
-            body['extensions'] = [self.extension_body(user.extension)]
-        response = self.call_resource(resource='users', method='POST', json=body)
+        response = self.call_resource(resource='users', method='POST', json=user.create_body())
         return response.json()['id']
 
     def create_group(self, group: GraphGroup) -> str:
-        body = group.create_body()
-        if group.extension:
-            body['extensions'] = [self.extension_body(group.extension)]
-        response = self.call_resource(resource='groups', method='POST', json=body)
+        response = self.call_resource(resource='groups', method='POST', json=group.create_body())
         return response.json()['id']
 
     def get_user_by_immutable_id(self, immutable_id: str) -> Optional[GraphUser]:

@@ -6,7 +6,7 @@ from django.test import TestCase, override_settings
 from requests import HTTPError
 
 from sync.aad.graph import Graph, GraphGroup, GraphUser
-from sync.aad.operations import CreateUserOperation, TEMPORARY_ORPHAN_RECOVERY_DATE
+from sync.aad.operations import CreateUserOperation, TEMPORARY_ORPHAN_RECOVERY_DATE, add_extension_with_retry
 
 
 class GraphErrorTestCase(TestCase):
@@ -26,7 +26,7 @@ class GraphErrorTestCase(TestCase):
         self.assertIs(context.exception.response, response)
 
     @patch('sync.aad.graph.requests.request')
-    def test_create_user_includes_extension(self, request):
+    def test_create_user_does_not_include_extension(self, request):
         response = Mock()
         response.json.return_value = {'id': 'user-id'}
         request.return_value = response
@@ -38,11 +38,18 @@ class GraphErrorTestCase(TestCase):
         graph.create_user(user)
 
         body = request.call_args.kwargs['json']
-        self.assertEqual([{
-            '@odata.type': 'microsoft.graph.openTypeExtension',
-            'extensionName': 'nl.esmgquadrivium.tutti',
-            'tuttiId': 1,
-        }], body['extensions'])
+        self.assertNotIn('extensions', body)
+
+    @patch('sync.aad.operations.time.sleep')
+    def test_add_extension_retries_404_with_exponential_backoff(self, sleep):
+        graph = Mock()
+        response = Mock(status_code=404)
+        graph.add_extension.side_effect = [HTTPError('404 Client Error', response=response), None]
+
+        add_extension_with_retry(graph, 'users/user-id/extensions', {'tuttiId': 1})
+
+        self.assertEqual(2, graph.add_extension.call_count)
+        sleep.assert_called_once_with(1)
 
     @override_settings(GRAPH_LICENSE_SKU_ID=None)
     @patch('sync.aad.operations.timezone.localdate', return_value=TEMPORARY_ORPHAN_RECOVERY_DATE)
@@ -57,7 +64,7 @@ class GraphErrorTestCase(TestCase):
 
         CreateUserOperation(user).apply(graph)
 
-        graph.add_user_extension.assert_called_once_with('existing-user-id', {'tuttiId': 1})
+        graph.add_extension.assert_called_once_with('users/existing-user-id/extensions', {'tuttiId': 1})
 
     @override_settings(GRAPH_LICENSE_SKU_ID=None)
     @patch('sync.aad.operations.timezone.localdate', return_value=date(2026, 9, 7))
@@ -89,8 +96,7 @@ class AADTestCase(TestCase):
 
     def test_user(self):
         """Tests user creation, update, license, extension and deletion."""
-        user = GraphUser("Random Person", "Random", "testcase", "en-us", "Person", "testcase@esmgquadrivium.nl",
-                         'asdf', extension={'Hello': "World"})
+        user = GraphUser("Random Person", "Random", "testcase", "en-us", "Person", "testcase@esmgquadrivium.nl", 'asdf')
 
         def get_user(graph: Graph, user_id: str):
             # Get user
@@ -104,6 +110,8 @@ class AADTestCase(TestCase):
         try:
             # Create user
             user_id = self.graph.create_user(user)
+            # Add extension data
+            self.graph.add_user_extension(user_id, {'Hello': "World"})
             # Assign Office 365 license (without Exchange)
             self.graph.assign_license(user_id=user_id,
                                       sku_id='6634e0ce-1a9f-428c-a498-f84ec7b8aa2e',
@@ -137,8 +145,9 @@ class AADTestCase(TestCase):
     def test_group(self):
         """Tests group creation and deletion, but not membership add/delete."""
         try:
-            group = GraphGroup("Group for a test case.", "Test Group", 'testgroup', extension={'hello': 'world'})
+            group = GraphGroup("Group for a test case.", "Test Group", 'testgroup')
             group_id = self.graph.create_group(group)
+            self.graph.add_group_extension(group_id, {'hello': 'world'})
             # Skip checking the created group (could add)
             self.graph.update_group(group_id, {'displayName': "Test Group 2"})
             self.graph.delete_group(group_id)

@@ -1,5 +1,6 @@
 from abc import ABCMeta
 from datetime import date
+import time
 from typing import Dict
 
 from django.conf import settings
@@ -10,6 +11,20 @@ from sync.aad.graph import GraphUser, GraphGroup, Graph
 
 
 TEMPORARY_ORPHAN_RECOVERY_DATE = date(2026, 9, 6)
+EXTENSION_RETRY_DELAYS = (1, 2, 4, 8, 16, 32, 64, 128)
+
+
+def add_extension_with_retry(graph: Graph, resource: str, extension: Dict):
+    """Adds an extension, retrying 404 errors while Graph replicates the object."""
+    for delay in EXTENSION_RETRY_DELAYS:
+        try:
+            graph.add_extension(resource, extension)
+            return
+        except HTTPError as error:
+            if error.response is None or error.response.status_code != 404:
+                raise
+            time.sleep(delay)
+    graph.add_extension(resource, extension)
 
 
 class SyncOperation:
@@ -42,11 +57,14 @@ class CreateUserOperation(SyncOperation):
             if existing_user is None:
                 raise
             if existing_user.extension is None:
-                graph.add_user_extension(existing_user.directory_id, self.user.extension)
+                add_extension_with_retry(graph, 'users/{}/extensions'.format(existing_user.directory_id),
+                                         self.user.extension)
             elif existing_user.extension.get('tuttiId') != self.user.extension['tuttiId']:
                 raise RuntimeError('Microsoft Graph user {} has a conflicting Tutti extension'.format(
                     existing_user.user_principal_name))
             user_id = existing_user.directory_id
+        else:
+            add_extension_with_retry(graph, 'users/{}/extensions'.format(user_id), self.user.extension)
 
         if settings.GRAPH_LICENSE_SKU_ID:
             # Assign Microsoft 365 license
@@ -87,7 +105,8 @@ class CreateGroupOperation(SyncOperation):
         return "CreateGroup({})".format(repr(self.group))
 
     def apply(self, graph: Graph):
-        graph.create_group(self.group)
+        group_id = graph.create_group(self.group)
+        add_extension_with_retry(graph, 'groups/{}/extensions'.format(group_id), self.group.extension)
 
 
 class DeleteGroupOperation(SyncOperation):
