@@ -23,8 +23,9 @@ ENV DJANGO_STATIC_ROOT=/app/static DJANGO_MEDIA_ROOT=/app/media DJANGO_SECRET_KE
 RUN mkdir /app/static /app/media && python manage.py collectstatic --noinput
 ENV DJANGO_SECRET_KEY=''
 
-# Create user
-RUN useradd -u 1001 appuser && chown appuser /app/media
+# Create user and a writable cache location for Fontconfig (used by Matplotlib).
+RUN useradd --create-home -u 1001 appuser && chown appuser /app/media
+ENV HOME=/home/appuser XDG_CACHE_HOME=/home/appuser/.cache
 USER appuser
 
 # The SHA1 hash of the commit
