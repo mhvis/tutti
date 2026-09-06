@@ -10,6 +10,8 @@ from django.views import View
 from django.views.decorators.cache import never_cache
 from django.views.generic import TemplateView
 
+from authlib.integrations.base_client import OAuthError
+
 from oidc.registry import oauth
 
 REDIRECT_FIELD_NAME = 'next'
@@ -44,7 +46,14 @@ class AuthView(View):
 
     def get(self, request, *args, **kwargs):
         # Get and parse access token + ID token
-        token = oauth.keycloak.authorize_access_token(request)
+        try:
+            token = oauth.keycloak.authorize_access_token(request)
+        except OAuthError:
+            # Keycloak sends an OAuth error callback when its authentication
+            # session has expired.  This is a recoverable login state, not an
+            # application error; starting a new authorization request gives
+            # the user a fresh Keycloak session.
+            return redirect('oidc:login')
         id_token = oauth.keycloak.parse_id_token(request, token)
         # Retrieve user
         user = self.get_user(id_token)

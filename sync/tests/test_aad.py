@@ -91,6 +91,7 @@ class GraphErrorTestCase(TestCase):
         graph.get_deleted_user_immutable_id.assert_not_called()
         graph.restore_deleted_user.assert_not_called()
 
+
 class AADTestCase(TestCase):
     """Some test cases for Azure Active Directory.
 
