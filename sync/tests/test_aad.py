@@ -1,8 +1,27 @@
+from unittest.mock import Mock, patch
+
 from django.conf import settings
 from django.test import TestCase
 from requests import HTTPError
 
 from sync.aad.graph import Graph, GraphUser, GraphGroup
+
+
+class GraphErrorTestCase(TestCase):
+    @patch('sync.aad.graph.requests.request')
+    def test_call_includes_graph_error_in_raised_exception(self, request):
+        """Graph error details remain available to asynchronous task logs."""
+        response = Mock()
+        response.text = '{"error":{"code":"Request_BadRequest","message":"Invalid value"}}'
+        response.raise_for_status.side_effect = HTTPError('400 Client Error', response=response)
+        request.return_value = response
+        graph = Graph('tenant', 'client-id', 'client-secret')
+        graph.get_access_token = Mock(return_value='token')
+
+        with self.assertRaisesRegex(HTTPError, 'Request_BadRequest') as context:
+            graph.call('https://graph.microsoft.com/v1.0/users', method='POST')
+
+        self.assertIs(context.exception.response, response)
 
 
 class AADTestCase(TestCase):

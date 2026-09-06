@@ -6,8 +6,7 @@ from uuid import uuid4
 import requests
 import logging
 from django.conf import settings
-from requests import Response
-from urllib3.exceptions import HTTPError
+from requests import HTTPError, Response
 
 logger = logging.getLogger(__name__)
 
@@ -230,8 +229,9 @@ class Graph:
             try:
                 response.raise_for_status()
             except HTTPError as http_err:
-                logger.error(response.text)
-                raise http_err
+                message = "Microsoft Graph {} {} failed: {}".format(method, url, response.text)
+                logger.error(message)
+                raise HTTPError(message, response=response) from http_err
 
         return response
 
