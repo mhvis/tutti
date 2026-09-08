@@ -268,7 +268,7 @@ class PersonAdmin(admin.ModelAdmin):
     #     except GroupMembership.DoesNotExist:
     #         return None
 
-    def lookup_allowed(self, lookup, value):
+    def lookup_allowed(self, lookup, value, request):
         # Don't allow lookups involving passwords.
         # return not lookup.startswith('password') and super().lookup_allowed(lookup, value)
         # But do allow the rest, so that we can create some cool queries in the address bar
