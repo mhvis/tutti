@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import List, Dict
 
 from django.conf import settings
@@ -27,7 +27,7 @@ class FaQtsView(LoginRequiredMixin, TemplateView):
 
         # Members plot
         dates, count = group_size_curve(QGroup.objects.get_members_group())
-        idx = dates > datetime(2018, 1, 1, tzinfo=timezone.utc)  # We start at 2018
+        idx = dates > datetime(2018, 1, 1, tzinfo=UTC)  # We start at 2018
         plots['members_count_plot'] = date_plot(dates[idx], count[idx], title="Number of members")
 
         # Sub-association plots
