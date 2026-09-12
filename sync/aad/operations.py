@@ -171,7 +171,13 @@ class AddGroupMemberOperation(BaseGroupMemberOperation):
         return "AddGroupMember({}, {})".format(self.group.display_name, self.user.user_principal_name)
 
     def apply(self, graph: Graph):
-        graph.add_group_member(self.group.directory_id, self.user.directory_id)
+        try:
+            graph.add_group_member(self.group.directory_id, self.user.directory_id)
+        except HTTPError as error:
+            # Adding an existing reference is the desired final state. Graph
+            # can return stale membership data shortly after a previous sync.
+            if not is_existing_member_error(error):
+                raise
 
 
 class RemoveGroupMemberOperation(BaseGroupMemberOperation):
@@ -179,4 +185,20 @@ class RemoveGroupMemberOperation(BaseGroupMemberOperation):
         return "RemoveGroupMember({}, {})".format(self.group.display_name, self.user.user_principal_name)
 
     def apply(self, graph: Graph):
-        graph.remove_group_member(self.group.directory_id, self.user.directory_id)
+        try:
+            graph.remove_group_member(self.group.directory_id, self.user.directory_id)
+        except HTTPError as error:
+            # Deleting an absent reference is likewise already complete.
+            if error.response is None or error.response.status_code != 404:
+                raise
+
+
+def is_existing_member_error(error: HTTPError) -> bool:
+    """Whether Graph rejected an add because the membership already exists."""
+    if error.response is None or error.response.status_code != 400:
+        return False
+    try:
+        graph_error = error.response.json()['error']
+    except (KeyError, ValueError):
+        return False
+    return graph_error.get('code') == 'Request_BadRequest' and 'added object references already exist' in graph_error.get('message', '').lower()
